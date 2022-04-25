@@ -1,1 +1,1 @@
-# rc-project
+# EasyBooking
