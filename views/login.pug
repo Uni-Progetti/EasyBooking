@@ -1,0 +1,22 @@
+doctype html
+head
+  meta(charset='utf-8')
+  meta(name='viewport' content='width=device-width, initial-scale=1')
+  link(rel='stylesheet', type='text/css', href='/stylesheets/style.css')
+  link(rel='stylesheet', type='text/css', href='/stylesheets/login.css')
+
+
+section.prompt
+  h1 Sign in
+  form(action='/login/password' method='post')
+    section
+      label(for='username') Username
+      input#username(name='username' type='text' autocomplete='username' required='' autofocus='')
+    section
+      label(for='current-password') Password
+      input#current-password(name='password' type='password' autocomplete='current-password' required='')
+    button(type='submit') Sign in
+  hr
+  p.help
+    | Don't have an account? 
+    a(href='/signup') Sign up
