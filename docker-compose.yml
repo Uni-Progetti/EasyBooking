@@ -73,7 +73,7 @@ services:
 
   couchdb:
     image: couchdb
-    restart: always
+    #restart: always
     ports:
       - "5984:5984"
     volumes:

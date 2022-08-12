@@ -5,18 +5,22 @@ var LocalStrategy = require('passport-local');
 var crypto = require('crypto');
 const { render } = require('../app');
 const nano = require('nano')('http://admin:secret@couchdb:5984');
-// var db = nano.db.use('users')
+var db = nano.db.use('users')
 
 passport.use(new LocalStrategy(function verify(username, password, cb) {
-    db.get(username.toString(), (err, data) => {
-        // errors are in 'err' & response is in 'data'
-        if(err){
-            console.log("\n\n\nErrore ",err,"\n\n\n");
-            return cb(err);
-        }else{
-            console.log("\n\n\n",data.hashed_password,"\n\n\n");
-            return cb(null, false, { message: 'Incorrect username or password.' });
+    db.get( username , function(err, user) {
+      if (err) { return cb(err); }
+      if (!user) { return cb(null, false, { message: 'Incorrect username or password.' }); }
+      //console.log(user._id.toString());
+      //console.log(user.hashed_password.data);
+      crypto.pbkdf2(password, Buffer.from(user.salt.data), 310000, 32, 'sha256', function(err, hashedPassword) {
+        if (err) { return cb(err); }
+        if (!crypto.timingSafeEqual(Buffer.from(user.hashed_password.data), hashedPassword)) {
+          return cb(null, false, { message: 'Incorrect username or password.' });
         }
+        //console.log("\n\n",user.email,"\n\n");
+        return cb(null, user);
+      });
     });
 }));
 
@@ -30,19 +34,47 @@ router.post('/login/password', passport.authenticate('local', {
     failureRedirect: '/login'
 }));
 
-passport.use(new LocalStrategy(function verify(username, password, cb) {
-    db.get('SELECT * FROM users WHERE username = ?', [ username ], function(err, row) {
-      if (err) { return cb(err); }
-      if (!row) { return cb(null, false, { message: 'Incorrect username or password.' }); }
-  
-      crypto.pbkdf2(password, row.salt, 310000, 32, 'sha256', function(err, hashedPassword) {
-        if (err) { return cb(err); }
-        if (!crypto.timingSafeEqual(row.hashed_password, hashedPassword)) {
-          return cb(null, false, { message: 'Incorrect username or password.' });
-        }
-        return cb(null, row);
+router.post('/logout', function(req, res, next) {
+    req.logout(function(err) {
+      if (err) { return next(err); }
+      res.redirect('/');
+    });
+});
+
+router.get('/signup', function(req, res, next) {
+    res.render('signup.ejs');
+});
+
+router.post('/signup', function(req, res, next) {
+    var salt = crypto.randomBytes(16);
+    crypto.pbkdf2(req.body.password, salt, 310000, 32, 'sha256', function(err, hashedPassword) {
+      if (err) { return next(err); }
+      const doc ={ _id: req.body.username ,email: req.body.username, hashed_password: hashedPassword, salt: salt };
+      db.insert( doc , function(err) {
+        if (err) { return next(err); }
+        var user = {
+          id: this.lastID,
+          username: req.body.username
+        };
+        req.login(user, function(err) {
+          if (err) { return next(err); }
+          res.redirect('/');
+        });
       });
     });
-}));
+});
+
+passport.serializeUser(function(user, cb) {
+    process.nextTick(function() {
+        console.log("\n\n\n---> ",user.email," <---\n\n\n");
+        cb(null, { id: user._id, username: user.email });
+    });
+});
+  
+passport.deserializeUser(function(user, cb) {
+    process.nextTick(function() {
+        return cb(null, user);
+    });
+});
 
 module.exports = router;

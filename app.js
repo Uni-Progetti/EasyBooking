@@ -5,6 +5,16 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var passport = require('passport');
 var session = require('express-session');
+const Expression = require('couchdb-expression')(session);
+const store = new Expression({
+  username: 'admin',         // default value = 'admin'
+  password: 'secret',     // default value = 'password'
+  hostname: 'couchdb',    // default value = 'localhost'
+  port: '5984',             // default value = 5984
+  database: 'sessions',     // default value = 'sessions'
+  https: false              // default value = false
+});
+
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
@@ -21,6 +31,13 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(session({
+  store: store,
+  secret: 'meow',
+  resave: false,
+  saveUninitialized: true,
+}));
+app.use(passport.authenticate('session'));
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
