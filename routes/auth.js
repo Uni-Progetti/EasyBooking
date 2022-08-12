@@ -5,7 +5,7 @@ var LocalStrategy = require('passport-local');
 var crypto = require('crypto');
 const { render } = require('../app');
 const nano = require('nano')('http://admin:secret@couchdb:5984');
-var db = nano.db.use('users')
+// var db = nano.db.use('users')
 
 passport.use(new LocalStrategy(function verify(username, password, cb) {
     db.get(username.toString(), (err, data) => {
