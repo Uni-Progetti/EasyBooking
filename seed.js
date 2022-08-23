@@ -1,4 +1,5 @@
 const NodeCouchDb = require('node-couchdb')
+var crypto = require('crypto');
 
 const couch = new NodeCouchDb({
     auth: {
@@ -8,6 +9,8 @@ const couch = new NodeCouchDb({
 })
 
 const dbName = 'db'
+var hashedPassword1='';
+var defSalt1='';
 
 // Se il db esiste gia lo distrugge e poi lo ricrea
 couch.listDatabases().then(function(dbs){
@@ -39,49 +42,60 @@ couch.listDatabases().then(function(dbs){
 
 // Inserisce le view e gli utenti nel db e infine chiama insert_dep
 function seeding(){
+    const defSalt = crypto.randomBytes(16);
+    defSalt1 = defSalt;
+    var defHash = "";
+    crypto.pbkdf2('Password.0', defSalt, 310000, 32, 'sha256', function(err, hashedPassword) {
+        if (err) { return next(err); }
+        defHash = hashedPassword;
+        hashedPassword1 = hashedPassword;
 
-    couch.insert(dbName, { "_id": "_design/User", "views": {
-        "0_All_Users":     { "map": "function (doc) { if (doc.type == 'User') emit( doc._id, { email: doc.fields.email, role: doc.fields.role, password: doc.fields.password, rev: doc._rev } ) }" },
-        "1_Base_Users":    { "map": "function (doc) { if (doc.type == 'User' & doc.fields.role == 'user') emit( doc._id, { email: doc.fields.email, role: doc.fields.role, password: doc.fields.password, rev: doc._rev }); }" },
-        "2_Manager_Users": { "map": "function (doc) { if (doc.type == 'User' & doc.fields.role == 'manager') emit( doc._id, { email: doc.fields.email, role: doc.fields.role, password: doc.fields.password, rev: doc._rev }); }" },
-        "3_admin_Users":   { "map": "function (doc) { if (doc.type == 'User' & doc.fields.role == 'admin') emit( doc._id, { email: doc.fields.email, role: doc.fields.role, password: doc.fields.password, rev: doc._rev }); }" }
-        }, "language": "javascript" }).then(
-        function(data, headers, status){
-            console.log("Views: Users\n0_All_Users,\n1_Base_Users,\n2_Manager_Users,\n3_admin_Users")
+        couch.insert(dbName, { "_id": "_design/User", "views": {
+            "0_All_Users":     { "map": "function (doc) { if (doc.type == 'User') emit( doc._id, { email: doc.fields.email, role: doc.fields.role, password: doc.fields.password, rev: doc._rev } ) }" },
+            "1_Base_Users":    { "map": "function (doc) { if (doc.type == 'User' & doc.fields.role == 'user') emit( doc._id, { email: doc.fields.email, role: doc.fields.role, password: doc.fields.password, rev: doc._rev }); }" },
+            "2_Manager_Users": { "map": "function (doc) { if (doc.type == 'User' & doc.fields.role == 'manager') emit( doc._id, { email: doc.fields.email, role: doc.fields.role, password: doc.fields.password, rev: doc._rev }); }" },
+            "3_admin_Users":   { "map": "function (doc) { if (doc.type == 'User' & doc.fields.role == 'admin') emit( doc._id, { email: doc.fields.email, role: doc.fields.role, password: doc.fields.password, rev: doc._rev }); }" },
+            "credentials":     { "map": "function (doc) { if (doc.type == 'User') emit( doc.fields.email, [doc.fields.password, doc.fields.salt]); }" }
+            }, "language": "javascript" }).then(
+            function(data, headers, status){
+                console.log("Views: Users\n0_All_Users,\n1_Base_Users,\n2_Manager_Users,\n3_admin_Users")
 
-            const usr_array = [
-                { email: "fra.user@gmail.com", password: "Password.0", role: 'user' },
-                { email: "matteo.user@gmail.com", password: "Password.0", role: 'user' },
-                { email: "michela.user@gmail.com", password: "Password.0", role: 'user' },
-                { email: "donia.user@gmail.com", password: "Password.0", role: 'user' },
-        
-                { email: "fra.manager@gmail.com", password: "Password.0", role: 'manager' },
-                { email: "matteo.manager@gmail.com", password: "Password.0", role: 'manager' },
-                { email: "michela.manager@gmail.com", password: "Password.0", role: 'manager' },
-                { email: "donia.manager@gmail.com", password: "Password.0", role: 'manager' },
-                { email: "test.manager@gmail.com", password: "Password.0", role: 'manager' },
-        
-                { email: "fra.admin@gmail.com", password: "Password.0", role: 'admin' },
-                { email: "michela.admin@gmail.com", password: "Password.0", role: 'admin' }
-            ]
-            var usr_count = 0
-            usr_array.forEach(function(usr){
-                couch.uniqid().then(function(ids){ const id = ids[0]
+                const usr_array = [
+                    { email: "fra.user@gmail.com", password: hashedPassword, role: 'user', salt: defSalt },
+                    { email: "matteo.user@gmail.com", password: hashedPassword, role: 'user', salt: defSalt  },
+                    { email: "michela.user@gmail.com", password: hashedPassword, role: 'user', salt: defSalt  },
+                    { email: "donia.user@gmail.com", password: hashedPassword, role: 'user', salt: defSalt  },
+            
+                    { email: "fra.manager@gmail.com", password: hashedPassword, role: 'manager', salt: defSalt  },
+                    { email: "matteo.manager@gmail.com", password: hashedPassword, role: 'manager', salt: defSalt  },
+                    { email: "michela.manager@gmail.com", password: hashedPassword, role: 'manager', salt: defSalt  },
+                    { email: "donia.manager@gmail.com", password: hashedPassword, role: 'manager', salt: defSalt  },
+                    { email: "test.manager@gmail.com", password: hashedPassword, role: 'manager', salt: defSalt  },
+            
+                    { email: "fra.admin@gmail.com", password: hashedPassword, role: 'admin', salt: defSalt  },
+                    { email: "michela.admin@gmail.com", password: hashedPassword, role: 'admin', salt: defSalt  },
+                    { email: "matteo.admin@gmail.com", password: hashedPassword, role: 'admin', salt: defSalt  }
+                ]
+                var usr_count = 0
+                usr_array.forEach(function(usr){
+                    couch.uniqid().then(function(ids){ const id = ids[0]
 
-                    couch.insert(dbName, { īd: id, type: "User", fields: usr }).then(
-                        function(data, headers, status){
-                            console.log("USR: "+usr.email)
-                            usr_count += 1
-                            if (usr_count == 11) { insert_dep() }
-                        },
-                        function(err){ console.log(err) }
-                    )
+                        couch.insert(dbName, { īd: id, type: "User", fields: usr }).then(
+                            function(data, headers, status){
+                                console.log("USR: "+usr.email)
+                                usr_count += 1
+                                if (usr_count == 11) { insert_dep() }
+                            },
+                            function(err){ console.log(err) }
+                        )
 
+                    })
                 })
-            })
-        },
-        function(err){ console.log(err) }
-    )
+            },
+            function(err){ console.log(err) }
+        )
+    });
+
     couch.insert(dbName, { "_id": "_design/Department", "views": {
         "0_All_Departments": { "map": "function (doc) { if (doc.type == 'Department') emit( doc._id, { name: doc.fields.name, manager: doc.fields.manager, rev: doc._rev } ) }" }
         }, "language": "javascript" }).then(
@@ -96,19 +110,20 @@ function seeding(){
 function insert_dep(){
 
     const usr_set = {
-        fra_usr: { email: "fra.user@gmail.com", password: "Password.0", role: 'user' },
-        mat_usr: { email: "matteo.user@gmail.com", password: "Password.0", role: 'user' },
-        mic_usr: { email: "michela.user@gmail.com", password: "Password.0", role: 'user' },
-        don_usr: { email: "donia.user@gmail.com", password: "Password.0", role: 'user' },
+        fra_usr: { email: "fra.user@gmail.com", password: hashedPassword1, role: 'user', salt: defSalt1  },
+        mat_usr: { email: "matteo.user@gmail.com", password: hashedPassword1, role: 'user', salt: defSalt1  },
+        mic_usr: { email: "michela.user@gmail.com", password: hashedPassword1, role: 'user', salt: defSalt1  },
+        don_usr: { email: "donia.user@gmail.com", password: hashedPassword1, role: 'user', salt: defSalt1  },
 
-        fra_man: { email: "fra.manager@gmail.com", password: "Password.0", role: 'manager' },
-        mat_man: { email: "matteo.manager@gmail.com", password: "Password.0", role: 'manager' },
-        mic_man: { email: "michela.manager@gmail.com", password: "Password.0", role: 'manager' },
-        don_man: { email: "donia.manager@gmail.com", password: "Password.0", role: 'manager' },
-        manager_vuoto: { email: "test.manager@gmail.com", password: "Password.0", role: 'manager' },
+        fra_man: { email: "fra.manager@gmail.com", password: hashedPassword1, role: 'manager', salt: defSalt1  },
+        mat_man: { email: "matteo.manager@gmail.com", password: hashedPassword1, role: 'manager', salt: defSalt1  },
+        mic_man: { email: "michela.manager@gmail.com", password: hashedPassword1, role: 'manager', salt: defSalt1  },
+        don_man: { email: "donia.manager@gmail.com", password: hashedPassword1, role: 'manager', salt: defSalt1  },
+        manager_vuoto: { email: "test.manager@gmail.com", password: hashedPassword1, role: 'manager', salt: defSalt1  },
 
-        fra_adm: { email: "fra.admin@gmail.com", password: "Password.0", role: 'admin' },
-        mic_adm: { email: "michela.admin@gmail.com", password: "Password.0", role: 'admin' }
+        fra_adm: { email: "fra.admin@gmail.com", password: hashedPassword1, role: 'admin', salt: defSalt1  },
+        mic_adm: { email: "michela.admin@gmail.com", password: hashedPassword1, role: 'admin', salt: defSalt1  },
+        mat_adm: { email: "matteo.admin@gmail.com", password: hashedPassword1, role: 'admin', salt: defSalt1  }
     }
     const dep_set = [
         { name: "Dipartimento di Francesco", manager: usr_set.fra_man.email, floors: 4, number_of_spaces: 4,

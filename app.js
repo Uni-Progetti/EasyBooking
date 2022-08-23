@@ -1,14 +1,15 @@
+const dotenv = require('dotenv').config()
 var createError = require('http-errors');
+var cors = require('cors');
 var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
-var passport = require('passport');
 var session = require('express-session');
 const Expression = require('couchdb-expression')(session);
 const store = new Expression({
-  username: 'admin',         // default value = 'admin'
-  password: 'secret',     // default value = 'password'
+  username: process.env.COUCHDB_USER,         // default value = 'admin'
+  password: process.env.COUCHDB_PASSWORD,     // default value = 'password'
   hostname: 'couchdb',    // default value = 'localhost'
   port: '5984',             // default value = 5984
   database: 'sessions',     // default value = 'sessions'
@@ -22,22 +23,27 @@ var authRouter = require('./routes/auth');
 
 var app = express();
 
+app.use(cors());
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
 
+app.set('trust proxy', true);
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
+app.use(cookieParser(process.env.SESSION_SECRET));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(session({
+  name: process.env.SESS_NAME,
+  proxy: true,
   store: store,
-  secret: 'meow',
+  secret: process.env.SESSION_SECRET,
+  sameSite: true,
   resave: false,
-  saveUninitialized: true,
+  saveUninitialized: false,
+  cookie: { maxAge: 1800000/* 30 minuti */ },
 }));
-app.use(passport.authenticate('session'));
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);

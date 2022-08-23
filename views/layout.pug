@@ -8,8 +8,8 @@ html
     
   section.prompt
     block content
-    if user
-      p Sei loggato come: #{user.id}
+    if userId
+      p Sei loggato come: #{userId}
       form(action='/logout' method='post')
         button(type='submit') Sign out
     else

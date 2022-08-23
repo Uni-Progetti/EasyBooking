@@ -1,15 +1,25 @@
 var express = require('express');
 var router = express.Router();
 
+/* Reindirizza al login se non autenticati. */
+const redirectLogin = function(req, res, next){
+  if(!req.session.userId){
+    res.redirect('/login');
+  } else {
+    next();
+  }
+}
+
 /* GET home page. */
-router.get('/', function(req, res, next) {
-  res.render('index', { title: 'Express', user: req.user });
-});
+router.get('/', redirectLogin ,function(req, res, next) {
+  // Cookies that have not been signed
+  const { userId } = req.session;
+  console.log('Cookies: ', req.cookies)
+  console.log('userId: ', req.session.userId)
 
-router.put('/db', function(req, res, next){
-  //curl -X PUT http://127.0.0.1:5984/my_database{"ok":true};
-
-  res.render('index', { title: 'Test DB'});
+  // Cookies that have been signed
+  console.log('Signed Cookies: ', req.signedCookies)
+  res.render('index', { title: 'Express', userId: req.session.userId });
 });
 
 module.exports = router;
