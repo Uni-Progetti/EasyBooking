@@ -51,10 +51,10 @@ function seeding(){
         hashedPassword1 = hashedPassword;
 
         couch.insert(dbName, { "_id": "_design/User", "views": {
-            "0_All_Users":     { "map": "function (doc) { if (doc.type == 'User') emit( doc._id, { email: doc.fields.email, role: doc.fields.role, password: doc.fields.password, rev: doc._rev } ) }" },
-            "1_Base_Users":    { "map": "function (doc) { if (doc.type == 'User' & doc.fields.role == 'user') emit( doc._id, { email: doc.fields.email, role: doc.fields.role, password: doc.fields.password, rev: doc._rev }); }" },
-            "2_Manager_Users": { "map": "function (doc) { if (doc.type == 'User' & doc.fields.role == 'manager') emit( doc._id, { email: doc.fields.email, role: doc.fields.role, password: doc.fields.password, rev: doc._rev }); }" },
-            "3_admin_Users":   { "map": "function (doc) { if (doc.type == 'User' & doc.fields.role == 'admin') emit( doc._id, { email: doc.fields.email, role: doc.fields.role, password: doc.fields.password, rev: doc._rev }); }" },
+            "0_All_Users":     { "map": "function (doc) { if (doc.type == 'User') emit( doc.fields.email, { email: doc.fields.email, role: doc.fields.role, password: doc.fields.password, rev: doc._rev } ) }" },
+            "1_Base_Users":    { "map": "function (doc) { if (doc.type == 'User' & doc.fields.role == 'user') emit( doc.fields.email, { email: doc.fields.email, role: doc.fields.role, password: doc.fields.password, rev: doc._rev }); }" },
+            "2_Manager_Users": { "map": "function (doc) { if (doc.type == 'User' & doc.fields.role == 'manager') emit( doc.fields.email, { email: doc.fields.email, role: doc.fields.role, password: doc.fields.password, rev: doc._rev }); }" },
+            "3_admin_Users":   { "map": "function (doc) { if (doc.type == 'User' & doc.fields.role == 'admin') emit( doc.fields.email, { email: doc.fields.email, role: doc.fields.role, password: doc.fields.password, rev: doc._rev }); }" },
             "credentials":     { "map": "function (doc) { if (doc.type == 'User') emit( doc.fields.email, [doc.fields.password, doc.fields.salt]); }" }
             }, "language": "javascript" }).then(
             function(data, headers, status){

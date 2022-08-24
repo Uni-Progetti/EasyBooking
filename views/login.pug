@@ -1,13 +1,7 @@
-doctype html
-head
-  meta(charset='utf-8')
-  meta(name='viewport' content='width=device-width, initial-scale=1')
-  link(rel='stylesheet', type='text/css', href='/stylesheets/style.css')
-  link(rel='stylesheet', type='text/css', href='/stylesheets/login.css')
+extends layout 
 
-
-section.prompt
-  h1 Sign in
+block content
+  h4 Sign in
   form(action='/login/password' method='post')
     section
       label(for='username') Username
@@ -15,6 +9,7 @@ section.prompt
     section
       label(for='current-password') Password
       input#current-password(name='password' type='password' autocomplete='current-password' required='')
+      input(type="hidden" name="_csrf" value=csrfToken)
     button(type='submit') Sign in
   hr
   p.help

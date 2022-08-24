@@ -18,8 +18,8 @@ router.get('/', redirectLogin ,function(req, res, next) {
   console.log('userId: ', req.session.userId)
 
   // Cookies that have been signed
-  console.log('Signed Cookies: ', req.signedCookies)
-  res.render('index', { title: 'Express', userId: req.session.userId });
+  console.log('Signed Cookies: ', req.signedCookies);
+  res.render('index', { title: 'Express', userId: req.session.userId ,csrfToken: req.csrfToken()});
 });
 
 module.exports = router;

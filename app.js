@@ -1,10 +1,12 @@
 const dotenv = require('dotenv').config()
 var createError = require('http-errors');
+var csrf = require('csurf');
 var cors = require('cors');
 var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
+//var flash = require('express-flash');
 var session = require('express-session');
 const Expression = require('couchdb-expression')(session);
 const store = new Expression({
@@ -34,6 +36,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser(process.env.SESSION_SECRET));
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(__dirname + '/node_modules/bootstrap/dist'));
 app.use(session({
   name: process.env.SESS_NAME,
   proxy: true,
@@ -44,6 +47,15 @@ app.use(session({
   saveUninitialized: false,
   cookie: { maxAge: 1800000/* 30 minuti */ },
 }));
+//app.use(flash());
+//flash message middleware
+app.use((req, res, next)=>{
+  res.locals.message = req.session.message
+  delete req.session.message
+  next()
+})
+app.use(csrf());
+
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);

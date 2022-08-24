@@ -5,15 +5,27 @@ html
     meta(name='viewport' content='width=device-width, initial-scale=1')
     link(rel='stylesheet', href='/stylesheets/style.css')
     link(rel='stylesheet', type='text/css', href='/stylesheets/login.css')
-    
+    <script language="javascript" src="js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="css/bootstrap.min.css"/>
+    if message
+      if message.type=='danger'
+        div(class= "alert alert-danger alert-dismissible fade show" role='alert')
+          strong #{message.intro}
+          |  #{message.message}
+          button.btn-close(type='button' data-bs-dismiss='alert' aria-label='Close')
+      else if message.type=='warning'
+        div(class= "alert alert-warning alert-dismissible fade show" role='alert')
+          strong #{message.intro}
+          |  #{message.message}
+          button.btn-close(type='button' data-bs-dismiss='alert' aria-label='Close')
+      else 
+        div(class= "alert alert-info alert-dismissible fade show" role='alert')
+          strong #{message.intro}
+          |  #{message.message}
+          button.btn-close(type='button' data-bs-dismiss='alert' aria-label='Close')     
+  
   section.prompt
     block content
-    if userId
-      p Sei loggato come: #{userId}
-      form(action='/logout' method='post')
-        button(type='submit') Sign out
-    else
-      p Non hai effettuato il login!
-      form(action='/login' method='get')
-        button(type='submit') Login
+ 
+
 
