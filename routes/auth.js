@@ -64,13 +64,15 @@ router.get('/signup', redirectHome ,function(req, res, next) {
 });
 
 router.post('/signup', redirectHome , function(req, res, next) {
-  if(req.body.username && req.body.password && req.body.password_confirmation && req.body.password_confirmation==req.body.password && CheckPasswordAndEmail(req.body.password,req.body.username)){
+  var passCheck = CheckPassword(req.body.password);
+  var emailCheck = CheckEmail(req.body.username);
+  if(req.body.username && req.body.password && req.body.password_confirmation && req.body.password_confirmation==req.body.password && passCheck && emailCheck){
     var salt = crypto.randomBytes(16);
     crypto.pbkdf2(req.body.password, salt, 310000, 32, 'sha256', function(err, hashedPassword) {
       if (err) { return next(err); }
       createUser(req, res, salt, hashedPassword);
     });
-  } else if (CheckPasswordAndEmail(req.body.password,req.body.username)){
+  } else if (!(req.body.password_confirmation==req.body.password)){
     console.log("password e password confirmation non coincidono");
     req.session.message = {
       type: 'danger',
@@ -78,12 +80,20 @@ router.post('/signup', redirectHome , function(req, res, next) {
       message: 'I campi password e password confirmation non coincidono.'
     }
     res.redirect('/signup');
-  } else {
+  } else if (emailCheck){
     console.log("password troppo debole");
     req.session.message = {
       type: 'danger',
-      intro: 'Credenziali non valide! ',
-      message: 'Controlla email e password! N.B. La password deve contenere almeno 8 caratteri tra cui un numero, un simbolo, una maiuscola, una minuscola.'
+      intro: 'Password non valida! ',
+      message: 'Controlla la password! N.B. La password deve contenere almeno 8 caratteri tra cui un numero, un simbolo, una maiuscola, una minuscola.'
+    }
+    res.redirect('/signup');
+  } else {
+    console.log("Email non conforme");
+    req.session.message = {
+      type: 'danger',
+      intro: 'Email non valida! ',
+      message: 'Controlla email! N.B. Inserisci un indirizzo email valido.'
     }
     res.redirect('/signup');
   };
@@ -211,14 +221,24 @@ function authenticateSession(options, req, res){
   usrs.end();
 };
 
-function CheckPasswordAndEmail(password,email) { 
+function CheckPassword(password) { 
   const decimal =  /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9])(?!.*\s).{8,15}$/;
-  let regex = new RegExp("([!#-'*+/-9=?A-Z^-~-]+(\.[!#-'*+/-9=?A-Z^-~-]+)*|\"\(\[\]!#-[^-~ \t]|(\\[\t -~]))+\")@([!#-'*+/-9=?A-Z^-~-]+(\.[!#-'*+/-9=?A-Z^-~-]+)*|\[[\t -Z^-~]*])");
-  if(password.match(decimal) && regex.test(email)) { 
-    console.log('password e mail conforme');
+  if(password.match(decimal)) { 
+    console.log('password conforme');
     return true;
   } else { 
-    console.log('password o mail non conforme');
+    console.log('password non conforme');
+    return false;
+  }
+};
+
+function CheckEmail(email) { 
+  let regex = new RegExp("([!#-'*+/-9=?A-Z^-~-]+(\.[!#-'*+/-9=?A-Z^-~-]+)*|\"\(\[\]!#-[^-~ \t]|(\\[\t -~]))+\")@([!#-'*+/-9=?A-Z^-~-]+(\.[!#-'*+/-9=?A-Z^-~-]+)*|\[[\t -Z^-~]*])");
+  if(regex.test(email)) { 
+    console.log('email conforme');
+    return true;
+  } else { 
+    console.log('email non conforme');
     return false;
   }
 };
