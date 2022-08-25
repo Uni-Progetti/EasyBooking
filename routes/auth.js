@@ -3,6 +3,8 @@ var router = express.Router();
 var crypto = require('crypto');
 // const { render } = require('../app');
 const http = require('http');
+const https = require('https');
+var queryString = require('querystring');
 
 /* Reindirizza al login se non autenticati. */
 const redirectLogin = function(req, res, next){
@@ -21,6 +23,33 @@ const redirectHome = function(req, res, next){
     next();
   }
 }
+
+/* Reindirizza al login con google. */
+router.get('/google', redirectHome , function(req, res, next){
+  const stringifiedParams = new URLSearchParams({
+    client_id: process.env.GOOGLE_CLIENT_ID,
+    redirect_uri: 'https://localhost:8083/oauth2callback',
+    scope: [
+      'https://www.googleapis.com/auth/userinfo.email',
+      'https://www.googleapis.com/auth/userinfo.profile',
+    ].join(' '), // stringhe separate dagli spazi
+    response_type: 'code',
+    access_type: 'offline',
+    prompt: 'consent',
+  });
+  const googleLoginUrl = `https://accounts.google.com/o/oauth2/v2/auth?${stringifiedParams}`;
+  res.redirect(googleLoginUrl);
+});
+
+router.get('/oauth2callback', function(req, res, next){
+  if(req.query.code){
+    //console.log("req.query---->",req.query);
+    //console.log("req.query.code---->",req.query.code);
+    getToken(req,res,req.query.code);
+  } else {
+    res.redirect('login');
+  };
+});
 
 /* GET login page. */
 router.get('/login', redirectHome , function(req, res, next) {
@@ -241,6 +270,170 @@ function CheckEmail(email) {
     console.log('email non conforme');
     return false;
   }
+};
+
+function getToken(req, res, code){
+  const postData = JSON.stringify({
+    'client_id': process.env.GOOGLE_CLIENT_ID,
+    'client_secret': process.env.GOOGLE_CLIENT_SECRET,
+    'redirect_uri': 'https://localhost:8083/oauth2callback',
+    'grant_type': 'authorization_code',
+    'code': code,
+  });
+  const options = {
+    hostname: 'oauth2.googleapis.com',
+    port: 443,
+    path: '/token',
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Content-Length': Buffer.byteLength(postData)
+    },
+  };
+
+  const request = https.request(options, (out) => {
+    var bodyData='';
+    console.log(`STATUS: ${res.statusCode}`);
+    //console.log(`HEADERS: ${JSON.stringify(res.headers)}`);
+    out.setEncoding('utf8');
+    out.on('data', (chunk) => {
+      //console.log(`BODY: ${chunk}`);
+      bodyData += chunk.toString();
+    });
+    out.on('end', () => {
+      const x = JSON.parse(bodyData);
+      console.log('No more data in response.');
+      if(x && x.access_token){
+        getGoogleEmail(req, res, x.access_token, x.refresh_token);
+      } else {
+        res.redirect('/login');
+      };
+    });
+  });
+  
+  request.on('error', (e) => {
+    console.error(`problem with request: ${e.message}`);
+    req.session.message = {
+      type: 'danger',
+      intro: 'Login fallito!',
+      message: 'Tentativo di login fallito: '+e.message
+    }
+    res.redirect('/login');
+  });
+  
+  // Write data to request body
+  request.write(postData);
+  request.end();
+};
+
+function getGoogleEmail(req, res, access_token, refresh_token){
+  const options = {
+    hostname: 'www.googleapis.com',
+    port: 443,
+    path: '/oauth2/v2/userinfo',
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${access_token}`,
+    },
+  };
+
+  var data = "";
+  const usrs = https.request(options, out => {
+    console.log(`statusCode: ${out.statusCode}`);
+    out.setEncoding('utf8');
+    out.on('data', d => {
+      data += d.toString();
+      //process.stdout.write(d);
+    });
+    out.on('end', function() {
+      var x = JSON.parse(data);
+      //console.log("\n\n\nTEST GET EMAIL--->",x);
+      if(x.email){
+        var salt = crypto.randomBytes(16);
+        crypto.pbkdf2(access_token, salt, 310000, 32, 'sha256', function(err, hashedPassword) {
+          if (err) { return next(err); }
+          var AddToDB = addGoogleUserToDB(req, res, x.email, access_token, refresh_token,hashedPassword,salt);
+        });
+        req.session.userId = x.email;
+        req.session.username = x.email;
+        req.session.access_token = access_token;
+        req.session.refresh_token = refresh_token;
+        req.session.message = {
+          type: 'info',
+          intro: ' ',
+          message: 'Login avvenuto con successo.'
+        }
+        res.redirect('/');
+      }else{
+        req.session.message = {
+          type: 'danger',
+          intro: 'Errore login con Google! ',
+          message: 'Errore nella ricezione delle credenziali da Google. Riprova.'
+        }
+        res.redirect('/login');
+      };
+    });
+  });
+
+  usrs.on('error', error => {
+    console.error(error);
+    req.session.message = {
+      type: 'danger',
+      intro: 'Errore login con Google! ',
+      message: error.message
+    }
+    res.redirect('/login');
+  });
+
+  usrs.end();
+
+};
+
+function addGoogleUserToDB(req, res, email, access_token, refresh_token, hashedPassword, salt){
+  const postData = JSON.stringify({
+    "type": "User",
+    "fields": {
+      "email": email,
+      "password": hashedPassword,
+      "role": "user",
+      "salt": salt,
+      "refresh_token": refresh_token,
+      "access_token": access_token,
+    }
+  });
+  const options = {
+    hostname: 'couchdb',
+    port: 5984,
+    path: '/db/'+email,
+    method: 'PUT',
+    auth: process.env.COUCHDB_USER+":"+process.env.COUCHDB_PASSWORD,
+    headers: {
+      'Content-Type': 'application/json',
+      'Content-Length': Buffer.byteLength(postData)
+    },
+  };
+
+  const request = http.request(options, (out) => {
+    console.log(`STATUS: ${out.statusCode}`);
+    console.log(`HEADERS: ${JSON.stringify(out.headers)}`);
+    out.setEncoding('utf8');
+    out.on('data', (chunk) => {
+      console.log(`BODY: ${chunk}`);
+    });
+    out.on('end', () => {
+      console.log('No more data in response.');
+      return true;
+    });
+  });
+  
+  request.on('error', (e) => {
+    console.error(`problem with request: ${e.message}`);
+    return false;
+  });
+  
+  // Write data to request body
+  request.write(postData);
+  request.end();
 };
 
 module.exports = router;
