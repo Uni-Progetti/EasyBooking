@@ -4,7 +4,8 @@ var crypto = require('crypto');
 // const { render } = require('../app');
 const http = require('http');
 const https = require('https');
-var queryString = require('querystring');
+const amqplib = require('amqplib');
+const amqpUrl = process.env.AMQP_URL || 'amqp://localhost:5673';
 
 /* Reindirizza al login se non autenticati. */
 const redirectLogin = function(req, res, next){
