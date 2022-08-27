@@ -1,13 +1,15 @@
 extends layout
 
 block content
-  h1= title
+  h1 #{title}
   p Welcome to #{title}
   if userId
     p Sei loggato come: #{userId}
     form(action='/logout' method='post')
       input(type="hidden" name="_csrf" value=csrfToken)
       button(type='submit') Sign out
+    form(action='/home' method='get')
+      button(type='submit') HOME
   else
     p Non hai effettuato il login!
     form(action='/login' method='get')

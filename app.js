@@ -22,6 +22,8 @@ const store = new Expression({
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var authRouter = require('./routes/auth');
+var homeRouter = require('./routes/home');
+var reservationRouter = require('./routes/reservation');
 
 var app = express();
 
@@ -60,6 +62,8 @@ app.use(csrf());
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/', authRouter);
+app.use('/home', homeRouter);
+app.use('/reservation', reservationRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
