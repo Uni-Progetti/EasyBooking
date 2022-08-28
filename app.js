@@ -1,14 +1,14 @@
 const dotenv = require('dotenv').config()
-var createError = require('http-errors');
-var csrf = require('csurf');
-var cors = require('cors');
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
-//var flash = require('express-flash');
-var session = require('express-session');
+const createError = require('http-errors');
+const csrf = require('csurf');
+const cors = require('cors');
+const express = require('express');
+const path = require('path');
+const cookieParser = require('cookie-parser');
+const logger = require('morgan');
+const session = require('express-session');
 const Expression = require('couchdb-expression')(session);
+const nodemailer = require('nodemailer');
 const store = new Expression({
   username: process.env.COUCHDB_USER,         // default value = 'admin'
   password: process.env.COUCHDB_PASSWORD,     // default value = 'password'
@@ -16,6 +16,13 @@ const store = new Expression({
   port: '5984',             // default value = 5984
   database: 'sessions',     // default value = 'sessions'
   https: false              // default value = false
+});
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+    auth: {
+      user: process.env.APP_EMAIL,
+      pass: process.env.APP_EMAIL_PASS,
+    },
 });
 
 
@@ -38,7 +45,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser(process.env.SESSION_SECRET));
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.static(__dirname + '/node_modules/bootstrap/dist'));
+app.use(express.static(__dirname + '/node_modules/bootstrap/dist'));// file di bootstrap .css e .js
+app.use(express.static(__dirname + '/node_modules/leaflet/dist'));// file di leaflet .css e .js
 app.use(session({
   name: process.env.SESS_NAME,
   proxy: true,
@@ -57,6 +65,11 @@ app.use((req, res, next)=>{
   next()
 })
 app.use(csrf());
+
+app.use( function (req, res, next) {
+  req.transporter = transporter;
+  next();
+});
 
 
 app.use('/', indexRouter);
@@ -80,6 +93,8 @@ app.use(function(err, req, res, next) {
   res.status(err.status || 500);
   res.render('error');
 });
+
+
 
 
 

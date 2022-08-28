@@ -6,6 +6,7 @@ const http = require('http');
 const https = require('https');
 const amqplib = require('amqplib');
 const amqpUrl = process.env.AMQP_URL || 'amqp://localhost:5673';
+var amqp = require('amqplib/callback_api');
 
 /* Reindirizza al login se non autenticati. */
 const redirectLogin = function(req, res, next){
@@ -90,7 +91,7 @@ router.post('/logout', redirectLogin ,function(req, res, next) {
 });
 
 router.get('/signup', redirectHome ,function(req, res, next) {
-    res.render('signup.ejs', {csrfToken: req.csrfToken()});
+    res.render('signup', {csrfToken: req.csrfToken()});
 });
 
 router.post('/signup', redirectHome , function(req, res, next) {
@@ -110,7 +111,7 @@ router.post('/signup', redirectHome , function(req, res, next) {
       message: 'I campi password e password confirmation non coincidono.'
     }
     res.redirect('/signup');
-  } else if (emailCheck){
+  } else if (!passCheck){
     console.log("password troppo debole");
     req.session.message = {
       type: 'danger',
@@ -118,7 +119,7 @@ router.post('/signup', redirectHome , function(req, res, next) {
       message: 'Controlla la password! N.B. La password deve contenere almeno 8 caratteri tra cui un numero, un simbolo, una maiuscola, una minuscola.'
     }
     res.redirect('/signup');
-  } else {
+  } else if (!emailCheck){
     console.log("Email non conforme");
     req.session.message = {
       type: 'danger',
@@ -126,63 +127,121 @@ router.post('/signup', redirectHome , function(req, res, next) {
       message: 'Controlla email! N.B. Inserisci un indirizzo email valido.'
     }
     res.redirect('/signup');
+  } else {
+    console.log("Errore di registrazione");
+    req.session.message = {
+      type: 'danger',
+      intro: 'Errore di registrazione! ',
+      message: "Si è verificato un errore durante la registrazione! Per favore riprova più tardi."
+    }
+    res.redirect('/signup');   
   };
 });
 
 /* Gestisce processo di registrazione. */
 function createUser(req, res, salt, hashedPassword){
-  const postData = JSON.stringify({
-    "type": "User",
-    "fields": {
-      "email": req.body.username,
-      "password": hashedPassword,
-      "role": "user",
-      "salt": salt,
-    }
-  });
-  const options = {
+  const get_options = {
     hostname: 'couchdb',
     port: 5984,
-    path: '/db/'+req.body.username,
-    method: 'PUT',
-    auth: process.env.COUCHDB_USER+":"+process.env.COUCHDB_PASSWORD,
-    headers: {
-      'Content-Type': 'application/json',
-      'Content-Length': Buffer.byteLength(postData)
-    },
+    path: '/db/_design/User/_view/credentials?key="'+req.body.username+'"',
+    method: 'GET',
+    auth: process.env.COUCHDB_USER+":"+process.env.COUCHDB_PASSWORD
   };
 
-  const request = http.request(options, (out) => {
-    console.log(`STATUS: ${res.statusCode}`);
-    console.log(`HEADERS: ${JSON.stringify(res.headers)}`);
+  var data = "";
+  const usrs = http.request(get_options, out => {
+    console.log(`statusCode: ${out.statusCode}`);
     out.setEncoding('utf8');
-    out.on('data', (chunk) => {
-      console.log(`BODY: ${chunk}`);
+    out.on('data', d => {
+      data += d.toString();
+      //process.stdout.write(d);
     });
-    out.on('end', () => {
-      console.log('No more data in response.');
-      req.session.message = {
-        type: 'info',
-        intro: ' ',
-        message: 'Registrazione avvenuta con successo.'
+    out.on('end', function() {
+      var x = JSON.parse(data);
+      console.log(x);
+      console.log(x.rows.length);
+
+      if (x.rows.length === 0){
+        const postData = JSON.stringify({
+          "type": "User",
+          "fields": {
+            "email": req.body.username,
+            "password": hashedPassword,
+            "role": "user",
+            "salt": salt,
+          }
+        });
+        const post_options = {
+          hostname: 'couchdb',
+          port: 5984,
+          path: '/db/'+req.body.username,
+          method: 'PUT',
+          auth: process.env.COUCHDB_USER+":"+process.env.COUCHDB_PASSWORD,
+          headers: {
+            'Content-Type': 'application/json',
+            'Content-Length': Buffer.byteLength(postData)
+          },
+        };
+      
+        const request = http.request(post_options, (out) => {
+          console.log(`STATUS: ${res.statusCode}`);
+          console.log(`HEADERS: ${JSON.stringify(res.headers)}`);
+          out.setEncoding('utf8');
+          out.on('data', (chunk) => {
+            console.log(`BODY: ${chunk}`);
+          });
+          out.on('end', () => {
+            console.log('No more data in response.');
+            queueRegistrationEmail(req.body.username);
+            let msg_options={
+              from: 'spacebook.adm@gmail.com',
+              to: req.body.username,
+              subject: 'Benvenuto su EasyBooking!',
+              html: 'Ciao sei registrato su EasyBooking test connessione chiusa',
+            };
+            deliverQueuedMessages('registration', req.transporter, msg_options);
+            req.session.message = {
+              type: 'info',
+              intro: ' ',
+              message: 'Registrazione avvenuta con successo.'
+            }
+            res.redirect('/login');
+          });
+        });
+        
+        request.on('error', (e) => {
+          console.error(`problem with request: ${e.message}`);
+          req.session.message = {
+            type: 'danger',
+            intro: 'Registrazione fallita!',
+            message: 'Tentativo di registrazione fallito: '+e.message
+          }
+          res.redirect('/signup');
+        });
+        
+        // Write data to request body
+        request.write(postData);
+        request.end();
+      } else {
+        console.log("utente già registrato!");
+        req.session.message = {
+          type: 'danger',
+          intro: 'Email già in uso!',
+          message: "L'email inserita è gia in uso ! Per favore inserisci un altro indirizzo mail."
+        }
+        res.redirect('/signup');
       }
-      res.redirect('/login');
     });
   });
-  
-  request.on('error', (e) => {
-    console.error(`problem with request: ${e.message}`);
-    req.session.message = {
-      type: 'danger',
-      intro: 'Registrazione fallita!',
-      message: 'Tentativo di registrazione fallito: '+e.message
-    }
-    res.redirect('/signup');
+
+  usrs.on('error', error => {
+    console.error(error);
+    return null;
   });
-  
-  // Write data to request body
-  request.write(postData);
-  request.end();
+
+  usrs.end();
+
+
 };
 
 /* Gestisce processo di autenticazione. */
@@ -391,50 +450,201 @@ function getGoogleEmail(req, res, access_token, refresh_token){
 };
 
 function addGoogleUserToDB(req, res, email, access_token, refresh_token, hashedPassword, salt){
-  const postData = JSON.stringify({
-    "type": "User",
-    "fields": {
-      "email": email,
-      "password": hashedPassword,
-      "role": "user",
-      "salt": salt,
-      "refresh_token": refresh_token,
-      "access_token": access_token,
-    }
-  });
-  const options = {
+  const get_options = {
     hostname: 'couchdb',
     port: 5984,
-    path: '/db/'+email,
-    method: 'PUT',
-    auth: process.env.COUCHDB_USER+":"+process.env.COUCHDB_PASSWORD,
-    headers: {
-      'Content-Type': 'application/json',
-      'Content-Length': Buffer.byteLength(postData)
-    },
+    path: '/db/_design/User/_view/credentials?key="'+email+'"',
+    method: 'GET',
+    auth: process.env.COUCHDB_USER+":"+process.env.COUCHDB_PASSWORD
   };
 
-  const request = http.request(options, (out) => {
-    console.log(`STATUS: ${out.statusCode}`);
-    console.log(`HEADERS: ${JSON.stringify(out.headers)}`);
+  var data = "";
+  const usrs = http.request(get_options, out => {
+    console.log(`statusCode: ${out.statusCode}`);
     out.setEncoding('utf8');
-    out.on('data', (chunk) => {
-      console.log(`BODY: ${chunk}`);
+    out.on('data', d => {
+      data += d.toString();
+      //process.stdout.write(d);
     });
-    out.on('end', () => {
-      console.log('No more data in response.');
-      return true;
+    out.on('end', function() {
+      var x = JSON.parse(data);
+      console.log(x);
+      console.log(x.rows.length);
+
+      if (x.rows.length === 0){
+        const postData = JSON.stringify({
+          "type": "User",
+          "fields": {
+            "email": email,
+            "password": hashedPassword,
+            "role": "user",
+            "salt": salt,
+            "refresh_token": refresh_token,
+            "access_token": access_token,
+          }
+        });
+        const options = {
+          hostname: 'couchdb',
+          port: 5984,
+          path: '/db/'+email,
+          method: 'PUT',
+          auth: process.env.COUCHDB_USER+":"+process.env.COUCHDB_PASSWORD,
+          headers: {
+            'Content-Type': 'application/json',
+            'Content-Length': Buffer.byteLength(postData)
+          },
+        };
+      
+        const request = http.request(options, (out) => {
+          console.log(`STATUS: ${out.statusCode}`);
+          console.log(`HEADERS: ${JSON.stringify(out.headers)}`);
+          out.setEncoding('utf8');
+          out.on('data', (chunk) => {
+            console.log(`BODY: ${chunk}`);
+          });
+          out.on('end', () => {
+            console.log('No more data in response.');
+            return true;
+          });
+        });
+        
+        request.on('error', (e) => {
+          console.error(`problem with request: ${e.message}`);
+          return false;
+        });
+        
+        // Write data to request body
+        request.write(postData);
+        request.end();
+      } else {
+        console.log("utente già registrato!");
+        const postData = JSON.stringify({
+          "type": "User",
+          "fields": {
+            "email": email,
+            "password": hashedPassword,
+            "role": "user",
+            "salt": salt,
+            "refresh_token": refresh_token,
+            "access_token": access_token,
+          },
+          "_rev": x.rows[0].value[4]
+        });
+        const options = {
+          hostname: 'couchdb',
+          port: 5984,
+          path: '/db/'+email,
+          method: 'PUT',
+          auth: process.env.COUCHDB_USER+":"+process.env.COUCHDB_PASSWORD,
+          headers: {
+            'Content-Type': 'application/json',
+            'Content-Length': Buffer.byteLength(postData)
+          },
+        };
+      
+        const request = http.request(options, (out) => {
+          console.log(`STATUS: ${out.statusCode}`);
+          console.log(`HEADERS: ${JSON.stringify(out.headers)}`);
+          out.setEncoding('utf8');
+          out.on('data', (chunk) => {
+            console.log(`BODY: ${chunk}`);
+          });
+          out.on('end', () => {
+            console.log('No more data in response.');
+            return true;
+          });
+        });
+        
+        request.on('error', (e) => {
+          console.error(`problem with request: ${e.message}`);
+          return false;
+        });
+        
+        // Write data to request body
+        request.write(postData);
+        request.end();
+      }
     });
   });
-  
-  request.on('error', (e) => {
-    console.error(`problem with request: ${e.message}`);
-    return false;
+
+  usrs.on('error', error => {
+    console.error(error);
+    return null;
   });
-  
-  // Write data to request body
-  request.write(postData);
-  request.end();
+
+  usrs.end();
+
 };
+
+function queueRegistrationEmail(username){
+  amqp.connect(process.env.AMQP_URL, function(error0, connection) {
+    if (error0) {
+      throw error0;
+    }
+    connection.createChannel(function(error1, channel) {
+      if (error1) {
+        throw error1;
+      }
+      var queue = 'registration';
+      var msg = process.argv.slice(2).join(' ') || "Registrazione al sito: "+username;
+  
+      channel.assertQueue(queue, {
+        durable: true
+      });
+      let sent = channel.sendToQueue(queue, Buffer.from(msg), {
+        persistent: true
+      });
+      if (sent){
+        console.log(" [x] Sent '%s'", msg);
+      };
+      
+    });
+    setTimeout(function() {
+      connection.close();
+      //process.exit(0)
+    }, 500);
+  });
+};
+
+function deliverQueuedMessages(queue, transporter, msg_options){
+  amqp.connect(process.env.AMQP_URL, function(error0, connection) {
+    if (error0) {
+      throw error0;
+    }
+    connection.createChannel(function(error1, channel) {
+      if (error1) {
+        throw error1;
+      }
+  
+      channel.assertQueue(queue, {
+        durable: true
+      });
+      channel.prefetch(1);
+      console.log(" [*] Waiting for messages in %s.", queue);
+      channel.consume(queue, function(msg) {
+        var secs = msg.content.toString().split('.').length - 1;
+
+        transporter.sendMail(msg_options, function (err, info) {
+          if (err) {
+            res.json(err);
+          } else {
+            res.json(info);
+            channel.ack(msg);
+          }
+        });
+
+        console.log(" [x] Received %s", msg.content.toString());
+        setTimeout(function() {
+          console.log(" [x] Done");
+          channel.ack(msg);
+        }, secs * 1000);
+      }, {
+        // manual acknowledgment mode,
+        // see ../confirms.html for details
+        noAck: false
+      });
+    });
+  });
+}
 
 module.exports = router;

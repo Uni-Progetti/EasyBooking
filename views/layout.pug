@@ -5,8 +5,22 @@ html
     meta(name='viewport' content='width=device-width, initial-scale=1')
     link(rel='stylesheet', href='/stylesheets/style.css')
     link(rel='stylesheet', type='text/css', href='/stylesheets/login.css')
-    <script language="javascript" src="js/bootstrap.min.js"></script>
-    <link rel="stylesheet" href="css/bootstrap.min.css"/>
+    link(rel="stylesheet", type='text/css' href="css/bootstrap.min.css")
+    script(language='javascript' src='js/bootstrap.min.js')
+    link(rel='stylesheet' href='leaflet.css')
+
+    ul
+      li
+        a.active(href='/home') Home
+      li 
+        a(href='/') Index
+      li
+        a(href='/map') Map
+      li
+        a(href='/reservation/') Prenotazione
+      li
+        a(href='/info') Info  
+
     if message
       if message.type=='danger'
         div(class= "alert alert-danger alert-dismissible fade show" role='alert')
@@ -22,10 +36,13 @@ html
         div(class= "alert alert-info alert-dismissible fade show" role='alert')
           strong #{message.intro}
           |  #{message.message}
-          button.btn-close(type='button' data-bs-dismiss='alert' aria-label='Close')     
+          button.btn-close(type='button' data-bs-dismiss='alert' aria-label='Close') 
+ 
   
   section.prompt
     block content
+  section
+    block content2
  
 
 

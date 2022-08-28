@@ -55,26 +55,26 @@ function seeding(){
             "1_Base_Users":    { "map": "function (doc) { if (doc.type == 'User' & doc.fields.role == 'user') emit( doc.fields.email, { email: doc.fields.email, role: doc.fields.role, password: doc.fields.password, rev: doc._rev }); }" },
             "2_Manager_Users": { "map": "function (doc) { if (doc.type == 'User' & doc.fields.role == 'manager') emit( doc.fields.email, { email: doc.fields.email, role: doc.fields.role, password: doc.fields.password, rev: doc._rev }); }" },
             "3_admin_Users":   { "map": "function (doc) { if (doc.type == 'User' & doc.fields.role == 'admin') emit( doc.fields.email, { email: doc.fields.email, role: doc.fields.role, password: doc.fields.password, rev: doc._rev }); }" },
-            "credentials":     { "map": "function (doc) { if (doc.type == 'User') emit( doc.fields.email, [doc.fields.password, doc.fields.salt]); }" }
+            "credentials":     { "map": "function (doc) { if (doc.type == 'User') emit( doc.fields.email, [doc.fields.password, doc.fields.salt, doc.fields.access_token, doc.fields.refresh_token, doc._rev]); }" }
             }, "language": "javascript" }).then(
             function(data, headers, status){
                 console.log("Views: Users\n0_All_Users,\n1_Base_Users,\n2_Manager_Users,\n3_admin_Users")
 
                 const usr_array = [
-                    { email: "fra.user@gmail.com", password: hashedPassword, role: 'user', salt: defSalt },
-                    { email: "matteo.user@gmail.com", password: hashedPassword, role: 'user', salt: defSalt  },
-                    { email: "michela.user@gmail.com", password: hashedPassword, role: 'user', salt: defSalt  },
-                    { email: "donia.user@gmail.com", password: hashedPassword, role: 'user', salt: defSalt  },
+                    { email: "fra.user@gmail.com", password: hashedPassword, role: 'user', salt: defSalt, refresh_token: '', access_token: '' },
+                    { email: "matteo.user@gmail.com", password: hashedPassword, role: 'user', salt: defSalt, refresh_token: '', access_token: ''  },
+                    { email: "michela.user@gmail.com", password: hashedPassword, role: 'user', salt: defSalt, refresh_token: '', access_token: ''  },
+                    { email: "donia.user@gmail.com", password: hashedPassword, role: 'user', salt: defSalt, refresh_token: '', access_token: ''  },
             
-                    { email: "fra.manager@gmail.com", password: hashedPassword, role: 'manager', salt: defSalt  },
-                    { email: "matteo.manager@gmail.com", password: hashedPassword, role: 'manager', salt: defSalt  },
-                    { email: "michela.manager@gmail.com", password: hashedPassword, role: 'manager', salt: defSalt  },
-                    { email: "donia.manager@gmail.com", password: hashedPassword, role: 'manager', salt: defSalt  },
-                    { email: "test.manager@gmail.com", password: hashedPassword, role: 'manager', salt: defSalt  },
+                    { email: "fra.manager@gmail.com", password: hashedPassword, role: 'manager', salt: defSalt, refresh_token: '', access_token: ''  },
+                    { email: "matteo.manager@gmail.com", password: hashedPassword, role: 'manager', salt: defSalt, refresh_token: '', access_token: ''  },
+                    { email: "michela.manager@gmail.com", password: hashedPassword, role: 'manager', salt: defSalt, refresh_token: '', access_token: ''  },
+                    { email: "donia.manager@gmail.com", password: hashedPassword, role: 'manager', salt: defSalt, refresh_token: '', access_token: ''  },
+                    { email: "test.manager@gmail.com", password: hashedPassword, role: 'manager', salt: defSalt, refresh_token: '', access_token: ''  },
             
-                    { email: "fra.admin@gmail.com", password: hashedPassword, role: 'admin', salt: defSalt  },
-                    { email: "michela.admin@gmail.com", password: hashedPassword, role: 'admin', salt: defSalt  },
-                    { email: "matteo.admin@gmail.com", password: hashedPassword, role: 'admin', salt: defSalt  }
+                    { email: "fra.admin@gmail.com", password: hashedPassword, role: 'admin', salt: defSalt, refresh_token: '', access_token: ''  },
+                    { email: "michela.admin@gmail.com", password: hashedPassword, role: 'admin', salt: defSalt, refresh_token: '', access_token: ''  },
+                    { email: "matteo.admin@gmail.com", password: hashedPassword, role: 'admin', salt: defSalt, refresh_token: '', access_token: ''  }
                 ]
                 var usr_count = 0
                 usr_array.forEach(function(usr){
