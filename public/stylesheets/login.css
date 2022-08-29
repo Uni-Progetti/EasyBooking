@@ -7,6 +7,11 @@
 	border-radius: 8px;
 }
 
+.personalarea {
+	width: 80%;
+	padding: 1%;
+}
+
 button {
 	display: block;
 	padding: 10px;

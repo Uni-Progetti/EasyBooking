@@ -31,6 +31,7 @@ var usersRouter = require('./routes/users');
 var authRouter = require('./routes/auth');
 var homeRouter = require('./routes/home');
 var reservationRouter = require('./routes/reservation');
+var personalAreaRouter = require('./routes/personalArea');
 
 var app = express();
 
@@ -47,6 +48,7 @@ app.use(cookieParser(process.env.SESSION_SECRET));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(__dirname + '/node_modules/bootstrap/dist'));// file di bootstrap .css e .js
 app.use(express.static(__dirname + '/node_modules/leaflet/dist'));// file di leaflet .css e .js
+app.use(express.static(__dirname + '/node_modules'));// file di fullcalendar .css e .js
 app.use(session({
   name: process.env.SESS_NAME,
   proxy: true,
@@ -77,6 +79,7 @@ app.use('/users', usersRouter);
 app.use('/', authRouter);
 app.use('/home', homeRouter);
 app.use('/reservation', reservationRouter);
+app.use('/personalArea', personalAreaRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
