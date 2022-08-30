@@ -3,3 +3,62 @@ docker-compose build
 docker-compose up -d
 
 docker-compose down
+
+
+
+// per il testing
+// MOCHA
+    npm install --global mocha
+    mkdir test -> creare un file test.js
+    esecuzione : npm test
+// CHAI
+    npm install chai
+    <script src="chai.js" type="text/javascript"></script>  // serve per includere il browser chai nella suite di testing
+                                                            // chai diventa un oggetto globale
+
+// vanno entrambi aggiunti tra le dipendenze nel file package.json
+"devDependencies": {
+  "chai": "*",
+  "mocha": "*"
+}
+
+expect() -> booleans or numbers (BDD)
+should() -> extends each object with a should property (BDD)
+assert() -> provides additional tests (TDD)
+
+// two folders needed
+- src: stores the main file where the source code of the programm is written -> deve contenere un file app.js
+- test: stores test cases for unit testing -> deve contenere un file app.test.js
+
+// da aggiungere nel file package.json: cambiare il blocco "scripts" in mocha come sotto
+{
+"name": "chai",
+"version": "1.0.0",
+"description": "",
+"main": "index.js",
+"scripts": {
+"test": "mocha"
+},
+"keywords": [],
+"author": "",
+"license": "ISC",
+}
+
+
+// CHAI HTTP
+npm install chai-http
+
+plugin:
+var chai = require('chai')
+  , chaiHttp = require('chai-http');
+
+chai.use(chaiHttp);
+
+// to use ChaiHTTP on a web page, just include the dist/chai-http.js file:
+<script src="chai.js"></script>
+<script src="chai-http.js"></script>
+<script>
+  chai.use(chaiHttp);
+</script>
+
+
