@@ -6,7 +6,6 @@ const https = require('node:https');
 /* GET personal_area page. */
 router.get('/', function(req, res) {
     getCalendarEvents(req, res, req.session.access_token, '', '');
-    console.log('fine output GET');
 });
 
 function getCalendarEvents(req, res, access_token , calendar, start_date){

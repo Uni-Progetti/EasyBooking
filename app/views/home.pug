@@ -1,0 +1,12 @@
+extends layout
+
+block contentHome
+	h3 HOME 
+	p Eccoci nella home
+	section 
+		form(action='/reservation' method='get')
+			button(type='submit') effettua una nuova prenotazione
+	section
+		#map
+		script(src='javascripts/webmap.js' charset='utf-8') 
+		

@@ -19,6 +19,7 @@
     "cors": "^2.8.5",
     "couchdb-expression": "^1.6.1",
     "csurf": "^1.11.0",
+    "dayjs": "^1.11.5",
     "debug": "~2.6.9",
     "dotenv": "^16.0.1",
     "ejs": "3.1.8",

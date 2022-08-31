@@ -7,6 +7,7 @@ const https = require('https');
 const amqplib = require('amqplib');
 const amqpUrl = process.env.AMQP_URL || 'amqp://localhost:5673';
 var amqp = require('amqplib/callback_api');
+const dayjs = require('dayjs');
 
 /* Reindirizza al login se non autenticati. */
 const redirectLogin = function(req, res, next){
@@ -72,7 +73,7 @@ router.post('/login/password', redirectHome ,function (req, res, next) {
   const options = {
     hostname: 'couchdb',
     port: 5984,
-    path: '/db/_design/User/_view/credentials?key="'+req.body.username.toLowerCase()+'"',
+    path: '/db/'+req.body.username.toLowerCase(),
     method: 'GET',
     auth: process.env.COUCHDB_USER+":"+process.env.COUCHDB_PASSWORD
   };
@@ -145,7 +146,7 @@ function createUser(req, res, salt, hashedPassword){
   const get_options = {
     hostname: 'couchdb',
     port: 5984,
-    path: '/db/_design/User/_view/credentials?key="'+user_email+'"',
+    path: '/db/'+user_email,
     method: 'GET',
     auth: process.env.COUCHDB_USER+":"+process.env.COUCHDB_PASSWORD
   };
@@ -161,69 +162,75 @@ function createUser(req, res, salt, hashedPassword){
     out.on('end', function() {
       var x = JSON.parse(data);
       console.log(x);
-      console.log(x.rows.length);
 
-      if (x.rows.length === 0){
-        const postData = JSON.stringify({
-          "type": "User",
-          "fields": {
-            "email": user_email,
-            "password": hashedPassword,
-            "role": "user",
-            "salt": salt,
-          }
-        });
-        const post_options = {
-          hostname: 'couchdb',
-          port: 5984,
-          path: '/db/'+user_email,
-          method: 'PUT',
-          auth: process.env.COUCHDB_USER+":"+process.env.COUCHDB_PASSWORD,
-          headers: {
-            'Content-Type': 'application/json',
-            'Content-Length': Buffer.byteLength(postData)
-          },
-        };
-      
-        const request = http.request(post_options, (out) => {
-          console.log(`STATUS: ${res.statusCode}`);
-          console.log(`HEADERS: ${JSON.stringify(res.headers)}`);
-          out.setEncoding('utf8');
-          out.on('data', (chunk) => {
-            console.log(`BODY: ${chunk}`);
+      if (out.statusCode == 404){
+        crypto.randomBytes(48, function(err, buffer) {
+          var token = buffer.toString('hex');
+          const postData = JSON.stringify({
+            "type": "User",
+            "fields": {
+              "email": user_email,
+              "password": hashedPassword,
+              "role": "user",
+              "salt": salt,
+            },
+            "confirmed_at": null,
+            "confirmation_expires": dayjs().add(1, 'day'),
+            "confirmation_token": token,
           });
-          out.on('end', () => {
-            console.log('No more data in response.');
-            queueRegistrationEmail(user_email);
-            let msg_options={
-              from: 'easybooking.adm@gmail.com',
-              to: user_email,
-              subject: 'Benvenuto su EasyBooking!',
-              html: 'Ciao sei registrato su EasyBooking test connessione chiusa',
-            };
-            deliverQueuedMessages('registration', req.transporter, msg_options);
+          const post_options = {
+            hostname: 'couchdb',
+            port: 5984,
+            path: '/db/'+user_email,
+            method: 'PUT',
+            auth: process.env.COUCHDB_USER+":"+process.env.COUCHDB_PASSWORD,
+            headers: {
+              'Content-Type': 'application/json',
+              'Content-Length': Buffer.byteLength(postData)
+            },
+          };
+        
+          const request = http.request(post_options, (out) => {
+            console.log(`STATUS: ${res.statusCode}`);
+            console.log(`HEADERS: ${JSON.stringify(res.headers)}`);
+            out.setEncoding('utf8');
+            out.on('data', (chunk) => {
+              console.log(`BODY: ${chunk}`);
+            });
+            out.on('end', () => {
+              console.log('No more data in response.');
+              queueRegistrationEmail(user_email);
+              let msg_options={
+                from: 'easybooking.adm@gmail.com',
+                to: user_email,
+                subject: 'Benvenuto su EasyBooking!',
+                html: `Ciao sei registrato su EasyBooking! Per attivare il tuo account clicca sul seguente link <a href="https://localhost:8083/users/verify/${token}/${user_email}">Verifica email!</a>`,
+              };
+              deliverQueuedMessages('registration', req.transporter, msg_options);
+              req.session.message = {
+                type: 'info',
+                intro: ' ',
+                message: 'Registrazione avvenuta con successo.'
+              }
+              res.redirect('/login');
+            });
+          });
+          
+          request.on('error', (e) => {
+            console.error(`problem with request: ${e.message}`);
             req.session.message = {
-              type: 'info',
-              intro: ' ',
-              message: 'Registrazione avvenuta con successo.'
+              type: 'danger',
+              intro: 'Registrazione fallita!',
+              message: 'Tentativo di registrazione fallito: '+e.message
             }
-            res.redirect('/login');
+            res.redirect('/signup');
           });
+          
+          // Write data to request body
+          request.write(postData);
+          request.end();
         });
-        
-        request.on('error', (e) => {
-          console.error(`problem with request: ${e.message}`);
-          req.session.message = {
-            type: 'danger',
-            intro: 'Registrazione fallita!',
-            message: 'Tentativo di registrazione fallito: '+e.message
-          }
-          res.redirect('/signup');
-        });
-        
-        // Write data to request body
-        request.write(postData);
-        request.end();
+
       } else {
         console.log("utente già registrato!");
         req.session.message = {
@@ -259,9 +266,8 @@ function authenticateSession(options, req, res){
     out.on('end', function() {
       var x = JSON.parse(data);
       console.log(x);
-      console.log(x.rows.length);
 
-      if (x.rows.length === 0){
+      if (out.statusCode == 404){
         console.log("email errata");
         req.session.message = {
           type: 'danger',
@@ -269,10 +275,10 @@ function authenticateSession(options, req, res){
           message: 'Controlla email e password.'
         }
         res.redirect('/login');
-      }else if( x.rows[0]){
-        crypto.pbkdf2(req.body.password, Buffer.from(x.rows[0].value[1]), 310000, 32, 'sha256', function(err, hashedPassword) {
+      }else if(x.fields.password){
+        crypto.pbkdf2(req.body.password, Buffer.from(x.fields.salt), 310000, 32, 'sha256', function(err, hashedPassword) {
           if (err) { res.redirect('/login'); }
-          if (!crypto.timingSafeEqual(Buffer.from(x.rows[0].value[0]), hashedPassword)) {
+          if (!crypto.timingSafeEqual(Buffer.from(x.fields.password), hashedPassword)) {
             console.log('credenziali errate');
             req.session.message = {
               type: 'danger',
@@ -283,6 +289,16 @@ function authenticateSession(options, req, res){
             return;
           }
         });
+        if(x.confirmed_at == null){
+          console.log("Account non attivo");
+          req.session.message = {
+            type: 'danger',
+            intro: 'Account non attivo! ',
+            message: 'Controlla la tua email e segui le istruzioni per attivare il tuo account.'
+          }
+          res.redirect('/login');
+          return;
+        };
         req.session.userId = req.body.username.toLowerCase();
         req.session.username = req.body.username.toLowerCase();
         console.log('credenziali corrette');
@@ -455,7 +471,7 @@ function addGoogleUserToDB(req, res, email, access_token, refresh_token, hashedP
   const get_options = {
     hostname: 'couchdb',
     port: 5984,
-    path: '/db/_design/User/_view/credentials?key="'+email+'"',
+    path: '/db/'+email,
     method: 'GET',
     auth: process.env.COUCHDB_USER+":"+process.env.COUCHDB_PASSWORD
   };
@@ -471,10 +487,10 @@ function addGoogleUserToDB(req, res, email, access_token, refresh_token, hashedP
     out.on('end', function() {
       var x = JSON.parse(data);
       console.log(x);
-      console.log(x.rows.length);
 
-      if (x.rows.length === 0){
+      if (out.statusCode==404){
         const postData = JSON.stringify({
+          "_id": email,
           "type": "User",
           "fields": {
             "email": email,
@@ -483,7 +499,10 @@ function addGoogleUserToDB(req, res, email, access_token, refresh_token, hashedP
             "salt": salt,
             "refresh_token": refresh_token,
             "access_token": access_token,
-          }
+          },
+          "confirmed_at": dayjs(),
+          "confirmation_expires": null,
+          "confirmation_token": null,
         });
         const options = {
           hostname: 'couchdb',
@@ -521,16 +540,20 @@ function addGoogleUserToDB(req, res, email, access_token, refresh_token, hashedP
       } else {
         console.log("utente già registrato!");
         const postData = JSON.stringify({
+          "_id": x._id,
           "type": "User",
           "fields": {
-            "email": email,
-            "password": hashedPassword,
+            "email": x.fields.email,
+            "password": x.fields.password,
             "role": "user",
-            "salt": salt,
+            "salt": x.fields.salt,
             "refresh_token": refresh_token,
             "access_token": access_token,
           },
-          "_rev": x.rows[0].value[4]
+          "confirmed_at": x.confirmed_at,
+          "confirmation_expires": x.confirmation_expires,
+          "confirmation_token": x.confirmation_token,
+          "_rev": x._rev,
         });
         const options = {
           hostname: 'couchdb',

@@ -1,0 +1,62 @@
+doctype html
+html
+  head
+    title= title
+    meta(name='viewport' content='width=device-width, initial-scale=1')
+    link(rel='stylesheet', href='/stylesheets/style.css')
+    link(rel='stylesheet', type='text/css', href='/stylesheets/login.css')
+    link(rel="stylesheet", type='text/css' href="css/bootstrap.min.css")
+    script(language='javascript' src='js/bootstrap.min.js')
+    link(rel='stylesheet' href='leaflet.css')
+    link(rel='stylesheet', href='fullcalendar/main.css')
+    script(language='javascript', src='fullcalendar/main.js')
+
+    ul
+      li
+        a.active(href='/home') Home
+      li 
+        a(href='/') Index
+      li
+        a(href='/map') Map
+      li
+        a(href='/reservation') Prenotazione
+      li
+        a(href='/info') Info  
+      li
+        a(href='/personalArea') Area personale
+
+    if message
+      if message.type=='danger'
+        div(class= "alert alert-danger alert-dismissible fade show" role='alert')
+          strong #{message.intro}
+          |  #{message.message}
+          button.btn-close(type='button' data-bs-dismiss='alert' aria-label='Close')
+      else if message.type=='warning'
+        div(class= "alert alert-warning alert-dismissible fade show" role='alert')
+          strong #{message.intro}
+          |  #{message.message}
+          button.btn-close(type='button' data-bs-dismiss='alert' aria-label='Close')
+      else 
+        div(class= "alert alert-info alert-dismissible fade show" role='alert')
+          strong #{message.intro}
+          |  #{message.message}
+          button.btn-close(type='button' data-bs-dismiss='alert' aria-label='Close') 
+ 
+  
+  section.home
+    block contentHome
+  section.index
+    block contentIndex
+  section.signup 
+    block contentSignUp
+    section.signin 
+    block contentSignIn
+  section.reservation
+    block contentReservation
+  section.personalarea
+    block contentPersonalArea
+  section 
+    block contentError
+ 
+
+

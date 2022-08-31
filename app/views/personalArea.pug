@@ -1,0 +1,10 @@
+extends layout
+
+block contentPersonalArea
+    p Ecco la tua area personale
+
+    section.calendario
+        block contentCalendario
+            #calendar 
+            script(src='javascripts/fullcalendar.js')
+

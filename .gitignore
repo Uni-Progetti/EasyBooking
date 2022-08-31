@@ -68,3 +68,10 @@ certs/
 
 # sessions cookies store
 sessions/
+
+# rabbitmq data
+rabbitdata/
+
+app/node_modules
+
+package-lock.json
