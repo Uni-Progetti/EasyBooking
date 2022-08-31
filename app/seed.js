@@ -65,7 +65,7 @@ function insert_views(){
     )
 
     couch.insert(dbName, { "_id": "_design/Reservation", "views": {
-        "0_All_Reservations": { "map": "function (doc) { if (doc.type == 'Reservation') emit( doc.fields.dep_name, { email: doc.fields.email, typology: doc.fields.typology, space_name: doc.fields.space_name, position: doc.fields.seat_number, start_date: { Y: doc.fields.start_date.Y, M: doc.fields.start_date.M, D: doc.fields.start_date.D, h: doc.fields.start_date.h, m: doc.fields.start_date.m, s: doc.fields.start_date.s }, end_date: { Y: doc.fields.end_date.Y, M: doc.fields.end_date.M, D: doc.fields.end_date.D, h: doc.fields.end_date.h, m: doc.fields.end_date.m, s: doc.fields.end_date.s }, state: doc.fields.state, rev: doc._rev } ) }" }
+        "0_All_Reservations": { "map": "function (doc) { if (doc.type == 'Reservation') emit( doc.fields.dep_name, { email: doc.fields.email, typology: doc.fields.typology, space_name: doc.fields.space_name, seat_id: doc.fields.seat_id, position: doc.fields.seat_number, start_date: { Y: doc.fields.start_date.Y, M: doc.fields.start_date.M, D: doc.fields.start_date.D, h: doc.fields.start_date.h, m: doc.fields.start_date.m, s: doc.fields.start_date.s }, end_date: { Y: doc.fields.end_date.Y, M: doc.fields.end_date.M, D: doc.fields.end_date.D, h: doc.fields.end_date.h, m: doc.fields.end_date.m, s: doc.fields.end_date.s }, state: doc.fields.state, rev: doc._rev } ) }" }
     }, "language": "javascript" }).then(
         function(data, headers, status){ console.log("Views: Reservations\n 0_All_Reservations") },
         function(err){ console.log(err) }
@@ -204,18 +204,13 @@ function insert_sp_wd_seat(dep){
                             for (let h = 0 ; h < (wd.chiusura.h - wd.apertura.h) ; h++ ) {
 
                                 // Inizializza i dati del posto
-                                const Y_var = String(current_wd_date.getFullYear())
-                                // var   M_var = String(current_wd_date.getMonth()+1); M_var = (M_var.length == 1)? "0"+M_var : M_var
-                                // var   D_var = String(current_wd_date.getDate());    D_var = (D_var.length == 1)? "0"+D_var : D_var
-                                var   M_var = String(current_wd_date.getMonth()+1)
-                                var   D_var = String(current_wd_date.getDate())
-
-                                // var   ha_var = String(wd.apertura.h+h  ); ha_var = (ha_var.length == 1)? "0"+ha_var : ha_var
-                                // var   hc_var = String(wd.apertura.h+h+1); hc_var = (hc_var.length == 1)? "0"+hc_var : hc_var
-                                var   ha_var = String(wd.apertura.h+h  )
-                                var   hc_var = String(wd.apertura.h+h+1)
-                                const m_var  = "00"
-                                const s_var  = "00"
+                                const Y_var  = current_wd_date.getFullYear()
+                                var   M_var  = current_wd_date.getMonth()+1
+                                var   D_var  = current_wd_date.getDate()
+                                var   ha_var = wd.apertura.h+h
+                                var   hc_var = wd.apertura.h+h+1
+                                const m_var  = 0
+                                const s_var  = 0
 
                                 const start_date = { Y: Y_var, M: M_var, D: D_var, h: ha_var, m: m_var, s: s_var }
                                 const end_date =   { Y: Y_var, M: M_var, D: D_var, h: hc_var, m: m_var, s: s_var }
