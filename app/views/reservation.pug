@@ -2,3 +2,732 @@ extends layout
 
 block contentReservation
     p Effettua una prenotazione
+
+    each dep in deps.rows
+        if (dep.key == "Dipartimento di Francesco")
+            p #{dep.key}
+            //- Raccoglie gli orari del dipartimento corrente
+            - var curr_wd_arr = []
+            each wd in wds.rows
+                if wd.key == dep.key
+                    - curr_wd_arr.push(wd)
+            //- Raccoglie gli spazi del dipartimento corrente
+            - var curr_sp_arr = []
+            each sp in sps.rows
+                if sp.value.dep_name == dep.key
+                    - curr_sp_arr.push(sp)
+            //- Raccoglie i posti del dipartimento corrente
+            - var curr_st_arr = []
+            each st in sts.rows
+                if st.key == dep.key
+                    - curr_st_arr.push(st)
+            //- //- Raccoglie gli id dei posti delle prenotazioni dell'utete corrente
+            //- - var reserved_seats_ids = []
+            //- each reserv in reservs.rows
+            //-     if reserv.key == dep.key
+            //-         - curr_reserv_arr.push(reserv)
+            //- //- Raccoglie gli orari gia prenotati
+            //- - var reserved_seats_wd = []
+            //- each reserv in reservs.rows
+            //-     if reserv.key == dep.key
+            //-         - curr_reserv_arr.push(reserv)
+
+            each sp in curr_sp_arr
+                if sp.value.dep_name == dep.key
+                    p #{sp.value.typology} - #{sp.key}
+
+                    //- Array per l'inserimento dei giorni in italiano nella tabella
+                    - var it_days = ["Domenica", "Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato", "Domenica", "Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"]
+                    //- La data di oggi
+                    - const today = new Date()
+
+                    //- Dizionario per inizializzare i dati da inserire nelle righe della tabella
+                    - var days = {"Lunedì": ["Chiuso", 24, 0], "Martedì": ["Chiuso", 24, 0], "Mercoledì": ["Chiuso", 24, 0], "Giovedì": ["Chiuso", 24, 0], "Venerdì": ["Chiuso", 24, 0], "Sabato": ["Chiuso", 24, 0], "Domenica": ["Chiuso", 24, 0]}
+
+                    //- Insericse i dati del dipartimento corrente in days e inizializza il minimo orario di apertura ed il massimo orario di chiusura della settimana
+                    - var min_ap = 24
+                    - var max_ch = 0
+                    each wd in curr_wd_arr
+                        if (wd.value.state == "Aperto")
+                            - days[wd.value.day] = [wd.value.state, wd.value.apertura.h, wd.value.chiusura.h]
+                            - min_ap = (min_ap > wd.value.apertura.h)? wd.value.apertura.h : min_ap
+                            - max_ch = (max_ch < wd.value.chiusura.h)? wd.value.chiusura.h : max_ch
+
+                    table(width="100%", style="margin: 5px")
+
+                        //- Prima riga che mostra il giorno della settimana e la data nel formato 'giorno-mese-anno'
+                        tr
+                            td Orari
+                            td #{it_days[(today.getDay()+0)]} #{String(new Date(new Date().setDate(today.getDate()+0)).getDate())+"/"+String(new Date(new Date().setDate(today.getDate()+0)).getMonth())+"/"+String(new Date(new Date().setDate(today.getDate()+0)).getFullYear())}
+                            td #{it_days[(today.getDay()+1)]} #{String(new Date(new Date().setDate(today.getDate()+1)).getDate())+"/"+String(new Date(new Date().setDate(today.getDate()+1)).getMonth())+"/"+String(new Date(new Date().setDate(today.getDate()+1)).getFullYear())}
+                            td #{it_days[(today.getDay()+2)]} #{String(new Date(new Date().setDate(today.getDate()+2)).getDate())+"/"+String(new Date(new Date().setDate(today.getDate()+2)).getMonth())+"/"+String(new Date(new Date().setDate(today.getDate()+2)).getFullYear())}
+                            td #{it_days[(today.getDay()+3)]} #{String(new Date(new Date().setDate(today.getDate()+3)).getDate())+"/"+String(new Date(new Date().setDate(today.getDate()+3)).getMonth())+"/"+String(new Date(new Date().setDate(today.getDate()+3)).getFullYear())}
+                            td #{it_days[(today.getDay()+4)]} #{String(new Date(new Date().setDate(today.getDate()+4)).getDate())+"/"+String(new Date(new Date().setDate(today.getDate()+4)).getMonth())+"/"+String(new Date(new Date().setDate(today.getDate()+4)).getFullYear())}
+                            td #{it_days[(today.getDay()+5)]} #{String(new Date(new Date().setDate(today.getDate()+5)).getDate())+"/"+String(new Date(new Date().setDate(today.getDate()+5)).getMonth())+"/"+String(new Date(new Date().setDate(today.getDate()+5)).getFullYear())}
+                            td #{it_days[(today.getDay()+6)]} #{String(new Date(new Date().setDate(today.getDate()+6)).getDate())+"/"+String(new Date(new Date().setDate(today.getDate()+6)).getMonth())+"/"+String(new Date(new Date().setDate(today.getDate()+6)).getFullYear())}
+
+                        //- Corpo delle righe che mostra gli orari e le check per prenotare
+                        //- Per ogni ora tra l'apertura minima e la chiusura massima
+                        - var h = 0
+                        while h < max_ch-min_ap
+                            tr
+                                - var reserved_seats = [0, 0, 0, 0, 0, 0, 0] //- Array per tenere memoria se il posto è prenotato dall'utente corrente o meno
+                                - var reserved_wd =    [0, 0, 0, 0, 0, 0, 0] //- Array per tenere memoria se l'orario è prenotato dall'utente corrente o meno
+                                - var free_seats_day = [0, 0, 0, 0, 0, 0, 0] //- Array per tenere memoria del numero di posti liberi per ogni giorno
+                                - var row_seat_ids =   [0, 0, 0, 0, 0, 0, 0] //- Array per tenere memoria dell'id da prenotare nelle celle selezionate
+
+                                //- Inizializza le variabili sopra riportate per il completamento della tabella
+                                each st in curr_st_arr
+
+                                    - const str_today_YMD  = String((today.getFullYear()))+((String((today.getMonth()+1)).length == 1)? "0"+String((today.getMonth()+1)):String((today.getMonth()+1)))+((String((today.getDate())).length == 1)? "0"+String((today.getDate())):String((today.getDate())))
+                                    - const str_today_YMDh = String((today.getFullYear()))+((String((today.getMonth()+1)).length == 1)? "0"+String((today.getMonth()+1)):String((today.getMonth()+1)))+((String((today.getDate())).length == 1)? "0"+String((today.getDate())):String((today.getDate())))+((String((today.getHours())).length == 1)? "0"+String((today.getHours())):String((today.getHours())))
+
+                                    - var start_dt_str = String(st.value.start_date.Y)+((String(st.value.start_date.M).length == 1)? '0'+String(st.value.start_date.M):String(st.value.start_date.M))+((String(st.value.start_date.D).length == 1)? '0'+String(st.value.start_date.D):String(st.value.start_date.D))
+                                    - var start_h_str  = String(st.value.start_date.Y)+((String(st.value.start_date.M).length == 1)? '0'+String(st.value.start_date.M):String(st.value.start_date.M))+((String(st.value.start_date.D).length == 1)? '0'+String(st.value.start_date.D):String(st.value.start_date.D))+((String(st.value.start_date.h).length == 1)? "0"+String(st.value.start_date.h):String(st.value.start_date.h))
+
+                                    //- Controlla se il posto ha un data e un tempo precedenti a quelli odierni
+                                    p #{(start_h_str <= str_today_YMDh)? (st.id+' : '+start_h_str+'<='+str_today_YMDh+(start_h_str <= str_today_YMDh)+' - - - '):''}
+                                    if (start_h_str <= str_today_YMDh)
+                                        //- inizializza seat_res
+                                        - var seat_res = []
+                                        //- each reserv in reservs.rows
+                                        //-     if controllodiidentitàdelpostoconlaprenotazione
+                                        //-         - seat_res.push(reserv)
+
+                                        //- Se la data del posto è di oggi ma l'orario è passato basta mettere expired nello stato dello spazio e delle sue prenotazioni
+                                        if (start_dt_str == str_today_YMD)
+                                            //- st.update(state: "Expired")
+                                            - st.value.state = "Expired"
+                                            //- each exp_res in seat_res
+                                            //-     exp_res.update(state: "Scaduta")
+                                        //- Se invece non è di oggi ma di un giorno precedente
+                                        else
+                                            //- Aggiorna il nuovo posto con giorno corretto della settimana
+                                            //- st.update(position: 1, start_date: st.start_date+(604800), end_date: st.end_date+(604800), state: "Active")
+
+                                            //- //- Elimina le eventuali prenotazioni di quel posto
+                                            //- @seat_res.each do |old_res|
+                                            //-     old_res.destroy
+                                            //- end
+
+                                    - var day_num = 0
+                                    - const cols_number = 7
+                                    - var d = 0
+                                    while d < cols_number
+                                        - const today_plus_d = new Date((new Date()).setDate(today.getDate()+d))
+                                        - const str_today_plus_d = String(today_plus_d.getFullYear())+((String(today_plus_d.getMonth()+1).length == 1)? "0"+String(today_plus_d.getMonth()+1):String(today_plus_d.getMonth()+1))+((String(today_plus_d.getDate()).length == 1)? "0"+String(today_plus_d.getDate()):String(today_plus_d.getDate()))
+                                        if start_dt_str == str_today_plus_d
+                                            - day_num = d
+                                            - break
+                                        - d ++
+
+                                    //- Inizializzazione
+                                    if (st.value.start_date.h == min_ap+h) && (start_dt_str == String((new Date((new Date()).setDate(today.getDate()+day_num))).getFullYear())+((String((new Date((new Date()).setDate(today.getDate()+day_num))).getMonth()+1).length == 1)? "0"+String((new Date((new Date()).setDate(today.getDate()+day_num))).getMonth()+1):String((new Date((new Date()).setDate(today.getDate()+day_num))).getMonth()+1))+((String((new Date((new Date()).setDate(today.getDate()+day_num))).getDate()).length == 1)? "0"+String((new Date((new Date()).setDate(today.getDate()+day_num)).getDate())):String((new Date((new Date()).setDate(today.getDate()+day_num))).getDate())))
+                                        p #{((st.value.state == "Expired") && (day_num == 0))? (start_dt_str+' : '+st.value.start_date.h+' | '+day_num+' - '+((st.value.state == "Expired") && (day_num == 0))):''}
+                                        if (st.value.state == "Expired") && (day_num == 0)
+                                            - row_seat_ids[day_num] = -1
+                                        else
+                                            if (false)
+                                                - reserved_seats[day_num] = 1
+                                            else
+                                                - free_seats_day[day_num] = sp.value.number_of_seats - st.value.position + 1
+                                                - row_seat_ids[day_num] = String(st.value.start_date.Y)+'/'+String(st.value.start_date.M)+'/'+String(st.value.start_date.D)+'-'+String(st.value.start_date.h)+'/'+String(st.value.end_date.h)
+
+                                //- Inserisce l'orario di riferimento della riga nel primo td
+                                td(style="padding: 2px") #{(String(min_ap+h).length == 1)? '0'+(min_ap+h):(min_ap+h)}:00
+                                each d_number in [0,1,2,3,4,5,6]
+                                    //- Inserisce i dati opportuni a seconda dei casi nei 7 td dei giorni della settimana
+                                    - var d_number = 0
+                                    //- Controlla se è chiuso
+                                    - var current_wd_control = days[it_days[(new Date((new Date()).setDate(today.getDate()+d_number))).getDay()-1]]
+                                    if current_wd_control[0] == "Chiuso" || (((min_ap+h) < current_wd_control[1]) || ((min_ap+h) >= current_wd_control[2]))
+                                        td Chiuso
+                                        //- td #{row_seat_ids[d_number]}
+                                    //- Se ormai è un orario oltrepassato e quindi non più prenotabile
+                                    else if row_seat_ids[d_number] == -1
+                                        td Scaduto
+                                        //- td #{row_seat_ids[d_number]}
+                                    //- Se l'utente corrente ha gia prenotato questo orario
+                                    else if reserved_seats[d_number] == 1
+                                        td Prenotato
+                                        //- td #{row_seat_ids[d_number]}
+                                    //- Se l'orario corrente è gia stato prenotato in un altro spazio
+                                    else if reserved_wd[d_number] == 1
+                                        td Non disponibile
+                                        //- td #{row_seat_ids[d_number]}
+                                    //- Se i posti in quell'orario sono al completo
+                                    else if free_seats_day[d_number] == 0
+                                        td Completo
+                                        //- td #{row_seat_ids[d_number]}
+                                    //- Se non ci troviamo in nessuno dei casi precedenti scrive il numero di posti disponibili e Mostra lo switch per prenotare
+                                    else
+                                        td CB(#{free_seats_day[d_number]})
+                                        //- td #{row_seat_ids[d_number]}
+                                        //- <div class="form-check ms-auto me-auto mx-1 my-1 px-0" style="width:fit-content">
+                                        //-         form.check_box((row_seat_ids[d_number].to_s), { class: "form-check-input mx-0 px-0", type: "checkbox" }, checked_value = "MakeRes", unchecked_value = "0") %>
+                                        //-     <label class="h6 my-0 mx-1" for=" row_seat_ids[d_number] %>"> <%= free_seats_day[d_number] %> </label>
+                                        //- </div>
+                                    - d_number++
+                            - h++
+
+//- p #{wds.rows}
+//- p #{sps.rows}
+//- p #{sts.rows}
+//- p #{reservs.rows}
+
+
+//- <!DOCTYPE html>
+//- <html lang="it">
+//- <head>
+
+//-   	<title> Effettua prenotazioni - Spacebook </title>
+
+//- </head>
+
+//- <body>
+
+//- 	<!-- L'utente deve selezionare un dipartimento -->
+//- 	<% if !local_assigns.has_key? :department %>
+//- 		<div class="row">
+//- 			<div class="col">
+//- 				<!-- Form per selezionare il dipartimento da prenotare -->
+//- 				<%= form_with url: set_department_path, local: true, method: :post do |form| %>
+//- 					<div class="row">
+//- 						<!-- Select dipartimento -->
+//- 						<div class="col-lg-9">
+//- 							<div class="form-floating mb-3">
+//- 								<%= form.select(:selected_dep_name, Department.order(:name).collect {|dep| [ dep.name ] }, {}, {class: "form-select", id: "depName"}) %>
+//- 								<label for="depName"> Seleziona il dipartimento </label>
+//- 							</div>
+//- 						</div>
+//- 						<!-- Bottone -->
+//- 						<div class="col-lg-3">
+//- 							<%= form.text_field :filter, value: "Dep", style: 'display:none'%>
+//- 							<label class="mx-0 my-0 px-0 py-0" type="button" data-bs-toggle="modal" id="modalCaricamentoButton" data-bs-target="#modalCaricamento">
+//- 								<%= form.submit "Filtra dipartimento", class:"btn btn-outline-info my-2", style: "width: 100%; height: 40px" %>
+//- 							</label>
+//- 						</div>
+//- 					</div>
+//- 				<% end %>
+//- 			</div>
+//- 		</div>
+//- 	<!-- Solo se il dipartimento è stato selezionato, effettua il render dei successivi form, dei suoi dati e dele tabelle relative ai posti prenotabili -->
+//- 	<% else %><%
+//- 		# Inizializza il dipartimento selezionato
+//- 		selected_department = Department.where(name: department[:selected_dep_name]).first
+//- 		# Raccoglie gli orari del dipartimento dello spazio corrente
+//- 		selected_wd = WeekDay.where(department_id: selected_department.id)
+
+//- 		# Raccoglie le prenotazioni dell'utente corrente
+//- 		usr_res = Reservation.where(user_id: current_user.id)
+//- 		# Raccoglie gli id dei posti delle prenotazioni dell'utete corrente
+//- 		reserved_seats_ids = usr_res.collect {|res| [ res.seat_id ] }
+//- 		# Raccoglie gli orari gia prenotati
+//- 		reserved_seats_wd = usr_res.collect {|res| [ res.start_date.strftime("%Y%m%d%H") ] }
+//- 		# Raccoglie l'eventuale prenotazione rapida dell'utente corrente
+//- 		current_qk_res = QuickReservation.all.where(user_id: current_user.id)
+
+//- 		# Array per l'inserimento dei giorni in italiano nella tabella
+//- 		it_days = ["Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato", "Domenica"]
+//- 		# La data di oggi
+//- 		today_date = (Date.today)
+
+//- 		# Dizionario per inizializzare i dati da inserire nelle righe della tabella
+//- 		days = {}
+//- 		it_days.each do |day_key|
+//- 			days["#{day_key}"] = ["Chiuso", 24, 0]
+//- 		end
+
+//- 		# Insericse i dati del dipartimento corrente in days e inizializza il minimo orario di apertura ed il massimo orario di chiusura della settimana
+//- 		selected_wd.where(state: "Aperto").each do |wd|
+//- 			days[wd.day] = [ wd.state, wd.apertura.hour, wd.chiusura.hour]
+//- 			@min = @min? ((@min > wd.apertura.hour)? wd.apertura.hour : @min) : wd.apertura.hour
+//- 			@max = @max? ((@max < wd.chiusura.hour)? wd.chiusura.hour : @max) : wd.chiusura.hour
+//- 		end
+
+//- 		selected_ty = (selected_spaces.collect {|ty| [ ty.typology ] }).uniq %>
+//- 		<!-- Mostra le componenti del form e inizializza le variabili a seconda dei filtri -->
+//- 		<%= form_with url: set_department_path, local: true, method: :post do |form| %>
+//- 			<div class="row">
+//- 				<!-- Mostra sempre il dipartimento selezionato nel form precedente -->
+//- 				<div class="col-lg-3">
+//- 					<div class="form-floating mb-3">
+//- 						<%= form.text_field :selected_dep_name, value: department[:selected_dep_name], style: "display:none" %>
+//- 						<div id="selDep" class="form-control"> <%= department[:selected_dep_name] %> </div>
+//- 						<label for="selDep"> Dipartimento </label>
+//- 					</div>
+//- 				</div>
+//- 				<!-- Select tipologia -->
+//- 				<div class="col-lg-3">
+//- 					<div class="form-floating mb-3">
+//- 						<!-- Se non è stata selezionata ne la tipologia ne lo spazio mostra il form per selezionarla -->
+//- 						<% if department[:filter] == "Dep" %>
+//- 							<% selected_spaces = Space.order(:typology).where(dep_name: params[:selected_dep_name]) %>
+//- 							<% department_ty = (selected_spaces.collect {|ty| [ ty.typology ] }).uniq %>
+//- 							<%= form.select(:selected_typology, department_ty, {}, {class: "form-select", id: "depTyp"}) %>
+//- 							<label for="depTyp"> Seleziona la tipologia </label>
+//- 						<!-- Altrimenti se è stata selezionata la tipologia ma non lo spazio, mostra la tipologia selezionata -->
+//- 						<% elsif department[:filter] == "Dep_Typ" or department[:filter] == "Dep_Typ_Sp" %>
+//- 							<% selected_spaces = Space.where(dep_name: params[:selected_dep_name], typology: params[:selected_typology]) %>
+//- 							<% selected_ty = [[department[:selected_typology]]] %>
+//- 							<%= form.text_field :selected_typology, value: department[:selected_typology], style: "display:none" %>
+//- 							<div id="selTyp" class="form-control"> <%= department[:selected_typology] %> </div>
+//- 							<label for="selTyp"> Tipologia </label>
+//- 						<% end %>
+//- 					</div>
+//- 				</div>
+//- 				<!-- Select spazio -->
+//- 				<div class="col-lg-3">
+//- 					<div class="form-floating mb-3">
+//- 						<!-- Se è stata selezionata la tipologia ma non è lo spazio inizializza gli spazi della tipologia selezionata e mostra il form per selezionare lo spazio -->
+//- 						<% if department[:filter] == "Dep_Typ" %>
+//- 							<% selected_spaces = Space.order(:name).where(dep_name: params[:selected_dep_name], typology: params[:selected_typology]) %>
+//- 							<%= form.select(:selected_space, (selected_spaces.collect {|sp| [ sp.name ] }), {}, {class: "form-select", id: "depTySp"}) %>
+//- 							<label for="depTySp"> Seleziona lo spazio </label>
+//- 						<!-- Altrimenti inizializza lo spazio selezionato e lo mostra -->
+//- 						<% elsif department[:filter] == "Dep_Typ_Sp" %>
+//- 							<% selected_spaces = Space.where(dep_name: params[:selected_dep_name], typology: params[:selected_typology], name: params[:selected_space]) %>
+//- 							<div id="depTySp" class="form-control"> <%= department[:selected_space] %> </div>
+//- 							<label for="depTySp"> Spazio </label>
+//- 						<% end %>
+//- 					</div>
+//- 				</div>
+//- 				<!-- Bottoni -->
+//- 				<div class="col-lg-3">
+//- 					<div class="row">
+//- 						<!-- Bottone per filtrare -->
+//- 						<% if department[:filter] != "Dep_Typ_Sp" %>
+//- 							<div class="col-xl-6 px-1 py-2">
+//- 								<%= form.text_field :filter, value: (department[:filter] == "Dep")? "Dep_Typ" : "Dep_Typ_Sp", :style=>'display:none'%>
+//- 								<% if department[:filter] == "Dep_Typ" %>
+//- 									<% btn_value = "Filtra spazio" %>
+//- 								<% else %>
+//- 									<% btn_value = "Filtra tipologia" %>
+//- 								<% end %>
+//- 								<label class="mx-0 my-0 px-0 py-0" data-bs-toggle="modal" id="modalCaricamentoButton" data-bs-target="#modalCaricamento" style="width:100%">
+//- 									<%= form.submit btn_value, class:"btn btn-outline-info", style: "width: 100%; height: 40px" %>
+//- 								</label>
+//- 							</div>
+//- 						<% end %>
+//- 						<!-- Bottone per elimina i filtri -->
+//- 						<div class="col-xl-6 px-1 py-2">
+//- 							<label class="mx-0 my-0 px-0 py-0" data-bs-toggle="modal" id="modalCaricamentoButton" data-bs-target="#modalCaricamento" style="width:100%">
+//- 								<%= link_to 'Resetta', "/make_reservation", class:"btn btn-outline-info", style: "width: 100%; height: 40px" %>
+//- 							</label>
+//- 						</div>
+//- 					</div>
+//- 				</div>
+//- 			</div>
+//- 		<% end %>
+
+
+//- 		<!-- Dipartimento + mappa + legenda -->
+//- 		<% if selected_department.dep_map!=nil %>
+//- 			<div class="row">
+//- 				<div class="col-lg-5">
+//- 					<div class="row">
+//- 						<div class="col-lg-12">
+//- 							<!-- Mostra il dipartimento in cui prenotare -->
+//- 							<div class="card">
+//- 								<div class="card-header">
+//- 									<label class="h3 my-2"><i class="bi bi-building"> <%= (selected_department).name %> </i></label>
+//- 								</div>
+//- 								<div class="card-body">
+//- 										<div class="row">
+//- 											<div class="col-lg-6">
+//- 												<!-- Truncate Icona interattiva per visualizzare il modal della descrizione completa -->
+//- 												<label class="h5 mb-0"> Descrizione: </label><i class="h5 colorLink bi bi-plus-square-dotted mx-2" data-bs-toggle="modal" data-bs-target="#dep<%= selected_department.id %>DescModal"></i><br>
+//- 												<!-- Descrizione truncate tramite modal -->
+//- 												<label class="text-truncate my-0 py-0" style="width: 90%"> <%= (selected_department).description %> </label>
+//- 												<!-- Modal descrizione -->
+//- 												<%= render '/departments/modal_dep_desc', department: selected_department %>
+//- 											</div>
+//- 											<div class="col-lg-6">
+//- 												<label class="label h5  my-0 py-0"> Posizione: </label><br>
+//- 												<%= (selected_department).via %>, <%= (selected_department).civico %>, <%= (selected_department).cap %>, <%= (selected_department).citta %>, <%= (selected_department).provincia %>
+//- 											</div>
+//- 										</div>
+//- 										<div class="row mt-3">
+//- 											<div class="col-lg-6">
+//- 												<label class="label h5  my-0 py-0"> Numero piani: </label>
+//- 												<%= (selected_department).floors %>
+//- 											</div>
+//- 											<div class="col-lg-6">
+//- 												<label class="label h5  my-0 py-0"> Numero spazi: </label>
+//- 												<%= (selected_department).number_of_spaces %>
+//- 											</div>
+//- 										</div>
+//- 								</div>
+//- 							</div>
+//- 						</div>
+//- 						<div class="col-lg-12">
+//- 							<!-- Legenda -->
+//- 							<div class="card mt-4">
+//- 								<div class="card-header">
+//- 									<label class="h3 my-2"><i class="bi bi-list-ul"> Legenda </i></label>
+//- 								</div>
+//- 								<div class="card-body">
+//- 									<div class="row">
+//- 										<div class="col-lg-4"><i class="h6 bi bi-x-circle"> Chiuso: </i> </div>
+//- 										<div class="col-lg-8"><label class="small"> Il dipartimento è chiuso in questo orario </label></div>
+//- 									</div>
+//- 									<div class="row">
+//- 										<div class="col-lg-4"><i class="h6 bi bi-clock"> Scaduto: </i> </div>
+//- 										<div class="col-lg-8"><label class="small"> Questo orario non è più disponibile oggi </label></div>
+//- 									</div>
+//- 									<div class="row">
+//- 										<div class="col-lg-4"><i class="h6 bi bi-check-circle"> Prenotato: </i></div>
+//- 										<div class="col-lg-8"><label class="small"> Hai prenotato già questo posto </label></div>
+//- 									</div>
+//- 									<div class="row">
+//- 										<div class="col-lg-4"><i class="h6 bi bi-exclamation-circle"> Non disponibile: </i></div>
+//- 										<div class="col-lg-8"><label class="small"> Hai prenotato già questo orario in un altro spazio </label></div>
+//- 									</div>
+//- 									<div class="row">
+//- 										<div class="col-lg-4"><i class="h6 bi bi-dash-circle"> Completo: </i></div>
+//- 										<div class="col-lg-8"><label class="small"> Lo spazio è al completo in questo orario </label></div>
+//- 									</div>
+//- 								</div>
+//- 							</div>
+//- 						</div>
+//- 					</div>
+//- 				</div>
+//- 				<!-- Mappa del dipartimento -->
+//- 				<div class="col-lg-7">
+//- 					<div class="card" style="height: 100%">
+//- 						<div class="card-header text-center">
+//- 							<label class="h3 mt-3 mb-0 pb-0"> Pianta del dipartimento </label>
+//- 							<p class="small my-0 pt-0"> Clicca sulla pianta per esplorare gli spazi del dipartimento selezionato. </p>
+//- 						</div>
+//- 						<div class="card-body">
+//- 							<div class="card bg-white" id="chart"></div>
+//- 							<script src="https://cdn-eu.seatsio.net/chart.js"></script>
+//- 							<script>
+//- 								new seatsio.SeatingChart({
+//- 									divId: 'chart',
+//- 									workspaceKey: '<%= ENV['SEATS_IO_PUBLIC'] %>',
+//- 									event: '<%= selected_department.dep_event %>'
+//- 								}).render();
+//- 							</script>
+//- 						</div>
+//- 					</div>
+//- 				</div>
+//- 			</div>
+//- 		<% else %>
+//- 			<div class="row">
+//- 				<div class="col-lg-6">
+//- 					<!-- Mostra il dipartimento in cui prenotare -->
+//- 					<div class="card" style="height: 100%">
+//- 						<div class="card-header">
+//- 							<label class="h3 my-2"><i class="bi bi-building"> <%= (selected_department).name %> </i></label>
+//- 						</div>
+//- 						<div class="card-body" style="height: 100%">
+//- 								<div class="row">
+//- 									<div class="col-lg-6">
+//- 										<!-- Truncate Icona interattiva per visualizzare il modal della descrizione completa -->
+//- 										<label class="h5 mb-0"> Descrizione: </label><i class="h5 colorLink bi bi-plus-square-dotted mx-2" data-bs-toggle="modal" data-bs-target="#dep<%= selected_department.id %>DescModal"></i><br>
+//- 										<!-- Descrizione truncate tramite modal -->
+//- 										<label class="text-truncate my-0 py-0" style="width: 90%"> <%= (selected_department).description %> </label>
+//- 										<!-- Modal descrizione -->
+//- 										<%= render '/departments/modal_dep_desc', department: selected_department %>
+//- 									</div>
+//- 									<div class="col-lg-6">
+//- 										<label class="label h5  my-0 py-0"> Posizione: </label><br>
+//- 										<%= (selected_department).via %>, <%= (selected_department).civico %>, <%= (selected_department).cap %>, <%= (selected_department).citta %>, <%= (selected_department).provincia %>
+//- 									</div>
+//- 								</div>
+//- 								<div class="row mt-3">
+//- 									<div class="col-lg-6">
+//- 										<label class="label h5  my-0 py-0"> Numero piani: </label>
+//- 										<%= (selected_department).floors %>
+//- 									</div>
+//- 									<div class="col-lg-6">
+//- 										<label class="label h5  my-0 py-0"> Numero spazi: </label>
+//- 										<%= (selected_department).number_of_spaces %>
+//- 									</div>
+//- 								</div>
+//- 						</div>
+//- 					</div>
+//- 				</div>
+//- 				<div class="col-lg-6">
+//- 					<!-- Legenda -->
+//- 					<div class="card">
+//- 						<div class="card-header">
+//- 							<label class="h3 my-2"><i class="bi bi-list-ul"> Legenda </i></label>
+//- 						</div>
+//- 						<div class="card-body">
+//- 							<div class="row">
+//- 								<div class="col-lg-4"><i class="h6 bi bi-x-circle"> Chiuso: </i> </div>
+//- 								<div class="col-lg-8"><label class="small"> Il dipartimento è chiuso in questo orario </label></div>
+//- 							</div>
+//- 							<div class="row">
+//- 								<div class="col-lg-4"><i class="h6 bi bi-clock"> Scaduto: </i> </div>
+//- 								<div class="col-lg-8"><label class="small"> Questo orario non è più disponibile oggi </label></div>
+//- 							</div>
+//- 							<div class="row">
+//- 								<div class="col-lg-4"><i class="h6 bi bi-check-circle"> Prenotato: </i></div>
+//- 								<div class="col-lg-8"><label class="small"> Hai prenotato già questo posto </label></div>
+//- 							</div>
+//- 							<div class="row">
+//- 								<div class="col-lg-4"><i class="h6 bi bi-exclamation-circle"> Non disponibile: </i></div>
+//- 								<div class="col-lg-8"><label class="small"> Hai prenotato già questo orario in un altro spazio </label></div>
+//- 							</div>
+//- 							<div class="row">
+//- 								<div class="col-lg-4"><i class="h6 bi bi-dash-circle"> Completo: </i></div>
+//- 								<div class="col-lg-8"><label class="small"> Lo spazio è al completo in questo orario </label></div>
+//- 							</div>
+//- 						</div>
+//- 					</div>
+//- 				</div>
+//- 			</div>
+//- 		<% end %>
+
+//- 		<!-- Form per selezionare gli spazi e gli orari da prenotare -->
+//- 		<%= form_with url: make_actions_path, local: true, method: :post do |form| %>
+//- 			<div class="row">
+//- 				<div class="col">
+//- 					<div class="card mt-4">
+//- 						<div class="card-header">
+//- 							<h3 class="mb-1"> Seleziona gli spazi che vuoi prenotare </h3>
+//- 							<p class="card-text text-white pt-1"> Puoi visualizzare e prenotare più spazi contemporaneamente! </p>
+//- 						</div>
+//- 						<div class="card-body">
+//- 							<!-- Per ogni tipologia del dipartimento selezionato -->
+//- 							<% selected_ty.each do |current_ty| %>
+//- 								<div class="row">
+//- 									<div class="col">
+//- 										<div class="row">
+//- 											<div class="col-lg-1">
+//- 												<!-- Label interattiva per visualizzare il collapse con gli spazi della tipologia corrente -->
+//- 												<label class="labelCollapseMakeRes px-2" data-bs-toggle="collapse" data-bs-target="#spTypology<%= current_ty[0] %>ResTableCollapse" aria-expanded="false" aria-controls="collapseExample"> <%= current_ty[0] %> </label>
+//- 											</div>
+//- 										</div>
+//- 										<div class="row">
+//- 											<!-- Collapse con gli spazi della tipologia corrente -->
+//- 											<div class="collapse" id="spTypology<%= current_ty[0] %>ResTableCollapse">
+//- 												<div class="col">
+//- 													<!-- Per ogni spazio del dipartimento corrente e della tipologia corrente -->
+//- 													<% selected_spaces.where(typology: current_ty).each do |current_sp| %>
+//- 														<!-- Raccoglie i posti dello spazio corrente -->
+//- 														<% @seats = Seat.where(space_id: current_sp.id).order(:position, :start_date) %>
+//- 														<!-- Raccoglie l'eventuale spazio preferito dell'utente corrente relativo allo spazio corrente -->
+//- 														<% current_fav_sp = FavouriteSpace.where(user_id: current_user.id, space_id: current_sp.id) %>
+
+//- 														<div class="row">
+//- 															<div class="col-lg-1">
+//- 																<!-- Label interattiva per visualizzare il collapse dello spazio corrente -->
+//- 																<label class="labelCollapseMakeRes px-4" data-bs-toggle="collapse" data-bs-target="#spName<%= current_sp.id %>ResTableCollapse" aria-expanded="false" aria-controls="collapseExample">
+//- 																	<%= current_sp.name %>
+//- 																	<% if current_fav_sp.count == 1 %>
+//- 																		<i class="bi bi-bookmark-star"></i>
+//- 																	<% end %>
+//- 																</label>
+//- 															</div>
+//- 															<div class="col-lg-11 mb-4">
+//- 																<!-- Collapse dello spazio corrente -->
+//- 																<div class="collapse my-0" id="spName<%= current_sp.id %>ResTableCollapse">
+//- 																	<div class="row">
+//- 																		<!-- Tabella del collapse -->
+//- 																		<div class="col-lg-9">
+//- 																			<div class="divOrariPrenotazioni form-c-label px-3 py-3">
+//- 																				<p class="h5 pl-5"> Puoi prenotare più orari contemporaneamente! </p>
+//- 																				<table id="orariMakeResTable" class="display table table-responsive table-hover" width="100%" style="height: 100%">
+//- 																					<tbody id="orariMakeResTableBody">
+//- 																						<!-- Prima riga che mostra il giorno della settimana e la data nel formato 'giorno-mese-anno' -->
+//- 																						<tr class="rigaHeaderOrariPrenotazione h5">
+//- 																							<td class="text-center" style="vertical-align:middle"> Orari </td>
+//- 																							<td class="text-center"><%= it_days[(today_date-1).wday] %><div class="dropdown-divider my-0"></div><%= (today_date+0).strftime("%d/%m/%Y") %></td>
+//- 																							<td class="text-center"><%= it_days[(today_date+0).wday] %><div class="dropdown-divider my-0"></div><%= (today_date+1).strftime("%d/%m/%Y") %></td>
+//- 																							<td class="text-center"><%= it_days[(today_date+1).wday] %><div class="dropdown-divider my-0"></div><%= (today_date+2).strftime("%d/%m/%Y") %></td>
+//- 																							<td class="text-center"><%= it_days[(today_date+2).wday] %><div class="dropdown-divider my-0"></div><%= (today_date+3).strftime("%d/%m/%Y") %></td>
+//- 																							<td class="text-center"><%= it_days[(today_date+3).wday] %><div class="dropdown-divider my-0"></div><%= (today_date+4).strftime("%d/%m/%Y") %></td>
+//- 																							<td class="text-center"><%= it_days[(today_date+4).wday] %><div class="dropdown-divider my-0"></div><%= (today_date+5).strftime("%d/%m/%Y") %></td>
+//- 																							<td class="text-center"><%= it_days[(today_date+5).wday] %><div class="dropdown-divider my-0"></div><%= (today_date+6).strftime("%d/%m/%Y") %></td>
+//- 																						</tr>
+//- 																						<!-- Corpo delle righe che mostra gli orari e le check per prenotare -->
+//- 																						<% (@max-@min).times do |h| %> <!-- Per ogni ora tra l'apertura minima e la chiusura massima -->
+//- 																							<tr><%
+//- 																								reserved_seats = [0, 0, 0, 0, 0, 0, 0] # Array per tenere memoria se il posto è prenotato dall'utente corrente o meno
+//- 																								reserved_wd = [0, 0, 0, 0, 0, 0, 0]    # Array per tenere memoria se l'orario è prenotato dall'utente corrente o meno
+//- 																								free_seats_day = [0, 0, 0, 0, 0, 0, 0] # Array per tenere memoria del numero di posti liberi per ogni giorno
+//- 																								row_seat_ids = [0, 0, 0, 0, 0, 0, 0]   # Array per tenere memoria dell'id da prenotare nelle celle selezionate
+
+//- 																								# Inizializza le variabili sopra riportate per il completamento della tabella
+//- 																								@seats.each do |seat|
+//- 																									# Controlla se il posto ha un data e un tempo precedenti a quelli odierni
+//- 																									if ( seat.start_date.strftime("%Y%m%d%T") <= DateTime.now.strftime("%Y%m%d%T") )
+//- 																										@seat_res = Reservation.where(seat_id: seat.id)
+//- 																										# Se la data del posto è di oggi ma l'orario è passato basta mettere expired nello stato dello spazio e delle sue prenotazioni
+//- 																										if ( seat.start_date.strftime("%Y%m%d") == DateTime.now.strftime("%Y%m%d") )
+//- 																											seat.update(state: "Expired")
+//- 																											@seat_res.each do |exp_res|
+//- 																												exp_res.update(state: "Scaduta")
+//- 																											end
+//- 																										# Se invece non è di oggi ma di un giorno precedente
+//- 																										else
+//- 																											# Aggiorna il nuovo posto con giorno corretto della settimana
+//- 																											seat.update(position: 1, start_date: seat.start_date+(604800), end_date: seat.end_date+(604800), state: "Active")
+
+//- 																											# Elimina le eventuali prenotazioni di quel posto
+//- 																											@seat_res.each do |old_res|
+//- 																												old_res.destroy
+//- 																											end
+//- 																										end
+//- 																									end
+
+//- 																									start_dt_str = seat.start_date.strftime("%Y%m%d")
+//- 																									start_dh_str = seat.start_date.strftime("%Y%m%d%H")
+//- 																									day_num = 0
+//- 																									7.times do |d|
+//- 																										day_num = d if (start_dt_str == (today_date+d).strftime("%Y%m%d"))
+//- 																									end
+
+//- 																									# Inizializzazione
+//- 																									if (seat.start_date.hour == @min+h) and (start_dt_str == (today_date+day_num).strftime("%Y%m%d"))
+//- 																										if (seat.state == "Expired") and (day_num == 0)
+//- 																											row_seat_ids[day_num] = -1
+//- 																										else
+//- 																											if (reserved_seats_wd.include? [start_dh_str])
+//- 																												reserved_wd[day_num] = 1
+//- 																											end
+//- 																											if (reserved_seats_ids.include? [seat.id])
+//- 																												reserved_seats[day_num] = 1
+//- 																											else
+//- 																												free_seats_day[day_num] = current_sp.number_of_seats - seat.position + 1
+//- 																												row_seat_ids[day_num] = seat.id
+//- 																											end
+//- 																										end
+//- 																									end
+//- 																								end %>
+
+//- 																								<!-- Inserisce l'orario di riferimento della riga nel primo td -->
+//- 																								<td class="text-center h5"> <%= @min+h %>:00 - <%=@min+h+1%>:00 </td>
+//- 																								<!-- Inserisce i dati opportuni a seconda dei casi nei 7 td dei giorni della settimana -->
+//- 																								<% 7.times do |d_number| %>
+//- 																									<td class="text-center">
+//- 																										<!-- Controlla se è chiuso -->
+//- 																										<% current_wd_control = days[it_days[(today_date+d_number).wday-1]] %>
+//- 																										<% if current_wd_control[0] == "Chiuso" or (((@min+h) < current_wd_control[1]) or ((@min+h) >= current_wd_control[2])) %>
+//- 																											<i class="bi bi-x-circle" style="color: grey"> Chiuso </i>
+//- 																										<% elsif row_seat_ids[d_number] == -1 %>  <!-- Se ormai è un orario oltrepassato e quindi non più prenotabile -->
+//- 																											<i class="bi bi-clock" style="color: grey"> Scaduto </i>
+//- 																										<% elsif reserved_seats[d_number] == 1 %> <!-- Se l'utente corrente ha gia prenotato questo orario -->
+//- 																											<i class="bi bi-check-circle" style="color: green"> Prenotato </i>
+//- 																										<% elsif reserved_wd[d_number] == 1 %>    <!-- Se l'orario corrente è gia stato prenotato in un altro spazio -->
+//- 																											<i class="bi bi-exclamation-circle" style="color: grey"> Non disponibile </i>
+//- 																										<% elsif free_seats_day[d_number] == 0 %> <!-- Se i posti in quell'orario sono al completo -->
+//- 																											<i class="bi bi-dash-circle" style="color: red"> Completo </i>
+//- 																										<% else %>                                <!-- Se non ci troviamo in nessuno dei casi precedenti scrive il numero di posti disponibili e Mostra lo switch per prenotare -->
+//- 																											<div class="form-check ms-auto me-auto mx-1 my-1 px-0" style="width:fit-content">
+//- 																												<%= form.check_box((row_seat_ids[d_number].to_s), { class: "form-check-input mx-0 px-0", type: "checkbox" }, checked_value = "MakeRes", unchecked_value = "0") %>
+//- 																												<label class="h6 my-0 mx-1" for="<%= row_seat_ids[d_number] %>"> <%= free_seats_day[d_number] %> </label>
+//- 																											</div>
+//- 																										<% end %>
+//- 																									</td>
+//- 																								<% end %>
+//- 																							</tr>
+//- 																						<% end %>
+//- 																					</tbody>
+//- 																				</table>
+//- 																			</div>
+//- 																		</div>
+//- 																		<!-- Informazioni e azioni del collapse -->
+//- 																		<div class="col-lg-3">
+//- 																			<div class="card">
+//- 																				<div class="card-header text-left">
+//- 																					<label class="h5 pt-1"> Informazioni </label>
+//- 																				</div>
+//- 																				<!-- Descrizione -->
+//- 																				<div class="card-body">
+//- 																					<label class="h5"> Descrizione </label>
+//- 																					<p> <%= current_sp.description %> </p>
+//- 																				</div>
+//- 																				<!-- Azioni per lo spazio corrente -->
+//- 																				<div class="card-footer">
+//- 																					<!-- Spazio preferito -->
+//- 																					<div class="form-check form-switch ms-auto me-auto mx-1 my-1 px-0">
+//- 																						<table width="100%">
+//- 																							<tr>
+//- 																								<!-- Se l'utente ha aggiunto lo spazio corrente tra i preferiti, propone la rimozione -->
+//- 																								<% if current_fav_sp.count == 1 %>
+//- 																									<td><label class="h5"> Rimuovi spazio dalla lista preferiti </label></td>
+//- 																									<td><%= form.check_box((((current_fav_sp.first.id)*(-1)).to_s), { class: "form-check-input mx-3 px-0", type: "checkbox", style: "float: right !important" }, checked_value = "RmFavSp", unchecked_value = "0") %></td>
+//- 																								<!-- Se l'utente ha aggiunto lo spazio corrente tra i preferiti, propone l'aggiunta -->
+//- 																								<% else %>
+//- 																									<td><label class="h5"> Aggiungi spazio ai preferiti </label></td>
+//- 																									<td><%= form.check_box((((current_sp.id)*(-1)).to_s), { class: "form-check-input mx-3 px-0", type: "checkbox", style: "float: right !important" }, checked_value = "AddFavSp", unchecked_value = "0") %></td>
+//- 																								<% end %>
+//- 																							</tr>
+//- 																						</table>
+//- 																					</div>
+//- 																					<div class="dropdown-divider"></div>
+//- 																					<!-- Prenotazione rapida -->
+//- 																					<div class="form-check form-switch ms-auto me-auto mx-1 my-1 px-0">
+//- 																						<table width="100%">
+//- 																							<tr>
+//- 																								<!-- Se l'utente ha gia impostato una prenotazione rapida -->
+//- 																								<% if current_qk_res.count == 1 %>
+//- 																									<!-- Se non è relativa allo spazio corrente propone lo scambio -->
+//- 																									<% if current_qk_res.first.space_id != current_sp.id %>
+//- 																										<td>
+//- 																											<label class="h5 mb-1"> Prenotazione rapida attuale: </label><br>
+//- 																											<%= current_qk_res.first.dep_name %> <br>
+//- 																											<%= current_qk_res.first.typology %> - <%= current_qk_res.first.space_name %><br>
+//- 																											<label class="h5 mb-1"> Sostituisci con: </label><br>
+//- 																											<%= current_sp.dep_name %> <br>
+//- 																											<%= current_sp.typology %> - <%= current_sp.name %>
+//- 																										</td>
+//- 																										<td><%= form.check_box(("QR").concat((current_sp.id).to_s), { class: "form-check-input mx-3 px-0", type: "checkbox", style: "float: right !important" }, checked_value = "UpdateQkRes", unchecked_value = "0") %></td>
+//- 																									<!-- Se invece lo spazio coente è lo stesso della prenotazione rapida, propone la rimozione -->
+//- 																									<% else %>
+//- 																										<td><label class="h5"> Rimuovi prenotazione rapida </label></td>
+//- 																										<td><%= form.check_box(("QR").concat((current_qk_res.first.id).to_s), { class: "form-check-input mx-3 px-0", type: "checkbox", style: "float: right !important" }, checked_value = "RmQkRes", unchecked_value = "0") %></td>
+//- 																									<% end %>
+//- 																								<!-- Se invece l'utente non ha impostato una prenotazione rapida, propone di impostarla -->
+//- 																								<% else %>
+//- 																									<td>
+//- 																										<label class="h5"> Imposta come prenotazione rapida </label><br>
+//- 																										Solo uno spazio può essere impostato come P.R. se ne selezioni più di uno ne verrà impostato uno solo tra quelli.
+//- 																									</td>
+//- 																									<td><%= form.check_box(("QR").concat((current_sp.id).to_s), { class: "form-check-input mx-3 px-0", type: "checkbox", style: "float: right !important" }, checked_value = "SetQkRes", unchecked_value = "0") %></td>
+//- 																								<% end %>
+//- 																							</tr>
+//- 																						</table>
+//- 																					</div>
+//- 																				</div>
+//- 																			</div>
+//- 																		</div>
+//- 																	</div>
+//- 																</div>
+//- 															</div>
+//- 														</div>
+//- 													<% end %>
+//- 												</div>
+//- 											</div>
+//- 										</div>
+//- 									</div>
+//- 								</div>
+//- 							<% end %>
+//- 						</div>
+//- 					</div>
+//- 				</div>
+//- 			</div>
+//- 			<div class="mt-4" style="text-align: right">
+//- 				<!-- Se l'utente ha effettuato l'accesso con google, potrà sincronizzare le prenotazioni su calendar -->
+//- 				<% if current_user.access_token!=nil %>
+//- 					<div class="form-check form-switch ms-auto me-auto mx-1 my-1 px-0">
+//- 						<%= form.check_box(("calendar_check"), { class: "form-check-input mx-1 px-0", type: "checkbox" }) %>
+//- 						<label class="label text-white h6 my-0 mx-1" for="calendar_check"> Sincronizza prenotazioni su Calendar </label>
+//- 					</div>
+//- 				<% end %>
+//- 				<!-- Invia i dati per gli orari selezionati alla funzione per la creazione -->
+//- 				<%= form.submit "Conferma", data: { confirm: "Prenotare gli orari selezionati e procedere con le azioni selezionate per gli spazi?" }, type: "submit", class: "btn btn-outline-info mt-2" %>
+//- 			</div>
+//- 		<% end %>
+//- 	<% end %>
+
+//- 	<!-- Modal che si sovrappone al sito durante i caricamenti -->
+//- 	<%= render 'layouts/modal_loading' %>
+
+//- </body>
+//- </html>
