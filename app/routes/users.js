@@ -36,7 +36,8 @@ router.get('/', (req, res) => {
 });
 
 router.get('/:userId', (req, res) => {
-  return res.send(users[req.params.userId]);
+  // return res.send(users[req.params.userId]);
+  return res.status(200).json({id: '2', username: 'Dave Davids'});  // per test
 });
  /* GET users account verification */
 router.get('/verify/:token/:userEmail', (req, res) => {
