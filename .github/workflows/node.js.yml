@@ -41,5 +41,7 @@ jobs:
         run: cd .. && docker-compose up -d
       - name: docker ps
         run: docker ps -a
+      - name: npm test
+        run: npm test
       - name: docker-compose down
         run: cd .. && docker-compose down
