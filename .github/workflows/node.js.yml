@@ -23,7 +23,5 @@ jobs:
         run: npm install
       - name: docker compose up
         run: cd .. && docker-compose up -d 
-      - name: Run test
-        run: npm test
       - name: docker-compose down
         run: cd .. && docker-compose down
