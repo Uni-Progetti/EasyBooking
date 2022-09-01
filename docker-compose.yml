@@ -34,9 +34,15 @@ services:
     volumes:
       - ./app:/usr/src/app
     environment:
-      COUCHDB_HOST: couchdb
-      COUCHDB_USER: admin
-      COUCHDB_PASSWORD: secret
+      COUCHDB_USER: ${COUCHDB_USER}
+      COUCHDB_PASSWORD: ${COUCHDB_PASSWORD}
+      SESS_NAME: ${SESS_NAME}
+      SESSION_SECRET: ${SESSION_SECRET}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      AMQP_URL: ${AMQP_URL}
+      APP_EMAIL: ${APP_EMAIL}
+      APP_EMAIL_PASS: ${APP_EMAIL_PASS}
       INSTANCE: app1
     networks:
       - app-network
@@ -51,9 +57,15 @@ services:
     volumes:
       - ./app:/usr/src/app
     environment:
-      COUCHDB_HOST: couchdb
-      COUCHDB_USER: admin
-      COUCHDB_PASSWORD: secret
+      COUCHDB_USER: ${COUCHDB_USER}
+      COUCHDB_PASSWORD: ${COUCHDB_PASSWORD}
+      SESS_NAME: ${SESS_NAME}
+      SESSION_SECRET: ${SESSION_SECRET}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      AMQP_URL: ${AMQP_URL}
+      APP_EMAIL: ${APP_EMAIL}
+      APP_EMAIL_PASS: ${APP_EMAIL_PASS}
       INSTANCE: app2
     networks:
       - app-network
@@ -68,9 +80,15 @@ services:
     volumes:
       - ./app:/usr/src/app
     environment:
-      COUCHDB_HOST: couchdb
-      COUCHDB_USER: admin
-      COUCHDB_PASSWORD: secret
+      COUCHDB_USER: ${COUCHDB_USER}
+      COUCHDB_PASSWORD: ${COUCHDB_PASSWORD}
+      SESS_NAME: ${SESS_NAME}
+      SESSION_SECRET: ${SESSION_SECRET}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      AMQP_URL: ${AMQP_URL}
+      APP_EMAIL: ${APP_EMAIL}
+      APP_EMAIL_PASS: ${APP_EMAIL_PASS}
       INSTANCE: app3
     networks:
       - app-network
