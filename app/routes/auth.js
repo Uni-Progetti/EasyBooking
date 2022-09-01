@@ -140,6 +140,288 @@ router.post('/signup', redirectHome , function(req, res, next) {
   };
 });
 
+router.get('/password_recovery', (req, res) =>{
+  res.render('recovery',{csrfToken: req.csrfToken()});
+});
+
+router.post('/password_recovery', (req, res, next) =>{
+  let user_email = req.body.username.toLowerCase();
+  const get_options = {
+    hostname: 'couchdb',
+    port: 5984,
+    path: '/db/'+user_email,
+    method: 'GET',
+    auth: process.env.COUCHDB_USER+":"+process.env.COUCHDB_PASSWORD
+  };
+  var data = "";
+  const usrs = http.request(get_options, out => {
+    console.log(`statusCode: ${out.statusCode}`);
+    out.setEncoding('utf8');
+    out.on('data', d => {
+      data += d.toString();
+      //process.stdout.write(d);
+    });
+    out.on('end', function() {
+      var x = JSON.parse(data);
+      console.log(x);
+
+      if (out.statusCode == 404){
+        console.log("email errata");
+        req.session.message = {
+          type: 'danger',
+          intro: 'Credenziali errate! ',
+          message: 'Inserisci un indirizzo email valido.'
+        }
+        return res.redirect('/password_recovery');
+      }else{
+        crypto.randomBytes(48, function(err, buffer) {
+          var token = buffer.toString('hex');
+          const postData = JSON.stringify({
+            "type": "User",
+            "fields": {
+              "email": x.fields.email,
+              "password": x.fields.password,
+              "role": x.fields.role,
+              "salt": x.fields.salt,
+            },
+            "confirmed_at": null,
+            "confirmation_expires": null,
+            "confirmation_token": x.confirmation_token,
+            "password_recovery_token": token,
+            "password_recovery_expires_at": dayjs().add(1, 'day'),
+            "_rev": x._rev,
+            "_id": x._id,
+          });
+          const post_options = {
+            hostname: 'couchdb',
+            port: 5984,
+            path: '/db/'+user_email,
+            method: 'PUT',
+            auth: process.env.COUCHDB_USER+":"+process.env.COUCHDB_PASSWORD,
+            headers: {
+              'Content-Type': 'application/json',
+              'Content-Length': Buffer.byteLength(postData)
+            },
+          };
+        
+          const request = http.request(post_options, (out) => {
+            console.log(`STATUS: ${res.statusCode}`);
+            console.log(`HEADERS: ${JSON.stringify(res.headers)}`);
+            out.setEncoding('utf8');
+            out.on('data', (chunk) => {
+              console.log(`BODY: ${chunk}`);
+            });
+            out.on('end', () => {
+              console.log('No more data in response.');
+              queueRegistrationEmail(user_email);
+              let msg_options={
+                from: 'easybooking.adm@gmail.com',
+                to: user_email,
+                subject: 'Password dimenticata su EasyBooking!',
+                html: `Ciao hai richeisto il reset della password su EasyBooking! Per resettare la password del tuo account clicca sul seguente link <a href=https://localhost:8083/password_recovery_tkn/${token}/${user_email}>Reset password email!</a>`,
+              };
+              deliverQueuedMessages('registration', req.transporter, msg_options);
+              req.session.message = {
+                type: 'info',
+                intro: ' ',
+                message: 'Mail di reset inviata con successo.'
+              }
+              res.redirect('/login');
+            });
+          });
+          
+          request.on('error', (e) => {
+            console.error(`problem with request: ${e.message}`);
+            req.session.message = {
+              type: 'danger',
+              intro: 'Richiesta reset password fallita!',
+              message: e.message
+            }
+            res.redirect('/signup');
+          });
+          
+          // Write data to request body
+          request.write(postData);
+          request.end();
+        });
+      }
+    });
+  });
+
+  usrs.on('error', error => {
+    console.error(error);
+    res.redirect('/login');
+  });
+
+  usrs.end();
+});
+
+router.get('/password_recovery_tkn/:token/:userEmail', (req, res) => {
+  console.log(req.params.token);
+  const get_options = {
+    hostname: 'couchdb',
+    port: 5984,
+    path: '/db/'+req.params.userEmail,
+    method: 'GET',
+    auth: process.env.COUCHDB_USER+":"+process.env.COUCHDB_PASSWORD
+  };
+
+  var data = "";
+  const usrs = http.request(get_options, out => {
+    console.log(`statusCode: ${out.statusCode}`);
+    out.setEncoding('utf8');
+    out.on('data', d => {
+      data += d.toString();
+      //process.stdout.write(d);
+    });
+    out.on('end', function() {
+      var x = JSON.parse(data);
+      console.log(x);
+      if (x && dayjs().isBefore(x.password_recovery_expires_at)){
+        req.session.email = req.params.userEmail;
+        return res.redirect('/new_password');
+      } else {
+        console.log("errore reset password!");
+        req.session.message = {
+          type: 'danger',
+          intro: 'Errore reset password! ',
+          message: 'Token non valido.'
+        }
+        res.redirect('/signup');
+      }
+    });
+  });
+
+  usrs.on('error', error => {
+    console.error(error);
+  });
+
+  usrs.end();
+});
+
+router.get('/new_password', (req, res) =>{
+  console.log(req.session.email);
+  res.render('recoverytkn',{csrfToken: req.csrfToken()});
+});
+
+router.post('/password_recovery_tkn', (req, res) => {
+  console.log(req.session.email);
+  var passCheck = CheckPassword(req.body.password);
+  if(req.body.password && req.body.password_confirmation && req.body.password_confirmation==req.body.password && passCheck){
+    const get_options = {
+      hostname: 'couchdb',
+      port: 5984,
+      path: '/db/'+req.session.email,
+      method: 'GET',
+      auth: process.env.COUCHDB_USER+":"+process.env.COUCHDB_PASSWORD
+    };
+    var data = "";
+    const usrs = http.request(get_options, out => {
+      console.log(`statusCode: ${out.statusCode}`);
+      out.setEncoding('utf8');
+      out.on('data', d => {
+        data += d.toString();
+        //process.stdout.write(d);
+      });
+      out.on('end', function() {
+        var x = JSON.parse(data);
+        var salt = crypto.randomBytes(16);
+        crypto.pbkdf2(req.body.password, salt, 310000, 32, 'sha256', function(err, hashedPassword) {
+          if (err) { return next(err); }
+          const postData = JSON.stringify({
+            "type": "User",
+            "fields": {
+              "email": x.fields.email,
+              "password": hashedPassword,
+              "role": "user",
+              "salt": salt,
+            },
+            "confirmed_at": dayjs(),
+            "confirmation_expires": null,
+            "confirmation_token": x.confirmation_token,
+            "password_recovery_token": null,
+            "password_recovery_expires_at": null,
+            "_rev": x._rev,
+            "_id": x._id,
+          });
+          const post_options = {
+            hostname: 'couchdb',
+            port: 5984,
+            path: '/db/'+req.session.email,
+            method: 'PUT',
+            auth: process.env.COUCHDB_USER+":"+process.env.COUCHDB_PASSWORD,
+            headers: {
+              'Content-Type': 'application/json',
+              'Content-Length': Buffer.byteLength(postData)
+            },
+          };
+        
+          const request = http.request(post_options, (out) => {
+            console.log(`STATUS: ${res.statusCode}`);
+            out.setEncoding('utf8');
+            out.on('data', (chunk) => {
+              console.log(`BODY: ${chunk}`);
+            });
+            out.on('end', () => {
+              console.log('No more data in response.');
+              req.session.destroy(function(err) {
+                if (err) { return next(err); }
+                res.clearCookie(process.env.SESS_NAME);
+                res.redirect('/login');
+              });
+            });
+          });
+          
+          request.on('error', (e) => {
+            console.error(`problem with request: ${e.message}`);
+            req.session.message = {
+              type: 'danger',
+              intro: 'Cambio password fallito!',
+              message: 'Tentativo di cambio password fallito: '+e.message
+            }
+            res.redirect('/signup');
+          });
+          
+          // Write data to request body
+          request.write(postData);
+          request.end();
+        });
+      });
+    });
+    
+    usrs.on('error', error => {
+      console.error(error);
+    });
+    
+    usrs.end();
+  } else if (!(req.body.password_confirmation==req.body.password)){
+    console.log("password e password confirmation non coincidono");
+    req.session.message = {
+      type: 'danger',
+      intro: 'Errore credenziali! ',
+      message: 'I campi password e password confirmation non coincidono.'
+    }
+    res.redirect('/new_password');
+  } else if (!passCheck){
+    console.log("password troppo debole");
+    req.session.message = {
+      type: 'danger',
+      intro: 'Password non valida! ',
+      message: 'Controlla la password! N.B. La password deve contenere almeno 8 caratteri tra cui un numero, un simbolo, una maiuscola, una minuscola.'
+    }
+    res.redirect('/new_password');
+  } else {
+    console.log("Errore generico");
+    req.session.message = {
+      type: 'danger',
+      intro: 'Errore ! ',
+      message: "Si è verificato un errore durante la procedura di reset della password! Per favore riprova più tardi."
+    }
+    res.redirect('/new_password');   
+  };
+});
+
+
 /* Gestisce processo di registrazione. */
 function createUser(req, res, salt, hashedPassword){
   let user_email = req.body.username.toLowerCase();
@@ -467,7 +749,7 @@ function getGoogleEmail(req, res, access_token, refresh_token){
 
 };
 
-function addGoogleUserToDB(req, res, email, access_token, refresh_token, hashedPassword, salt){
+function addGoogleUserToDB(email, access_token, refresh_token, hashedPassword, salt){
   const get_options = {
     hostname: 'couchdb',
     port: 5984,

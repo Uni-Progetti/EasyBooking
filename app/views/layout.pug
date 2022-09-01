@@ -43,14 +43,17 @@ html
           |  #{message.message}
           button.btn-close(type='button' data-bs-dismiss='alert' aria-label='Close') 
  
-  
+  section.prompt 
+    block content 
+  section
+    block content2
   section.home
     block contentHome
   section.index
     block contentIndex
   section.signup 
     block contentSignUp
-    section.signin 
+  section.signin 
     block contentSignIn
   section.reservation
     block contentReservation
@@ -59,5 +62,4 @@ html
   section 
     block contentError
  
-
 

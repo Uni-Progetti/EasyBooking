@@ -1,8 +1,10 @@
 var express = require('express');
 var router = express.Router();
-const dayjs = require('dayjs');
+var crypto = require('crypto');
+// const { render } = require('../app');
 const http = require('http');
 const https = require('https');
+const dayjs = require('dayjs');
 
 let users = {
   1: {
@@ -36,7 +38,7 @@ router.get('/', (req, res) => {
 router.get('/:userId', (req, res) => {
   return res.send(users[req.params.userId]);
 });
-
+ /* GET users account verification */
 router.get('/verify/:token/:userEmail', (req, res) => {
   console.log(req.params.token);
   const get_options = {
@@ -146,5 +148,16 @@ router.delete('/:userId', (req, res) => {
     `DELETE HTTP method on user/${req.params.userId} resource`,
   );
 });
+
+function CheckPassword(password) { 
+  const decimal =  /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9])(?!.*\s).{8,15}$/;
+  if(password.match(decimal)) { 
+    console.log('password conforme');
+    return true;
+  } else { 
+    console.log('password non conforme');
+    return false;
+  }
+};
 
 module.exports = router;

@@ -1,11 +1,8 @@
-extends layout
+extends layout 
 
 block content
-  h4 Sign up
-  form(action='/signup' method='post')
-    section
-      label(for='username') Username
-      input#username(name='username' type='text' autocomplete='username' required='')
+  h4 Change password
+  form(action='/password_recovery_tkn' method='post')
     section
       label(for='new-password') Password
       input#new-password(name='password' type='password' autocomplete='new-password' required='')
@@ -13,8 +10,5 @@ block content
       label(for='new-password-confirmation') Password Confirmation
       input#new-password-confirmation(name='password_confirmation' type='password' autocomplete='new-password' required='')
       input(type='hidden' name='_csrf' value=csrfToken)
-    button(type='submit') Sign up
+    button(type='submit') Change password
   hr
-  p.help
-    | Already have an account? 
-    a(href='/login') Sign in
