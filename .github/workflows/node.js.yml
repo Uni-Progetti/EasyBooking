@@ -19,10 +19,10 @@ jobs:
       - name: Setup and run test Node
         uses: actions/checkout@v3
       - uses: actions/setup-node@v3
+      - uses: isbang/compose-action@v1.2.0
       - name: npm installation
         run: npm install
       - name: compose up
-      - uses: isbang/compose-action@v1.2.0
         with:
           compose-file: "../docker-compose.yml"
       - name: Run test
