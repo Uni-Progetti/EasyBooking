@@ -1,7 +1,7 @@
 #!/bin/bash
 cd app
 wait
-sudo npm install 
+npm install 
 wait
 npm run-script build
 wait
