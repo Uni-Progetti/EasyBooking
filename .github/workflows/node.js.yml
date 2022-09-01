@@ -19,6 +19,9 @@ env:
   AMQP_URL: ${{ secrets.AMQP_URL }}
   APP_EMAIL: ${{ secrets.APP_EMAIL }}
   APP_EMAIL_PASS: ${{ secrets.APP_EMAIL_PASS }}
+  BASE_64_CERT_KEY: ${{ secrets.BASE_64_CERT_KEY }}
+  CERT_DHPARAM: ${{ secrets.CERT_DHPARAM }}
+  CERT_NGINX: ${{ secrets.CERT_NGINX }}
   
 jobs:
   deploy:
@@ -32,6 +35,8 @@ jobs:
       - uses: actions/setup-node@v3
       - name: npm installation
         run: npm install
+      - name: create certs
+        run: cd .. && mkdir certs && cd certs && echo "$BASE_64_CERT_KEY" | base64 --decode > nginx.key && echo "$CERT_DHPARAM" > dhparam.pem && echo "$CERT_NGINX" > nginx.crt
       - name: docker compose up
         run: cd .. && docker-compose up -d 
       - name: docker-compose down
