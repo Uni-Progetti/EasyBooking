@@ -8,7 +8,18 @@ on:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
-
+    
+env:
+  COUCHDB_USER: ${{ secrets.COUCHDB_USER }}
+  COUCHDB_PASSWORD: ${{ secrets.COUCHDB_PASSWORD }}
+  SESS_NAME: ${{ secrets.SESS_NAME }}
+  SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+  GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+  GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+  AMQP_URL: ${{ secrets.AMQP_URL }}
+  APP_EMAIL: ${{ secrets.APP_EMAIL }}
+  APP_EMAIL_PASS: ${{ secrets.APP_EMAIL_PASS }}
+  
 jobs:
   deploy:
     runs-on: ubuntu-latest
