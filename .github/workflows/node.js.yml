@@ -42,6 +42,6 @@ jobs:
       - name: docker ps
         run: docker ps -a
       - name: test connection nginx
-        run: docker run --app-network container:nginx appropriate/curl http://localhost/
+        run: docker run --network container:nginx appropriate/curl http://localhost/
       - name: docker-compose down
         run: cd .. && docker-compose down
