@@ -43,7 +43,5 @@ jobs:
         run: docker ps -a
       - name: test connection nginx
         run: docker run --network container:nginx appropriate/curl http://localhost/
-      - name: npm test
-        run: npm test
       - name: docker-compose down
         run: cd .. && docker-compose down
