@@ -36,12 +36,12 @@ jobs:
       - name: npm installation
         run: npm install
       - name: create certs
-        run: cd .. && mkdir certs && cd certs && echo "$BASE_64_CERT_KEY" | base64 --decode > nginx.key && echo "$CERT_DHPARAM" > dhparam.pem && echo "$CERT_NGINX" > nginx.crt && pwd && ls
+        run: cd .. && mkdir certs && cd certs && echo "$BASE_64_CERT_KEY" > nginx.key && echo "$CERT_DHPARAM" > dhparam.pem && echo "$CERT_NGINX" > nginx.crt && pwd && ls
       - name: docker compose up
         run: cd .. && docker-compose up -d
       - name: docker ps
         run: docker ps -a
       - name: test connection nginx
-        run: docker run --network container:nginx appropriate/curl http://localhost/
+        run: docker run --app-network container:nginx appropriate/curl http://localhost/
       - name: docker-compose down
         run: cd .. && docker-compose down
