@@ -9,7 +9,59 @@ const amqpUrl = process.env.AMQP_URL || 'amqp://localhost:5673';
 var amqp = require('amqplib/callback_api');
 const dayjs = require('dayjs');
 
-// stampa tutti i dipartimenti
+/**
+ * @api {get} /api/getDepartments/all Request All Departments information
+ * @apiName GetDepartments
+ * @apiGroup Department
+ *
+ * 
+ *
+ * @apiSuccess {String} name of the Department.
+ * @apiSuccess {String} info of the Department.
+ *
+ * @apiSuccessExample Success-Response:
+ *     HTTP/1.1 200 OK
+    {
+        "Dipartimento di Donia": {
+            "name": "Dipartimento di Donia",
+            "manager": "donia.manager@gmail.com",
+            "floors": 4,
+            "number_of_spaces": 4,
+            "via": "Via mura dei francesi",
+            "civico": "10",
+            "cap": "00043",
+            "citta": "Ciampino",
+            "provincia": "RM",
+            "latitude": "41.80299",
+            "longitude": "12.59893",
+            "description": "Per gestire o testare questo dipartimento accedi come 'donia.manager@gmail.com'"
+        },
+        "Dipartimento di Francesco": {
+            "name": "Dipartimento di Francesco",
+            "manager": "fra.manager@gmail.com",
+            "floors": 4,
+            "number_of_spaces": 4,
+            "via": "Piazzale Aldo Moro",
+            "civico": "5",
+            "cap": "00185",
+            "citta": "Roma",
+            "provincia": "RM",
+            "latitude": "41.9012777",
+            "longitude": "12.5145879",
+            "description": "Per gestire o testare questo dipartimento accedi come 'fra.manager@gmail.com'"
+        }
+    }
+ *
+ * @apiError UserNotFound The id of the User was not found.
+ *
+ * @apiErrorExample Error-Response:
+ *     HTTP/1.1 404 Not Found
+ *     {
+ *       "error": "Nessun Dipartimento trovato"
+ *     }
+ */
+
+// stampa dipartimenti
 router.get('/getDepartments/all', function(req, res){
     const get_options = {
         hostname: 'couchdb',
@@ -29,8 +81,19 @@ router.get('/getDepartments/all', function(req, res){
         });
         out.on('end', function() {
             var x = JSON.parse(data);
-            console.log(x);
-            res.status(200).json(x);
+            let output = {};
+            x.rows.forEach(element => {
+                output [element.key] = element.value.fields;
+            });
+            //res_json = JSON.parse(res_json);
+            const isEmpty = Object.keys(res_json).lenght === 0;
+            if (isEmpty){
+                res.status(404).send({error: "Nessun Dipartimento trovato"});
+            } else {
+                res.header("Content-Type",'application/json');
+                res.status(200).send(JSON.stringify(output, null, 4));
+            }
+
         });
     });
 
@@ -42,7 +105,53 @@ router.get('/getDepartments/all', function(req, res){
     usrs.end();
 });
 
-
+/**
+ * @api {get} /api/getSpaces/all Request All Spacess information
+ * @apiName GetSpaces
+ * @apiGroup Spaces
+ *
+ * 
+ *
+ * @apiSuccess {String} name of the Space.
+ * @apiSuccess {String} info of the Space.
+ *
+ * @apiSuccessExample Success-Response:
+ *     HTTP/1.1 200 OK
+ *     {
+ *           "total_rows": 20,
+ *           "offset": 0,
+ *           "rows": [
+ *               {
+ *                   "id": "24a020e2735a757dd5c996cf3f4944fc",
+ *                   "key": "106",
+ *                   "value": {
+ *                       "typology": "Aula",
+ *                       "dep_name": "Dipartimento di Matteo",
+ *                       "number_of_seats": 4,
+ *                       "rev": "1-331117824a1cd0bf38b0b6b590ecc580"
+ *                   }
+ *               },
+ *               {
+ *                   "id": "24a020e2735a757dd5c996cf3f49c7fe",
+ *                   "key": "106",
+ *                   "value": {
+ *                       "typology": "Aula",
+ *                       "dep_name": "Dipartimento di Michela",
+ *                       "number_of_seats": 4,
+ *                       "rev": "1-9117b7c941553cc65d4bc6f71a71b08c"
+ *                   }
+ *               },
+ *           ]
+ *       }
+ *
+ * @apiError NotFound No Space was found.
+ *
+ * @apiErrorExample Error-Response:
+ *     HTTP/1.1 404 Not Found
+ *     {
+ *       "error": "Nessuno Spazio trovato"
+ *     }
+ */
 // stampa tutti gli spazi
 router.get('/getSpaces/all', function(req, res){
     const get_options = {
@@ -64,7 +173,8 @@ router.get('/getSpaces/all', function(req, res){
         out.on('end', function() {
             var x = JSON.parse(data);
             console.log(x);
-            res.status(200).json(x);
+            res.header("Content-Type",'application/json');
+            res.status(200).send(JSON.stringify(x, null, 4));
         });
     });
 
@@ -106,10 +216,11 @@ router.get('/getSpaces/:typology', function(req, res){
             });
             const isEmpty = Object.keys(output).length === 0;
             if (isEmpty) {
-                res.status(404).send({message: "Nessun elemento trovato per la tipologia " + req.params.typology});
+                res.status(404).send({error: "Nessun elemento trovato per la tipologia " + req.params.typology});
             }
             else {
-                res.status(200).json(output);
+                res.header("Content-Type",'application/json');
+                res.status(200).send(JSON.stringify(output, null, 4));
             }
         });
     });
@@ -144,7 +255,8 @@ router.get('/getSeats/all', function(req, res){
         out.on('end', function() {
             var x = JSON.parse(data);
             console.log(x);
-            res.status(200).json(x);
+            res.header("Content-Type",'application/json');
+            res.status(200).send(JSON.stringify(x, null, 4));
         });
     });
 

@@ -1,6 +1,6 @@
 {
   "name": "easybooking",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "start": "nodemon --exec babel-node bin/www",
@@ -26,6 +26,7 @@
     "express": "~4.16.1",
     "express-session": "^1.17.3",
     "fullcalendar": "^5.11.3",
+    "html": "^1.0.0",
     "http-errors": "~1.6.3",
     "leaflet": "^1.8.0",
     "morgan": "~1.9.1",
@@ -42,5 +43,9 @@
     "@babel/preset-env": "^7.18.10",
     "chai": "*",
     "mocha": "*"
+  },
+  "apidoc": {
+    "title": "EasyBooking API Documentation",
+    "url": "https://localhost:8083"
   }
 }
