@@ -26,6 +26,7 @@ const transporter = nodemailer.createTransport({
 });
 
 
+var apiRouter = require('./routes/api');
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var authRouter = require('./routes/auth');
@@ -75,6 +76,7 @@ app.use( function (req, res, next) {
 });
 
 
+app.use('/api', apiRouter);
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/', authRouter);
