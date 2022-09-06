@@ -42,7 +42,7 @@ jobs:
       - name: Wait containers start up
         uses: jakejarvis/wait-action@master
         with:
-          time: '10s'
+          time: '30s'
       - name: docker ps
         run: docker ps -a
       - name: test connection nginx
