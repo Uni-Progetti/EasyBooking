@@ -47,5 +47,7 @@ jobs:
         run: docker ps -a
       - name: test connection nginx
         run: curl -k https://localhost:8083 && curl http://localhost:5984 && curl http://localhost:15672
+      - name: test npm
+        run: cd ./app && npm test
       - name: docker-compose down
         run: cd .. && docker-compose down
