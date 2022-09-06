@@ -16,8 +16,17 @@ const dayjs = require('dayjs');
  *
  * 
  *
- * @apiSuccess {String} name of the Department.
- * @apiSuccess {String} info of the Department.
+ * @apiSuccess {String} name name of the Department.
+ * @apiSuccess {String} manager manager of the Department.
+ * @apiSuccess {String} floor floor of the Department.
+ * @apiSuccess {String} via via of the Department.
+ * @apiSuccess {String} civico civico of the Department.
+ * @apiSuccess {String} cap cap of the Department.
+ * @apiSuccess {String} citta citta of the Department.
+ * @apiSuccess {String} provincia provincia of the Department.
+ * @apiSuccess {String} latitude latitude of the Department.
+ * @apiSuccess {String} longitude longitude of the Department.
+ * @apiSuccess {String} description description of the Department.
  *
  * @apiSuccessExample Success-Response:
  *     HTTP/1.1 200 OK
@@ -66,7 +75,7 @@ router.get('/getDepartments/all', function(req, res){
     const get_options = {
         hostname: 'couchdb',
         port: 5984,
-        path: '/db/_design/Department/_view/0_All_Departments',
+        path: '/db/_design/Department/_view/Departments_info',
         method: 'GET',
         auth: process.env.COUCHDB_USER+":"+process.env.COUCHDB_PASSWORD
     };
@@ -86,7 +95,7 @@ router.get('/getDepartments/all', function(req, res){
                 output [element.key] = element.value.fields;
             });
             //res_json = JSON.parse(res_json);
-            const isEmpty = Object.keys(res_json).lenght === 0;
+            const isEmpty = Object.keys(output).lenght === 0;
             if (isEmpty){
                 res.status(404).send({error: "Nessun Dipartimento trovato"});
             } else {
@@ -186,7 +195,42 @@ router.get('/getSpaces/all', function(req, res){
     usrs.end();
 });
 
-
+/**
+ * @api {get} /getSpaces/:typology Request Spaces information for that specific typology
+ * @apiParam {String} typology Space typology (ex. Aula, Laboratorio, Isola )
+ * @apiName GetSpacesTypology
+ * @apiGroup Spaces
+ *
+ * 
+ *
+ * @apiSuccess {String} name of the Space.
+ * @apiSuccess {String} info of the Space.
+ *
+ * @apiSuccessExample Success-Response:
+ *     HTTP/1.1 200 OK
+    {
+        "106": {
+            "typology": "Aula",
+            "dep_name": "Dipartimento di Francesco",
+            "number_of_seats": 4,
+            "rev": "1-c15c271bfe56e4d74a78d049a0179425"
+        },
+        "204": {
+            "typology": "Aula",
+            "dep_name": "Dipartimento di Michela",
+            "number_of_seats": 8,
+            "rev": "1-9d9197a3186a799b7a1b7ef455d24e67"
+        }
+    }
+ *
+ * @apiError NotFound No Space was found.
+ *
+ * @apiErrorExample Error-Response:
+ *     HTTP/1.1 404 Not Found
+ *     {
+ *       "error": "Nessun elemento trovato per la tipologia ${typology}"
+ *     }
+ */
 // stampa tutti gli spazi per tipologia
 router.get('/getSpaces/:typology', function(req, res){
     const get_options = {
@@ -233,7 +277,86 @@ router.get('/getSpaces/:typology', function(req, res){
     usrs.end();
 });
 
-
+/**
+ * @api {get} /getSeats/all Request all Seats 
+ * @apiName GetSeats
+ * @apiGroup Seats
+ *
+ * 
+ *
+ * @apiSuccess {String} name of the Seat.
+ * @apiSuccess {String} info of the Seat.
+ *
+ * @apiSuccessExample Success-Response:
+ *     HTTP/1.1 200 OK
+ * 
+        {
+            [
+                {
+                    "id": "24a020e2735a757dd5c996cf3fd400c2",
+                    "key": "Dipartimento di Michela",
+                    "value": {
+                        "typology": "Isola",
+                        "space_name": "D",
+                        "position": 1,
+                        "start_date": {
+                            "Y": 2022,
+                            "M": 9,
+                            "D": 12,
+                            "h": 15,
+                            "m": 0,
+                            "s": 0
+                        },
+                        "end_date": {
+                            "Y": 2022,
+                            "M": 9,
+                            "D": 12,
+                            "h": 16,
+                            "m": 0,
+                            "s": 0
+                        },
+                        "state": "Active",
+                        "rev": "1-5888c91af04950b7e4261b99fb7c31f4"
+                    }
+                },
+                {
+                    "id": "24a020e2735a757dd5c996cf3fd40857",
+                    "key": "Dipartimento di Michela",
+                    "value": {
+                        "typology": "Aula",
+                        "space_name": "106",
+                        "position": 1,
+                        "start_date": {
+                            "Y": 2022,
+                            "M": 9,
+                            "D": 6,
+                            "h": 8,
+                            "m": 0,
+                            "s": 0
+                        },
+                        "end_date": {
+                            "Y": 2022,
+                            "M": 9,
+                            "D": 6,
+                            "h": 9,
+                            "m": 0,
+                            "s": 0
+                        },
+                        "state": "Active",
+                        "rev": "1-1265afe741f07a277661b658a5635a66"
+                    }
+                }
+            ]
+        }
+ *
+ * @apiError NotFound No Space was found.
+ *
+ * @apiErrorExample Error-Response:
+ *     HTTP/1.1 404 Not Found
+ *     {
+ *       "error": "Nessun elemento trovato per la tipologia ${typology}"
+ *     }
+ */
 // stampa tutti i posti
 router.get('/getSeats/all', function(req, res){
     const get_options = {

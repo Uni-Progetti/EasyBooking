@@ -37,9 +37,10 @@ function insert_views(){
     )
 
     couch.insert(dbName, { "_id": "_design/Department", "views": {
-        "0_All_Departments": { "map": "function (doc) { if (doc.type == 'Department') emit( doc.fields.name, { fields: doc.fields, rev: doc._rev } ) }" }
+        "0_All_Departments": { "map": "function (doc) { if (doc.type == 'Department') emit( doc.fields.name, { manager: doc.fields.manager, rev: doc._rev } ) }" },
+        "Departments_info": { "map": "function (doc) { if (doc.type == 'Department') emit( doc.fields.name, { fields: doc.fields, rev: doc._rev } ) }" }
     }, "language": "javascript" }).then(
-        function(data, headers, status){ console.log("Views: Departments\n 0_All_Departments") },
+        function(data, headers, status){ console.log("Views: Departments\n 0_All_Departments\n Departments_info") },
         function(err){ console.log(err) }
     )
 
