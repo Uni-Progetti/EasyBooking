@@ -38,7 +38,11 @@ jobs:
       - name: create certs
         run: cd ../nginx && mkdir certs && cd certs && echo "$BASE_64_CERT_KEY" > nginx.key && echo "$CERT_DHPARAM" > dhparam.pem && echo "$CERT_NGINX" > nginx.crt && pwd && ls
       - name: docker compose up
-        run: cd .. && docker-compose up -d
+        run: cd .. && docker-compose up -d --build
+      - name: Wait containers start up
+        uses: jakejarvis/wait-action@master
+        with:
+          time: '10s'
       - name: docker ps
         run: docker ps -a
       - name: test connection nginx
