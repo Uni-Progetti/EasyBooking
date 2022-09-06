@@ -7,9 +7,9 @@ services:
     build:
       context: .
       dockerfile: nginx/nginx.dockerfile
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
-      - ./certs:/etc/nginx/certs
+    # volumes:
+    #   - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+    #   - ./certs:/etc/nginx/certs
     links:
       - app1:app1
       - app2:app2
