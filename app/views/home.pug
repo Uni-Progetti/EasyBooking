@@ -1,6 +1,7 @@
 extends layout
 
 block content
+<<<<<<< HEAD
 	h3 HOME 
 	p Eccoci nella home di: #{userId}
 	section 
@@ -10,3 +11,21 @@ block content
 		#map
 		script(src='javascripts/webmap.js' charset='utf-8') 
 		
+=======
+	section.home
+		section.homeTitle
+			h3 HOME 
+				p Eccoci nella home
+		.row
+			.col-lg-6
+				p DIPARTIMENTIIII
+			.col-lg-3 
+			.col-lg-3
+				section.homeReservation
+					form(action='/reservation' method='get')
+						button(type='submit') effettua una nuova prenotazione
+				section.homeMap
+					#map
+					script(src='javascripts/webmap.js' charset='utf-8') 
+			
+>>>>>>> f150e7d5605786798dddae04e7843fa563e071cc

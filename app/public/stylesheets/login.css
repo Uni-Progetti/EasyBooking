@@ -1,33 +1,49 @@
 .prompt {
-	max-width: 400px;
-	margin: 50px auto;
+	width: 100%;
+	height: 100%;
 	padding: 25px;
 	background: #fff;
-	border: 1px solid #e6e6e6;
-	border-radius: 8px;
 }
 
 .home {
-	max-width: 400px;
-	margin: 50px auto;
-	padding: 25px;
-	background: #fff;
-	border: 1px solid #e6e6e6;
-	border-radius: 8px;
+	width: 100%;
+	height: 100%;
 }
 
-.index {
-	width: 50%;
-	padding: 1%;
+.homeTitle {
+	width: 100%;
+	height: 20%;
+}
+
+.homeReservation {
+	width: 100%;
+	height: 30%;
+	margin-bottom: 1%;
+
+}
+
+.homeMap {
+	width: 100%;
+	height: 60%;
+	margin-top: 1%;
+  	display: flex;
+ 	flex-direction: column;
+}
+
+.login {
+	width: 400px;
+	height: 400px;
+	margin-left: 650px;
 }
 
 .signup {
-	width: 80%;
-	padding: 1%;
+	width: 400px;
+	height: 400px;
+	margin-left: 650px;
 }
 
-.personalarea {
-	width: 80%;
+.personalArea {
+	width: 100%;
 	padding: 1%;
 }
 
@@ -37,10 +53,27 @@
 	padding: 5%;
 }
 
+.recovery {
+	width: 400px;
+	height: 400px;
+	margin-left: 650px;
+}
+
+.recoverytkn {
+	width: 400px;
+	height: 400px;
+	margin-left: 650px;
+}
+
 .reservation {
 	width: 80%;
 	margin: 0% 10% 0% 10%;
 	padding: 1%;
+}
+
+.row {
+	width: 100%;
+	height: 100%;
 }
 
 button {

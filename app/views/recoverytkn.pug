@@ -1,14 +1,15 @@
 extends layout 
 
 block content
-  h4 Change password
-  form(action='/password_recovery_tkn' method='post')
-    section
-      label(for='new-password') Password
-      input#new-password(name='password' type='password' autocomplete='new-password' required='')
-    section
-      label(for='new-password-confirmation') Password Confirmation
-      input#new-password-confirmation(name='password_confirmation' type='password' autocomplete='new-password' required='')
-      input(type='hidden' name='_csrf' value=csrfToken)
-    button(type='submit') Change password
-  hr
+	section.recoverytkn
+		h4 Change password
+		form(action='/password_recovery_tkn' method='post')
+			section
+				label(for='new-password') Password
+				input#new-password(name='password' type='password' autocomplete='new-password' required='')
+			section
+				label(for='new-password-confirmation') Password Confirmation
+				input#new-password-confirmation(name='password_confirmation' type='password' autocomplete='new-password' required='')
+				input(type='hidden' name='_csrf' value=csrfToken)
+			button(type='submit') Change password
+		hr
