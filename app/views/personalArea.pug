@@ -1,10 +1,11 @@
 extends layout
 
 block content
-    p Ecco la tua area personale
+    section.personalArea
+        p Ecco la tua area personale
 
-    section.calendario
-        block contentCalendario
-            #calendar 
-            script(src='javascripts/fullcalendar.js')
+        section.calendario
+            block contentCalendario
+                #calendar 
+                script(src='javascripts/fullcalendar.js')
 
