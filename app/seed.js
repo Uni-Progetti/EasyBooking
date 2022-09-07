@@ -94,20 +94,20 @@ function insert_usr(){
 
         // Dati
         const usr_array = [
-            { email: "fra.user@gmail.com",        password: hashedPassword, role: 'user',    salt: defSalt, refresh_token: '', access_token: '' },
-            { email: "matteo.user@gmail.com",     password: hashedPassword, role: 'user',    salt: defSalt, refresh_token: '', access_token: '' },
-            { email: "michela.user@gmail.com",    password: hashedPassword, role: 'user',    salt: defSalt, refresh_token: '', access_token: '' },
-            { email: "donia.user@gmail.com",      password: hashedPassword, role: 'user',    salt: defSalt, refresh_token: '', access_token: '' },
+            { email: "fra.user@gmail.com",        password: hashedPassword, role: 'user',    salt: defSalt, refresh_token: '', access_token: '', confirmed_at: dayjs(), confirmation_expires: null, confirmation_token: null},
+            { email: "matteo.user@gmail.com",     password: hashedPassword, role: 'user',    salt: defSalt, refresh_token: '', access_token: '', confirmed_at: dayjs(), confirmation_expires: null, confirmation_token: null},
+            { email: "michela.user@gmail.com",    password: hashedPassword, role: 'user',    salt: defSalt, refresh_token: '', access_token: '', confirmed_at: dayjs(), confirmation_expires: null, confirmation_token: null},
+            { email: "donia.user@gmail.com",      password: hashedPassword, role: 'user',    salt: defSalt, refresh_token: '', access_token: '', confirmed_at: dayjs(), confirmation_expires: null, confirmation_token: null},
     
-            { email: "fra.manager@gmail.com",     password: hashedPassword, role: 'manager', salt: defSalt, refresh_token: '', access_token: '' },
-            { email: "matteo.manager@gmail.com",  password: hashedPassword, role: 'manager', salt: defSalt, refresh_token: '', access_token: '' },
-            { email: "michela.manager@gmail.com", password: hashedPassword, role: 'manager', salt: defSalt, refresh_token: '', access_token: '' },
-            { email: "donia.manager@gmail.com",   password: hashedPassword, role: 'manager', salt: defSalt, refresh_token: '', access_token: '' },
-            { email: "test.manager@gmail.com",    password: hashedPassword, role: 'manager', salt: defSalt, refresh_token: '', access_token: '' },
+            { email: "fra.manager@gmail.com",     password: hashedPassword, role: 'manager', salt: defSalt, refresh_token: '', access_token: '', confirmed_at: dayjs(), confirmation_expires: null, confirmation_token: null},
+            { email: "matteo.manager@gmail.com",  password: hashedPassword, role: 'manager', salt: defSalt, refresh_token: '', access_token: '', confirmed_at: dayjs(), confirmation_expires: null, confirmation_token: null},
+            { email: "michela.manager@gmail.com", password: hashedPassword, role: 'manager', salt: defSalt, refresh_token: '', access_token: '', confirmed_at: dayjs(), confirmation_expires: null, confirmation_token: null},
+            { email: "donia.manager@gmail.com",   password: hashedPassword, role: 'manager', salt: defSalt, refresh_token: '', access_token: '', confirmed_at: dayjs(), confirmation_expires: null, confirmation_token: null},
+            { email: "test.manager@gmail.com",    password: hashedPassword, role: 'manager', salt: defSalt, refresh_token: '', access_token: '', confirmed_at: dayjs(), confirmation_expires: null, confirmation_token: null},
 
-            { email: "fra.admin@gmail.com",       password: hashedPassword, role: 'admin',   salt: defSalt, refresh_token: '', access_token: '' },
-            { email: "michela.admin@gmail.com",   password: hashedPassword, role: 'admin',   salt: defSalt, refresh_token: '', access_token: '' },
-            { email: "matteo.admin@gmail.com",    password: hashedPassword, role: 'admin',   salt: defSalt, refresh_token: '', access_token: '' }
+            { email: "fra.admin@gmail.com",       password: hashedPassword, role: 'admin',   salt: defSalt, refresh_token: '', access_token: '', confirmed_at: dayjs(), confirmation_expires: null, confirmation_token: null},
+            { email: "michela.admin@gmail.com",   password: hashedPassword, role: 'admin',   salt: defSalt, refresh_token: '', access_token: '', confirmed_at: dayjs(), confirmation_expires: null, confirmation_token: null},
+            { email: "matteo.admin@gmail.com",    password: hashedPassword, role: 'admin',   salt: defSalt, refresh_token: '', access_token: '', confirmed_at: dayjs(), confirmation_expires: null, confirmation_token: null}
         ]
 
         // Inserimento
