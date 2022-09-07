@@ -2,9 +2,18 @@ var express = require('express');
 var router = express.Router();
 const https = require('node:https');
 
+/* Reindirizza al login se non autenticati. */
+const redirectLogin = function(req, res, next){
+    if(!req.session.userId){
+      res.redirect('/login');
+    } else {
+      next();
+    }
+}
+
   
 /* GET personal_area page. */
-router.get('/', function(req, res) {
+router.get('/', redirectLogin ,function(req, res) {
     getCalendarEvents(req, res, req.session.access_token, '', '');
 });
 
@@ -32,7 +41,7 @@ function getCalendarEvents(req, res, access_token , calendar, start_date){
         response.on('end', (end) =>{
             //let parsed_data = JSON.parse(data);
             console.log(data);
-            res.render('personalArea');
+            res.render('personalArea',{userId: req.session.userId ,csrfToken: req.csrfToken(),location: req.location});
         });
     });
     

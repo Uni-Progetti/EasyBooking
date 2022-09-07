@@ -27,6 +27,10 @@ const redirectHome = function(req, res, next){
   }
 }
 
+router.get('/', function(req,res){
+  res.redirect('/home');
+});
+
 /* Reindirizza al login con google. */
 router.get('/google', redirectHome , function(req, res, next){
   const stringifiedParams = new URLSearchParams({
@@ -57,7 +61,7 @@ router.get('/oauth2callback', function(req, res, next){
 
 /* GET login page. */
 router.get('/login', redirectHome , function(req, res, next) {
-    res.render('login',{csrfToken: req.csrfToken()});
+    res.render('login',{csrfToken: req.csrfToken(), location: req.location});
 });
 
 router.get('/test', function(req, res, next) {
@@ -84,11 +88,19 @@ router.post('/login/password', redirectHome ,function (req, res, next) {
 
 });
 
+router.get('/logout', redirectLogin ,function(req, res, next) {
+  req.session.destroy(function(err) {
+    if (err) { return next(err); }
+    res.clearCookie(process.env.SESS_NAME);
+    res.redirect('/home');
+  });
+});
+
 router.post('/logout', redirectLogin ,function(req, res, next) {
     req.session.destroy(function(err) {
       if (err) { return next(err); }
       res.clearCookie(process.env.SESS_NAME);
-      res.redirect('/');
+      res.redirect('/home');
     });
 });
 
@@ -589,7 +601,7 @@ function authenticateSession(options, req, res){
           intro: '',
           message: 'Login effettuato correttamente!'
         }
-        res.redirect('/',);
+        res.redirect('/home',);
       }else{
         console.log("password errata");
         req.session.message = {
@@ -712,7 +724,7 @@ function getGoogleEmail(req, res, access_token, refresh_token){
         var salt = crypto.randomBytes(16);
         crypto.pbkdf2(access_token, salt, 310000, 32, 'sha256', function(err, hashedPassword) {
           if (err) { return next(err); }
-          var AddToDB = addGoogleUserToDB(req, res, x.email, access_token, refresh_token,hashedPassword,salt);
+          var AddToDB = addGoogleUserToDB(x.email, access_token, refresh_token,hashedPassword,salt);
         });
         req.session.userId = x.email;
         req.session.username = x.email;
@@ -723,7 +735,7 @@ function getGoogleEmail(req, res, access_token, refresh_token){
           intro: ' ',
           message: 'Login avvenuto con successo.'
         }
-        res.redirect('/');
+        res.redirect('/home');
       }else{
         req.session.message = {
           type: 'danger',
@@ -750,6 +762,7 @@ function getGoogleEmail(req, res, access_token, refresh_token){
 };
 
 function addGoogleUserToDB(email, access_token, refresh_token, hashedPassword, salt){
+  console.log("\n\n\n---->",email,"\n\n\n\n");
   const get_options = {
     hostname: 'couchdb',
     port: 5984,
@@ -757,6 +770,7 @@ function addGoogleUserToDB(email, access_token, refresh_token, hashedPassword, s
     method: 'GET',
     auth: process.env.COUCHDB_USER+":"+process.env.COUCHDB_PASSWORD
   };
+  console.log("\n\n\n---->",get_options,"\n\n\n\n");
 
   var data = "";
   const usrs = http.request(get_options, out => {

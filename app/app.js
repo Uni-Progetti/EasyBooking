@@ -25,9 +25,8 @@ const transporter = nodemailer.createTransport({
     },
 });
 
-
+var infoRouter = require('./routes/info');
 var apiRouter = require('./routes/api');
-var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var authRouter = require('./routes/auth');
 var homeRouter = require('./routes/home');
@@ -75,9 +74,13 @@ app.use( function (req, res, next) {
   next();
 });
 
+app.use( function (req, res, next) {
+  req.location = req.get('host') + req.originalUrl;
+  next();
+});
 
+app.use('/info', infoRouter);
 app.use('/api', apiRouter);
-app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/', authRouter);
 app.use('/home', homeRouter);

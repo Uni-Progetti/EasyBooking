@@ -1,10 +1,18 @@
 var express = require('express');
 var router = express.Router();
 
+/* Reindirizza al login se non autenticati. */
+const redirectLogin = function(req, res, next){
+    if(!req.session.userId){
+      res.redirect('/login');
+    } else {
+      next();
+    }
+}
   
 /* GET reservation page. */
-router.get('/', function(req, res) {
-    res.render('reservation');
+router.get('/',redirectLogin ,function(req, res) {
+    res.render('reservation',{location: req.location});
 });
 
 module.exports = router;var express = require('express');
@@ -18,7 +26,7 @@ var seats = ""
 var reservations = ""
 
 /* GET reservation page. */
-router.get('/', function(req, res) {
+router.get('/',redirectLogin ,function(req, res) {
 
     // departments view: http://localhost:5984/db/_design/Department/_view/0_All_Departments/
     var dep_options = {
@@ -90,7 +98,7 @@ router.get('/', function(req, res) {
                                         response.on('end', function () {
                                             console.log(reservs_str)
                                             reservations = JSON.parse(reservs_str)
-                                            res.render('reservation', { deps: departments, wds: weekdays, sps: spaces, sts: seats, reservs: reservations } )
+                                            res.render('reservation', { userId: req.session.userId ,csrfToken: req.csrfToken(),deps: departments, wds: weekdays, sps: spaces, sts: seats, reservs: reservations ,location: req.location} )
                                         });
                                         response.on('error', error => { console.error(error); res.redirect('/') });
                                     });

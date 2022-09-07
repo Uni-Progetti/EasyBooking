@@ -12,21 +12,54 @@ html
     script(language='javascript', src='fullcalendar/main.js')
     script(language='javascript' src='dayjs/dayjs.min.js')
 
-    ul
-      li
-        a.active(href='/home') Home
-      li 
-        a(href='/') Index
-      li
-        a(href='/map') Map
-      li
-        a(href='/reservation') Prenotazione
-      li
-        a(href='/info') Info  
-      li
-        a(href='/personalArea') Area personale
-      li 
-        a(href='/apidoc') API Documentation
+    nav.navbar.navbar-expand-lg.navbar-dark.bg-dark
+      .container-fluid
+        a.navbar-brand(href='/home')
+          img.d-inline-block.align-text-top(src='/images/logo_easy_booking.png' alt='' width='30' height='30')
+        button.navbar-toggler(type='button' data-bs-toggle='collapse' data-bs-target='#navbarSupportedContent' aria-controls='navbarSupportedContent' aria-expanded='false' aria-label='Toggle navigation')
+          span.navbar-toggler-icon
+        #navbarSupportedContent.collapse.navbar-collapse
+          ul.navbar-nav.me-auto.mb-2.mb-lg-0
+            li.nav-item
+              if location == 'localhost:8083/home'
+                a.nav-link.active(href='/home') Home
+              else 
+                a.nav-link(href='/home') Home
+            li.nav-item
+              if location == 'localhost:8083/reservation'
+                a.nav-link.active(href='/reservation') Prenotazione
+              else 
+                a.nav-link(href='/reservation') Prenotazione
+            li.nav-item
+              if location == 'localhost:8083/personalArea'
+                a.nav-link.active(href='/personalArea') Area personale
+              else 
+                a.nav-link(href='/personalArea') Area personale
+            li.nav-item
+              if location == 'localhost:8083/apidoc'
+                a.nav-link.active(href='/apidoc') API Documentation
+              else 
+                a.nav-link(href='/apidoc') API Documentation
+            li.nav-item
+              if location == 'localhost:8083/info'
+                a.nav-link.active(href='/info') Info
+              else 
+                a.nav-link(href='/info') Info
+          ul.navbar-nav.me-end.mb-2.mb-lg-0
+            if userId 
+              li.nav-item 
+                a.nav-link(href='/personalArea') #{userId}
+            li.nav-item
+              if userId
+                a.nav-link(href='/logout') Logout
+              else
+                if location == 'localhost:8083/login'
+                  a.nav-link.active(href='/login') Login
+                else 
+                  a.nav-link(href='/login') Login
+
+      
+      
 
     if message
       if message.type=='danger'

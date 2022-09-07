@@ -19,7 +19,7 @@ router.get('/', redirectLogin ,function(req, res, next) {
 
   // Cookies that have been signed
   console.log('Signed Cookies: ', req.signedCookies);
-  res.render('index', { title: 'Express', userId: req.session.userId ,csrfToken: req.csrfToken()});
+  res.render('index', { title: 'Express', userId: req.session.userId ,csrfToken: req.csrfToken(), location: req.location});
 });
 
 /* GET map page. */

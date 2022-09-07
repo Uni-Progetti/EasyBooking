@@ -2,7 +2,7 @@ extends layout
 
 block content
 	h3 HOME 
-	p Eccoci nella home
+	p Eccoci nella home di: #{userId}
 	section 
 		form(action='/reservation' method='get')
 			button(type='submit') effettua una nuova prenotazione
