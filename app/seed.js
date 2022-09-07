@@ -59,7 +59,8 @@ function insert_views(){
     )
 
     couch.insert(dbName, { "_id": "_design/Seat", "views": {
-        "0_All_Seats": { "map": "function (doc) { if (doc.type == 'Seat') emit( doc.fields.dep_name, { typology: doc.fields.typology, space_name: doc.fields.space_name, position: doc.fields.position, start_date: { Y: doc.fields.start_date.Y, M: doc.fields.start_date.M, D: doc.fields.start_date.D, h: doc.fields.start_date.h, m: doc.fields.start_date.m, s: doc.fields.start_date.s },  end_date: { Y: doc.fields.end_date.Y, M: doc.fields.end_date.M, D: doc.fields.end_date.D, h: doc.fields.end_date.h, m: doc.fields.end_date.m, s: doc.fields.end_date.s }, state: doc.fields.state, rev: doc._rev } ) }" }
+        "0_All_Seats": { "map": "function (doc) { if (doc.type == 'Seat') emit( doc.fields.dep_name, { typology: doc.fields.typology, space_name: doc.fields.space_name, position: doc.fields.position, start_date: { Y: doc.fields.start_date.Y, M: doc.fields.start_date.M, D: doc.fields.start_date.D, h: doc.fields.start_date.h, m: doc.fields.start_date.m, s: doc.fields.start_date.s },  end_date: { Y: doc.fields.end_date.Y, M: doc.fields.end_date.M, D: doc.fields.end_date.D, h: doc.fields.end_date.h, m: doc.fields.end_date.m, s: doc.fields.end_date.s }, state: doc.fields.state, rev: doc._rev } ) }" },
+        "Seats_By_Typology": { "map": "function (doc) { if (doc.type == 'Seat') emit( doc.fields.dep_name, { typology: doc.fields.typology, space_name: doc.fields.space_name, position: doc.fields.position, state: doc.fields.state, rev: doc._rev } ) }" }
     }, "language": "javascript" }).then(
         function(data, headers, status){ console.log("Views: Seats\n 0_All_Seats") },
         function(err){ console.log(err) }

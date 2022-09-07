@@ -389,12 +389,56 @@ router.get('/getSeats/all', function(req, res){
     });
 
     usrs.end();
-})
+});
 
 
 // stampa tutti i posti di un dato spazio
+router.get('/getSeats/:typology/:space_name', function(req, res) {
+    const get_options = {
+        hostname: 'couchdb',
+        port: 5984,
+        path: '/db/_design/Seat/_view/Seats_By_Typology',
+        method: 'GET',
+        auth: process.env.COUCHDB_USER+":"+process.env.COUCHDB_PASSWORD
+    };
 
-// localizza dipartimento
+    var data = "";
+    const usrs = http.request(get_options, out => {
+        console.log(`statusCode: ${out.statusCode}`);
+        out.setEncoding('utf8');
+        out.on('data', d => {
+            data += d.toString();
+            //process.stdout.write(d);
+        });
+        out.on('end', function() {
+            var x = JSON.parse(data);
+            console.log(x);
+            var output = {};
+            x.rows.forEach(element => {
+                if (element.value.typology == req.params.typology && element.value.space_name == req.params.space_name) {
+                    output [element.key] = element.value;
+                }
+            });
+            const isEmpty = Object.keys(output).length === 0;
+            if (isEmpty) {
+                res.status(404).send({error: "Nessun elemeneto trovato per lo spazio " + req.params.typology + " " + req.params.space_name});
+            }
+            else {
+                res.header("Content-Type",'application/json');
+                res.status(200).send(JSON.stringify(output, null, 4));
+            }
+        });
+    });
+
+    usrs.on('error', error => {
+        console.log(error);
+        res.status(503);
+    });
+
+    usrs.end();
+})
+
+
 // stampa le mie prenotazioni
 // elimina prenotazioni
 // stampa utenti (se sei admin)
