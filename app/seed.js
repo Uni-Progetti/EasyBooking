@@ -94,20 +94,19 @@ function insert_usr(){
 
         // Dati
         const usr_array = [
-            { email: "fra.user@gmail.com",        password: hashedPassword, role: 'user',    salt: defSalt, refresh_token: '', access_token: '', confirmed_at: dayjs(), confirmation_expires: null, confirmation_token: null},
-            { email: "matteo.user@gmail.com",     password: hashedPassword, role: 'user',    salt: defSalt, refresh_token: '', access_token: '', confirmed_at: dayjs(), confirmation_expires: null, confirmation_token: null},
-            { email: "michela.user@gmail.com",    password: hashedPassword, role: 'user',    salt: defSalt, refresh_token: '', access_token: '', confirmed_at: dayjs(), confirmation_expires: null, confirmation_token: null},
-            { email: "donia.user@gmail.com",      password: hashedPassword, role: 'user',    salt: defSalt, refresh_token: '', access_token: '', confirmed_at: dayjs(), confirmation_expires: null, confirmation_token: null},
-    
-            { email: "fra.manager@gmail.com",     password: hashedPassword, role: 'manager', salt: defSalt, refresh_token: '', access_token: '', confirmed_at: dayjs(), confirmation_expires: null, confirmation_token: null},
-            { email: "matteo.manager@gmail.com",  password: hashedPassword, role: 'manager', salt: defSalt, refresh_token: '', access_token: '', confirmed_at: dayjs(), confirmation_expires: null, confirmation_token: null},
-            { email: "michela.manager@gmail.com", password: hashedPassword, role: 'manager', salt: defSalt, refresh_token: '', access_token: '', confirmed_at: dayjs(), confirmation_expires: null, confirmation_token: null},
-            { email: "donia.manager@gmail.com",   password: hashedPassword, role: 'manager', salt: defSalt, refresh_token: '', access_token: '', confirmed_at: dayjs(), confirmation_expires: null, confirmation_token: null},
-            { email: "test.manager@gmail.com",    password: hashedPassword, role: 'manager', salt: defSalt, refresh_token: '', access_token: '', confirmed_at: dayjs(), confirmation_expires: null, confirmation_token: null},
-
-            { email: "fra.admin@gmail.com",       password: hashedPassword, role: 'admin',   salt: defSalt, refresh_token: '', access_token: '', confirmed_at: dayjs(), confirmation_expires: null, confirmation_token: null},
-            { email: "michela.admin@gmail.com",   password: hashedPassword, role: 'admin',   salt: defSalt, refresh_token: '', access_token: '', confirmed_at: dayjs(), confirmation_expires: null, confirmation_token: null},
-            { email: "matteo.admin@gmail.com",    password: hashedPassword, role: 'admin',   salt: defSalt, refresh_token: '', access_token: '', confirmed_at: dayjs(), confirmation_expires: null, confirmation_token: null}
+            { email: "fra.user@gmail.com",        password: hashedPassword, role: 'user',    salt: defSalt },
+            { email: "matteo.user@gmail.com",     password: hashedPassword, role: 'user',    salt: defSalt },
+            { email: "michela.user@gmail.com",    password: hashedPassword, role: 'user',    salt: defSalt },
+            { email: "donia.user@gmail.com",      password: hashedPassword, role: 'user',    salt: defSalt },
+ 
+            { email: "fra.manager@gmail.com",     password: hashedPassword, role: 'manager', salt: defSalt },
+            { email: "matteo.manager@gmail.com",  password: hashedPassword, role: 'manager', salt: defSalt },
+            { email: "michela.manager@gmail.com", password: hashedPassword, role: 'manager', salt: defSalt },
+            { email: "donia.manager@gmail.com",   password: hashedPassword, role: 'manager', salt: defSalt },
+            { email: "test.manager@gmail.com",    password: hashedPassword, role: 'manager', salt: defSalt }, 
+            { email: "fra.admin@gmail.com",       password: hashedPassword, role: 'admin',   salt: defSalt },
+            { email: "michela.admin@gmail.com",   password: hashedPassword, role: 'admin',   salt: defSalt },
+            { email: "matteo.admin@gmail.com",    password: hashedPassword, role: 'admin',   salt: defSalt }
         ]
 
         // Inserimento
@@ -115,7 +114,7 @@ function insert_usr(){
         usr_array.forEach(function(usr){
             couch.uniqid().then(function(ids){ const id = ids[0]
 
-                couch.insert(dbName, { īd: id, type: "User", fields: usr }).then(
+                couch.insert(dbName, { īd: id, _id: usr.email , type: "User", fields: usr, refresh_token: '', access_token: '', confirmed_at: dayjs(), confirmation_expires: null, confirmation_token: null }).then(
                     function(data, headers, status){ console.log("  "+usr.email); usr_count += 1; if (usr_count == 11) { insert_dep() } },
                     function(err){ console.log(err) }
                 )
