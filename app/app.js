@@ -32,6 +32,7 @@ var authRouter = require('./routes/auth');
 var homeRouter = require('./routes/home');
 var reservationRouter = require('./routes/reservation');
 var personalAreaRouter = require('./routes/personalArea');
+var calendarRouter = require('./routes/calendar');
 
 var app = express();
 
@@ -67,7 +68,7 @@ app.use((req, res, next)=>{
   delete req.session.message
   next()
 })
-app.use(csrf());
+app.use(csrf({cookie:false}));
 
 app.use( function (req, res, next) {
   req.transporter = transporter;
@@ -86,6 +87,7 @@ app.use('/', authRouter);
 app.use('/home', homeRouter);
 app.use('/reservation', reservationRouter);
 app.use('/personalArea', personalAreaRouter);
+app.use('/calendar', calendarRouter);
 
 /* GET apidoc page. */
 app.use("/apidoc", express.static(path.join(__dirname, "/apidoc")));

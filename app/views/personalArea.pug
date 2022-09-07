@@ -6,6 +6,12 @@ block content
 
         section.calendario
             block contentCalendario
+                form(action='/calendar' method='post')
+                    section
+                        label(for='current-password') Password
+                        input#current-password(name='password' type='password' autocomplete='current-password' required='')
+                        input(type="hidden" name="_csrf" value=csrfToken)
+                        button(type='submit') Sincronizza
                 #calendar 
                 script(src='javascripts/fullcalendar.js')
 
