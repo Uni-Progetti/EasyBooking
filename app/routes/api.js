@@ -8,6 +8,45 @@ const amqplib = require('amqplib');
 const amqpUrl = process.env.AMQP_URL || 'amqp://localhost:5673';
 var amqp = require('amqplib/callback_api');
 const dayjs = require('dayjs');
+const jwt = require('jsonwebtoken');
+
+/* curl -d '{"username": "matteo.user@gmail.com", "password": "Password.0"}' -H "Content-Type: application/json" -X POST http://localhost:8080/api/login */
+router.post('/login', function (req, res) {
+    const { username, password } = req.body;
+    const get_options = {
+        hostname: 'couchdb',
+        port: 5984,
+        path: '/db/'+username,
+        method: 'GET',
+        auth: process.env.COUCHDB_USER+":"+process.env.COUCHDB_PASSWORD
+    };
+
+    get_http(get_options, function(err, response){
+        if (err){
+            res.status(500).send({error: err});
+        } else {
+            crypto.pbkdf2(password, Buffer.from(response.fields.salt), 310000, 32, 'sha256', function(err, hashedPassword){
+                if (err){
+                    res.status(500).send({error: err});
+                }
+                if (!crypto.timingSafeEqual(Buffer.from(response.fields.password), hashedPassword)) {
+                    console.log('credenziali errate');
+                    res.status(401).send({error: "Wrong credentials!"});
+                }
+                const accessToken = jwt.sign({ username: username,  role: response.fields.role }, process.env.ACCESS_TOKEN_SECRET);
+                res.status(200).json({accessToken});
+            });           
+        }
+    });
+})
+
+
+
+
+
+
+
+
 
 /**
  * @api {get} /api/getDepartments/all Request All Departments information
@@ -443,5 +482,28 @@ router.get('/getSeats/:typology/:space_name', function(req, res) {
 // elimina prenotazioni
 // stampa utenti (se sei admin)
 
+function get_http(get_options, callback) {
+    var data = "";
+    const response = http.request(get_options, out => {
+        console.log(`statusCode: ${out.statusCode}`);
+        out.setEncoding('utf8');
+        out.on('data', d => {
+            data += d.toString();
+            //process.stdout.write(d);
+        });
+        out.on('end', function() {
+            var x = JSON.parse(data);
+            callback(null, x);
+        });
+    });
+
+    response.on('error', error => {
+        console.log(error);
+        callback(error, null);
+    });
+
+    response.end();   
+    
+}
 
 module.exports = router;

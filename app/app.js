@@ -1,4 +1,6 @@
 const dotenv = require('dotenv').config()
+const jwt = require('jsonwebtoken');
+const bodyParser = require('body-parser');
 const createError = require('http-errors');
 const csrf = require('csurf');
 const cors = require('cors');
@@ -46,6 +48,7 @@ app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser(process.env.SESSION_SECRET));
+app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(__dirname + '/node_modules/bootstrap/dist'));// file di bootstrap .css e .js
 app.use(express.static(__dirname + '/node_modules/leaflet/dist'));// file di leaflet .css e .js
@@ -68,6 +71,8 @@ app.use((req, res, next)=>{
   delete req.session.message
   next()
 })
+
+app.use('/api', apiRouter);
 app.use(csrf({cookie:false}));
 
 app.use( function (req, res, next) {
@@ -81,7 +86,6 @@ app.use( function (req, res, next) {
 });
 
 app.use('/info', infoRouter);
-app.use('/api', apiRouter);
 app.use('/users', usersRouter);
 app.use('/', authRouter);
 app.use('/home', homeRouter);

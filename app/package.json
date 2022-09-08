@@ -28,6 +28,7 @@
     "fullcalendar": "^5.11.3",
     "html": "^1.0.0",
     "http-errors": "~1.6.3",
+    "jsonwebtoken": "^8.5.1",
     "leaflet": "^1.8.0",
     "morgan": "~1.9.1",
     "nano": "^10.0.0",
