@@ -37,9 +37,10 @@ function insert_views(){
     )
 
     couch.insert(dbName, { "_id": "_design/Department", "views": {
-        "0_All_Departments": { "map": "function (doc) { if (doc.type == 'Department') emit( doc.fields.name, { manager: doc.fields.manager, rev: doc._rev } ) }" }
+        "0_All_Departments": { "map": "function (doc) { if (doc.type == 'Department') emit( doc.fields.name, { manager: doc.fields.manager, rev: doc._rev } ) }" },
+        "Departments_info": { "map": "function (doc) { if (doc.type == 'Department') emit( doc.fields.name, { fields: doc.fields, rev: doc._rev } ) }" }
     }, "language": "javascript" }).then(
-        function(data, headers, status){ console.log("Views: Departments\n 0_All_Departments") },
+        function(data, headers, status){ console.log("Views: Departments\n 0_All_Departments\n Departments_info") },
         function(err){ console.log(err) }
     )
 
@@ -58,9 +59,10 @@ function insert_views(){
     )
 
     couch.insert(dbName, { "_id": "_design/Seat", "views": {
-        "0_All_Seats": { "map": "function (doc) { if (doc.type == 'Seat') emit( doc.fields.dep_name, { typology: doc.fields.typology, space_name: doc.fields.space_name, position: doc.fields.position, start_date: { Y: doc.fields.start_date.Y, M: doc.fields.start_date.M, D: doc.fields.start_date.D, h: doc.fields.start_date.h, m: doc.fields.start_date.m, s: doc.fields.start_date.s },  end_date: { Y: doc.fields.end_date.Y, M: doc.fields.end_date.M, D: doc.fields.end_date.D, h: doc.fields.end_date.h, m: doc.fields.end_date.m, s: doc.fields.end_date.s }, state: doc.fields.state, rev: doc._rev } ) }" }
+        "0_All_Seats": { "map": "function (doc) { if (doc.type == 'Seat') emit( doc.fields.dep_name, { typology: doc.fields.typology, space_name: doc.fields.space_name, position: doc.fields.position, start_date: { Y: doc.fields.start_date.Y, M: doc.fields.start_date.M, D: doc.fields.start_date.D, h: doc.fields.start_date.h, m: doc.fields.start_date.m, s: doc.fields.start_date.s },  end_date: { Y: doc.fields.end_date.Y, M: doc.fields.end_date.M, D: doc.fields.end_date.D, h: doc.fields.end_date.h, m: doc.fields.end_date.m, s: doc.fields.end_date.s }, state: doc.fields.state, rev: doc._rev } ) }" },
+        "Seats_By_Typology": { "map": "function (doc) { if (doc.type == 'Seat') emit( doc.fields.dep_name, { typology: doc.fields.typology, space_name: doc.fields.space_name, position: doc.fields.position, state: doc.fields.state, rev: doc._rev } ) }" }
     }, "language": "javascript" }).then(
-        function(data, headers, status){ console.log("Views: Seats\n 0_All_Seats") },
+        function(data, headers, status){ console.log("Views: Seats\n 0_All_Seats\n Seats_By_Typology") },
         function(err){ console.log(err) }
     )
 
@@ -113,7 +115,7 @@ function insert_usr(){
         usr_array.forEach(function(usr){
             couch.uniqid().then(function(ids){ const id = ids[0]
 
-                couch.insert(dbName, { īd: id, type: "User", fields: usr }).then(
+                couch.insert(dbName, { īd: id, _id: usr.email , type: "User", fields: usr, confirmed_at: dayjs(), confirmation_expires: null, confirmation_token: null }).then(
                     function(data, headers, status){ console.log("  "+usr.email); usr_count += 1; if (usr_count == 11) { insert_dep() } },
                     function(err){ console.log(err) }
                 )
