@@ -37,10 +37,9 @@ function insert_views(){
     )
 
     couch.insert(dbName, { "_id": "_design/Department", "views": {
-        "0_All_Departments": { "map": "function (doc) { if (doc.type == 'Department') emit( doc.fields.name, { manager: doc.fields.manager, rev: doc._rev } ) }" },
-        "Departments_info": { "map": "function (doc) { if (doc.type == 'Department') emit( doc.fields.name, { fields: doc.fields, rev: doc._rev } ) }" }
+        "0_All_Departments": { "map": "function (doc) { if (doc.type == 'Department') emit( doc.fields.name, { manager: doc.fields.manager, rev: doc._rev } ) }" }
     }, "language": "javascript" }).then(
-        function(data, headers, status){ console.log("Views: Departments\n 0_All_Departments\n Departments_info") },
+        function(data, headers, status){ console.log("Views: Departments\n 0_All_Departments") },
         function(err){ console.log(err) }
     )
 
@@ -59,15 +58,14 @@ function insert_views(){
     )
 
     couch.insert(dbName, { "_id": "_design/Seat", "views": {
-        "0_All_Seats": { "map": "function (doc) { if (doc.type == 'Seat') emit( doc.fields.dep_name, { typology: doc.fields.typology, space_name: doc.fields.space_name, position: doc.fields.position, start_date: { Y: doc.fields.start_date.Y, M: doc.fields.start_date.M, D: doc.fields.start_date.D, h: doc.fields.start_date.h, m: doc.fields.start_date.m, s: doc.fields.start_date.s },  end_date: { Y: doc.fields.end_date.Y, M: doc.fields.end_date.M, D: doc.fields.end_date.D, h: doc.fields.end_date.h, m: doc.fields.end_date.m, s: doc.fields.end_date.s }, state: doc.fields.state, rev: doc._rev } ) }" },
-        "Seats_By_Typology": { "map": "function (doc) { if (doc.type == 'Seat') emit( doc.fields.dep_name, { typology: doc.fields.typology, space_name: doc.fields.space_name, position: doc.fields.position, state: doc.fields.state, rev: doc._rev } ) }" }
+        "0_All_Seats": { "map": "function (doc) { if (doc.type == 'Seat') emit( doc.fields.dep_name, { typology: doc.fields.typology, space_name: doc.fields.space_name, position: doc.fields.position, start_date: { Y: doc.fields.start_date.Y, M: doc.fields.start_date.M, D: doc.fields.start_date.D, h: doc.fields.start_date.h, m: doc.fields.start_date.m, s: doc.fields.start_date.s },  end_date: { Y: doc.fields.end_date.Y, M: doc.fields.end_date.M, D: doc.fields.end_date.D, h: doc.fields.end_date.h, m: doc.fields.end_date.m, s: doc.fields.end_date.s }, state: doc.fields.state, rev: doc._rev } ) }" }
     }, "language": "javascript" }).then(
         function(data, headers, status){ console.log("Views: Seats\n 0_All_Seats") },
         function(err){ console.log(err) }
     )
 
     couch.insert(dbName, { "_id": "_design/Reservation", "views": {
-        "0_All_Reservations": { "map": "function (doc) { if (doc.type == 'Reservation') emit( doc.fields.dep_name, { email: doc.fields.email, typology: doc.fields.typology, space_name: doc.fields.space_name, seat_id: doc.fields.seat_id, position: doc.fields.seat_number, start_date: { Y: doc.fields.start_date.Y, M: doc.fields.start_date.M, D: doc.fields.start_date.D, h: doc.fields.start_date.h, m: doc.fields.start_date.m, s: doc.fields.start_date.s }, end_date: { Y: doc.fields.end_date.Y, M: doc.fields.end_date.M, D: doc.fields.end_date.D, h: doc.fields.end_date.h, m: doc.fields.end_date.m, s: doc.fields.end_date.s }, state: doc.fields.state, rev: doc._rev } ) }" }
+        "0_All_Reservations": { "map": "function (doc) { if (doc.type == 'Reservation') emit( doc.fields.email, { email: doc.fields.dep_name, typology: doc.fields.typology, space_name: doc.fields.space_name, seat_id: doc.fields.seat_id, seat_number: doc.fields.seat_number, start_date: { Y: doc.fields.start_date.Y, M: doc.fields.start_date.M, D: doc.fields.start_date.D, h: doc.fields.start_date.h, m: doc.fields.start_date.m, s: doc.fields.start_date.s }, end_date: { Y: doc.fields.end_date.Y, M: doc.fields.end_date.M, D: doc.fields.end_date.D, h: doc.fields.end_date.h, m: doc.fields.end_date.m, s: doc.fields.end_date.s }, state: doc.fields.state, rev: doc._rev } ) }" }
     }, "language": "javascript" }).then(
         function(data, headers, status){ console.log("Views: Reservations\n 0_All_Reservations") },
         function(err){ console.log(err) }
@@ -94,19 +92,20 @@ function insert_usr(){
 
         // Dati
         const usr_array = [
-            { email: "fra.user@gmail.com",        password: hashedPassword, role: 'user',    salt: defSalt },
-            { email: "matteo.user@gmail.com",     password: hashedPassword, role: 'user',    salt: defSalt },
-            { email: "michela.user@gmail.com",    password: hashedPassword, role: 'user',    salt: defSalt },
-            { email: "donia.user@gmail.com",      password: hashedPassword, role: 'user',    salt: defSalt },
- 
-            { email: "fra.manager@gmail.com",     password: hashedPassword, role: 'manager', salt: defSalt },
-            { email: "matteo.manager@gmail.com",  password: hashedPassword, role: 'manager', salt: defSalt },
-            { email: "michela.manager@gmail.com", password: hashedPassword, role: 'manager', salt: defSalt },
-            { email: "donia.manager@gmail.com",   password: hashedPassword, role: 'manager', salt: defSalt },
-            { email: "test.manager@gmail.com",    password: hashedPassword, role: 'manager', salt: defSalt }, 
-            { email: "fra.admin@gmail.com",       password: hashedPassword, role: 'admin',   salt: defSalt },
-            { email: "michela.admin@gmail.com",   password: hashedPassword, role: 'admin',   salt: defSalt },
-            { email: "matteo.admin@gmail.com",    password: hashedPassword, role: 'admin',   salt: defSalt }
+            { email: "fra.user@gmail.com",        password: hashedPassword, role: 'user',    salt: defSalt, refresh_token: '', access_token: '' },
+            { email: "matteo.user@gmail.com",     password: hashedPassword, role: 'user',    salt: defSalt, refresh_token: '', access_token: '' },
+            { email: "michela.user@gmail.com",    password: hashedPassword, role: 'user',    salt: defSalt, refresh_token: '', access_token: '' },
+            { email: "donia.user@gmail.com",      password: hashedPassword, role: 'user',    salt: defSalt, refresh_token: '', access_token: '' },
+    
+            { email: "fra.manager@gmail.com",     password: hashedPassword, role: 'manager', salt: defSalt, refresh_token: '', access_token: '' },
+            { email: "matteo.manager@gmail.com",  password: hashedPassword, role: 'manager', salt: defSalt, refresh_token: '', access_token: '' },
+            { email: "michela.manager@gmail.com", password: hashedPassword, role: 'manager', salt: defSalt, refresh_token: '', access_token: '' },
+            { email: "donia.manager@gmail.com",   password: hashedPassword, role: 'manager', salt: defSalt, refresh_token: '', access_token: '' },
+            { email: "test.manager@gmail.com",    password: hashedPassword, role: 'manager', salt: defSalt, refresh_token: '', access_token: '' },
+
+            { email: "fra.admin@gmail.com",       password: hashedPassword, role: 'admin',   salt: defSalt, refresh_token: '', access_token: '' },
+            { email: "michela.admin@gmail.com",   password: hashedPassword, role: 'admin',   salt: defSalt, refresh_token: '', access_token: '' },
+            { email: "matteo.admin@gmail.com",    password: hashedPassword, role: 'admin',   salt: defSalt, refresh_token: '', access_token: '' }
         ]
 
         // Inserimento
@@ -114,7 +113,7 @@ function insert_usr(){
         usr_array.forEach(function(usr){
             couch.uniqid().then(function(ids){ const id = ids[0]
 
-                couch.insert(dbName, { īd: id, _id: usr.email , type: "User", fields: usr, refresh_token: '', access_token: '', confirmed_at: dayjs(), confirmation_expires: null, confirmation_token: null }).then(
+                couch.insert(dbName, { īd: id, type: "User", fields: usr }).then(
                     function(data, headers, status){ console.log("  "+usr.email); usr_count += 1; if (usr_count == 11) { insert_dep() } },
                     function(err){ console.log(err) }
                 )
@@ -163,8 +162,7 @@ function insert_sp_wd_seat(dep){
     wd_set.forEach(function(wd){
         couch.uniqid().then(function(ids){ const id = ids[0]
             couch.insert(dbName, { īd: id, type: "WeekDay", fields: wd }).then(
-                function(data, headers, status){ console.log("WD: "+wd.day+" - "+dep.name) 
-              },
+                function(data, headers, status){ /* console.log("WD: "+wd.day+" - "+dep.name) */ },
                 function(err){ console.log(err) }
             )
         })
@@ -183,7 +181,7 @@ function insert_sp_wd_seat(dep){
         couch.uniqid().then(function(ids){ const id = ids[0]
             couch.insert(dbName, { īd: id, type: "Space", fields: sp }).then(
                 function(data, headers, status){
-                    console.log("SP: "+sp.typology+" "+sp.name+" - "+dep.name)
+                    // console.log("SP: "+sp.typology+" "+sp.name+" - "+dep.name)
 
                     // Per ogni orario del dipartimento
                     wd_set.forEach(function(wd){
@@ -199,7 +197,7 @@ function insert_sp_wd_seat(dep){
 
                             const today = new Date()
                             const sunday = new Date((new Date()).setDate(today.getDate()-today.getDay()))
-                            const current_wd_date = ((new Date((new Date()).setDate(today.getDate()-today.getDay()+offset_number))) < today)? (new Date((new Date()).setDate(sunday.getDate()+offset_number+7))) : (new Date((new Date()).setDate(sunday.getDate()+offset_number)))
+                            const current_wd_date = ((new Date((new Date()).setDate(today.getDate()-today.getDay()+offset_number))) < today)? (new Date((new Date()).setDate(today.getDate()-today.getDay()+offset_number+7))) : (new Date((new Date()).setDate(today.getDate()-today.getDay()+offset_number)))
 
                             // Per ogni slot orario nel giorno corrente
                             for (let h = 0 ; h < (wd.chiusura.h - wd.apertura.h) ; h++ ) {
@@ -228,7 +226,7 @@ function insert_sp_wd_seat(dep){
                                         state: "Active"
                                     }}).then(
                                         function(data, headers, status){
-                                            console.log("S"+h+"\t"+sp.name+"\t"+dep.cap+"\t"+start_date.Y+"/"+start_date.M+"/"+start_date.D+"\t"+start_date.h+":"+start_date.m+":"+start_date.s)
+                                            // console.log("S"+h+"\t"+sp.name+"\t"+dep.cap+"\t"+start_date.Y+"/"+start_date.M+"/"+start_date.D+"\t"+start_date.h+":"+start_date.m+":"+start_date.s)
                                         },
                                         function(err){ console.log(err) }
                                     )

@@ -26,13 +26,13 @@ block contentReservation
                 each reserv in reservs.rows
                     if reserv.key == dep.key
                         - curr_reserv_arr.push(reserv)
-                //- //- Raccoglie gli id dei posti delle prenotazioni dell'utete corrente e gli orari gia prenotati
-                //- - var reserved_seats_ids = []
-                //- - var reserved_seats_wd = []
-                //- each reserv in reservs.rows
-                //-     if reserv.value.email == SESSION EMAIL
-                //-         - reserved_seats_ids.push([reserv.value.seat_id])
-                //-         - reserved_seats_wd.push([String(reserv.value.start_date.Y)+String(reserv.value.start_date.M)+String(reserv.value.start_date.D)+String(reserv.value.start_date.h)+String(reserv.value.start_date.m)+String(reserv.value.start_date.s)])
+                //- Raccoglie gli id dei posti delle prenotazioni dell'utete corrente e gli orari gia prenotati
+                - var reserved_seats_ids = []
+                - var reserved_seats_wd = []
+                each reserv in reservs.rows
+                    if reserv.key == userId
+                        - reserved_seats_ids.push(reserv.value.seat_id)
+                        - reserved_seats_wd.push(String(reserv.value.start_date.Y)+((String(reserv.value.start_date.M).length == 1)? "0"+String(reserv.value.start_date.M):String(reserv.value.start_date.M))+((String(reserv.value.start_date.D).length == 1)? "0"+String(reserv.value.start_date.D):String(reserv.value.start_date.D))+((String(reserv.value.start_date.h).length == 1)? "0"+String(reserv.value.start_date.h):String(reserv.value.start_date.h)))
 
                 //- La data di oggi
                 - const today = new Date()
@@ -86,7 +86,7 @@ block contentReservation
                                 - var reserved_seats = [0, 0, 0, 0, 0, 0, 0] //- Array per tenere memoria se il posto è prenotato dall'utente corrente o meno
                                 - var reserved_wd =    [0, 0, 0, 0, 0, 0, 0] //- Array per tenere memoria se l'orario è prenotato dall'utente corrente o meno
                                 - var free_seats_day = [0, 0, 0, 0, 0, 0, 0] //- Array per tenere memoria del numero di posti liberi per ogni giorno
-                                - var row_seat_ids =   [0, 0, 0, 0, 0, 0, 0] //- Array per tenere memoria dell'id da prenotare nelle celle selezionate
+                                - var row_seats =   [0, 0, 0, 0, 0, 0, 0] //- Array per tenere memoria dell'id da prenotare nelle celle selezionate
 
                                 //- Inizializza le variabili sopra riportate per il completamento della tabella
                                 each st in curr_sp_st_arr
@@ -118,73 +118,84 @@ block contentReservation
                                             //- each old_res in seat_res
                                             //-     ELIMINA DA COUCHDB LA PRENOTAZIONE
 
-                                    - var day_num = 0
+                                    - var today_plus_d = ''
+                                    - var today_plus_day_num_str = ''
                                     - var d = 0
                                     while d < 7
-                                        - const today_plus_d = new Date((new Date()).setDate(today.getDate()+d))
-                                        - const today_plus_d_str = String(today_plus_d.getFullYear())+((String(today_plus_d.getMonth()+1).length == 1)? "0"+String(today_plus_d.getMonth()+1):String(today_plus_d.getMonth()+1))+((String(today_plus_d.getDate()).length == 1)? "0"+String(today_plus_d.getDate()):String(today_plus_d.getDate()))
+                                        - today_plus_d = new Date((new Date()).setDate(today.getDate()+d))
+                                        - today_plus_d_str = String(today_plus_d.getFullYear())+((String(today_plus_d.getMonth()+1).length == 1)? "0"+String(today_plus_d.getMonth()+1):String(today_plus_d.getMonth()+1))+((String(today_plus_d.getDate()).length == 1)? "0"+String(today_plus_d.getDate()):String(today_plus_d.getDate()))
+                                        //- p #{(start_date_YMD_str == today_plus_d_str)? '':start_date_YMD_str+'|'+today_plus_d_str+'='+(start_date_YMD_str == today_plus_d_str)}
                                         if start_date_YMD_str == today_plus_d_str
-                                            - day_num = d
                                             - break
                                         - d ++
 
                                     //- Inizializzazione
-                                    if (st.value.start_date.h == min_ap+h) && (start_date_YMD_str == String((new Date((new Date()).setDate(today.getDate()+d))).getFullYear())+((String((new Date((new Date()).setDate(today.getDate()+day_num))).getMonth()+1).length == 1)? "0"+String((new Date((new Date()).setDate(today.getDate()+day_num))).getMonth()+1):String((new Date((new Date()).setDate(today.getDate()+day_num))).getMonth()+1))+((String((new Date((new Date()).setDate(today.getDate()+day_num))).getDate()).length == 1)? "0"+String((new Date((new Date()).setDate(today.getDate()+day_num))).getDate()):String((new Date((new Date()).setDate(today.getDate()+day_num))).getDate())))
-                                        if (st.value.state == "Expired") && (day_num == 0)
-                                            - row_seat_ids[day_num] = -1
+                                    if (st.value.start_date.h == min_ap+h) && (start_date_YMD_str == today_plus_d_str)
+                                        if (st.value.state == "Expired") && (d == 0)
+                                            - row_seats[d] = -1
                                         else
-                                            //- if (reserved_seats_wd.includes([start_date_YMDh_str]))
-                                            if (false)
-                                                - reserved_wd[day_num] = 1
-                                            //- if (reserved_seats_ids.includes([st.id]))
-                                            if (false)
-                                                - reserved_seats[day_num] = 1
+                                            if (reserved_seats_wd.includes(start_date_YMDh_str))
+                                                - reserved_wd[d] = 1
+                                            if (reserved_seats_ids.includes(st.id))
+                                                - reserved_seats[d] = 1
                                             else
-                                                - free_seats_day[day_num] = sp.value.number_of_seats - st.value.position + 1
-                                                - row_seat_ids[day_num] = st.id
+                                                - free_seats_day[d] = sp.value.number_of_seats - st.value.position + 1
+                                                - row_seats[d] = st
 
                                 //- Inserisce l'orario di riferimento della riga nel primo td
                                 td(style="padding: 2px; text-align: center") 
                                     h6 #{(String(min_ap+h).length == 1)? '0'+(min_ap+h):(min_ap+h)}:00
+                                    //- p #{'free_seats_day'+free_seats_day}
                                 //- Inserisce i dati opportuni a seconda dei casi nei 7 td dei giorni della settimana
                                 each d_number in [0,1,2,3,4,5,6]
-                                        //- Controlla se è chiuso
-                                        - var current_wd_control = days[it_days[(new Date((new Date()).setDate(today.getDate()+d_number))).getDay()]]
-                                        if current_wd_control[0] == "Chiuso" || (((min_ap+h) < current_wd_control[1]) || ((min_ap+h) >= current_wd_control[2]))
-                                            td(style="padding: 2px; text-align: center") Chiuso
-                                            //- td #{row_seat_ids[d_number]}
-                                        //- Se ormai è un orario oltrepassato e quindi non più prenotabile
-                                        else if row_seat_ids[d_number] == -1
-                                            td(style="padding: 2px; text-align: center") Scaduto
-                                            //- td #{row_seat_ids[d_number]}
-                                        //- Se l'utente corrente ha gia prenotato questo orario
-                                        else if reserved_seats[d_number] == 1
-                                            td(style="padding: 2px; text-align: center") Prenotato
-                                            //- td #{row_seat_ids[d_number]}
-                                        //- Se l'orario corrente è gia stato prenotato in un altro spazio
-                                        else if reserved_wd[d_number] == 1
-                                            td(style="padding: 2px; text-align: center") Non disponibile
-                                            //- td #{row_seat_ids[d_number]}
-                                        //- Se i posti in quell'orario sono al completo
-                                        else if free_seats_day[d_number] == 0
-                                            td(style="padding: 2px; text-align: center") Completo
-                                            //- td #{row_seat_ids[d_number]}
-                                        //- Se non ci troviamo in nessuno dei casi precedenti scrive il numero di posti disponibili e Mostra lo switch per prenotare
-                                        else
-                                            td(style="padding: 2px; text-align: center") CB(#{free_seats_day[d_number]})
-                                            //- td #{row_seat_ids[d_number]}
-                                            //- <div class="form-check ms-auto me-auto mx-1 my-1 px-0" style="width:fit-content">
-                                            //-         form.check_box((row_seat_ids[d_number].to_s), { class: "form-check-input mx-0 px-0", type: "checkbox" }, checked_value = "MakeRes", unchecked_value = "0") %>
-                                            //-     <label class="h6 my-0 mx-1" for=" row_seat_ids[d_number] %>"> <%= free_seats_day[d_number] %> </label>
-                                            //- </div>
-                                        - d_number++
-                            - h++
+                                    //- Controlla se è chiuso
+                                    - var current_wd_control = days[it_days[(new Date((new Date()).setDate(today.getDate()+d_number))).getDay()]]
+                                    if current_wd_control[0] == "Chiuso" || (((min_ap+h) < current_wd_control[1]) || ((min_ap+h) >= current_wd_control[2]))
+                                        td(style="padding: 2px; text-align: center; color: grey") Chiuso
+                                    //- Se ormai è un orario oltrepassato e quindi non più prenotabile
+                                    else if row_seats[d_number] == -1
+                                        td(style="padding: 2px; text-align: center; color: grey") Scaduto
+                                    //- Se l'utente corrente ha gia prenotato questo orario
+                                    else if reserved_seats[d_number] == 1
+                                        td(style="padding: 2px; text-align: center; color: green") Prenotato
+                                    //- Se l'orario corrente è gia stato prenotato in un altro spazio
+                                    else if reserved_wd[d_number] == 1
+                                        td(style="padding: 2px; text-align: center; color: grey") Non disponibile
+                                    //- Se i posti in quell'orario sono al completo
+                                    else if free_seats_day[d_number] == 0
+                                        td(style="padding: 2px; text-align: center; color: red") Completo
+                                    //- Se non ci troviamo in nessuno dei casi precedenti scrive il numero di posti disponibili e Mostra lo switch per prenotare
+                                    else
+                                        //- td(style="padding: 2px; text-align: center") B(#{free_seats_day[d_number]})
+                                        td(style="padding: 2px; text-align: center")
+                                            form(method="post" action="/reservation/make_res")
 
-//- Raccoglie i posti dello spazio corrente
-    <!-- Se non ci troviamo in nessuno dei casi precedenti scrive il numero di posti disponibili e Mostra lo switch per prenotare -->
-    <% else %>
-        <div class="form-check ms-auto me-auto mx-1 my-1 px-0" style="width:fit-content">
-            <%= form.check_box((row_seat_ids[d_number].to_s), { class: "form-check-input mx-0 px-0", type: "checkbox" }, checked_value = "MakeRes", unchecked_value = "0") %>
-            <label class="h6 my-0 mx-1" for="<%= row_seat_ids[d_number] %>"> <%= free_seats_day[d_number] %> </label>
-        </div>
-    <% end %>
+                                                input(type="hidden" value=csrfToken                                      name="_csrf")
+                                                input(type="hidden" value=String(userId)                    name="email")
+                                                input(type="hidden" value=String(row_seats[d_number].value.rev)          name="rev")
+                                                input(type="hidden" value=String(row_seats[d_number].id)                 name="id")
+
+                                                input(type="hidden" value=String(row_seats[d_number].key)                name="key")
+                                                input(type="hidden" value=String(row_seats[d_number].value.typology)     name="typology")
+                                                input(type="hidden" value=String(row_seats[d_number].value.space_name)   name="space_name")
+                                                input(type="hidden" value=String(row_seats[d_number].value.position)     name="position")
+                                                //- Start_date
+                                                input(type="hidden" value=String(row_seats[d_number].value.start_date.Y) name="start_Y")
+                                                input(type="hidden" value=String(row_seats[d_number].value.start_date.M) name="start_M")
+                                                input(type="hidden" value=String(row_seats[d_number].value.start_date.D) name="start_D")
+                                                input(type="hidden" value=String(row_seats[d_number].value.start_date.h) name="start_h")
+                                                input(type="hidden" value=String(row_seats[d_number].value.start_date.m) name="start_m")
+                                                input(type="hidden" value=String(row_seats[d_number].value.start_date.s) name="start_s")
+                                                //- End_date
+                                                input(type="hidden" value=String(row_seats[d_number].value.end_date.Y)   name="end_Y")
+                                                input(type="hidden" value=String(row_seats[d_number].value.end_date.M)   name="end_M")
+                                                input(type="hidden" value=String(row_seats[d_number].value.end_date.D)   name="end_D")
+                                                input(type="hidden" value=String(row_seats[d_number].value.end_date.h)   name="end_h")
+                                                input(type="hidden" value=String(row_seats[d_number].value.end_date.m)   name="end_m")
+                                                input(type="hidden" value=String(row_seats[d_number].value.end_date.s)   name="end_s")
+
+                                                input(type="hidden" value=String(row_seats[d_number].value.state)        name="state")
+
+                                                input(type="submit" value="Prenota\n"+free_seats_day[d_number]+" liberi")
+                                    - d_number++
+                            - h++
