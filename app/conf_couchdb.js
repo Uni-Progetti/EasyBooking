@@ -1,4 +1,4 @@
-const dotenv = require('dotenv').config()
+const dotenv = require('dotenv').config({path: './../.env'});
 const http = require('http');
 const https = require('https');
 

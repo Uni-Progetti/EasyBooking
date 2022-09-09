@@ -1,10 +1,11 @@
+const dotenv = require('dotenv').config({path: './../.env'});
 const NodeCouchDb = require('node-couchdb')
 const dayjs = require('dayjs')
 var crypto = require('crypto');
 const dbName = 'db'
 
 const couch = new NodeCouchDb({
-    auth: { user:'admin', password:'secret' }
+    auth: { user: process.env.COUCHDB_USER, password: process.env.COUCHDB_PASSWORD }
 })
 
 // Se il db esiste gia lo distrugge e poi lo ricrea
