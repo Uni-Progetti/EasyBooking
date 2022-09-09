@@ -11,6 +11,6 @@ cd app && apidoc -i . -o apidoc
 wait
 cd ..
 wait
-sudo docker-compose --env-file .env up -d
+sudo docker-compose --env-file app/.env up -d
 wait
 node app/conf_couchdb.js

@@ -182,7 +182,7 @@ router.get('/getSpaces/all', function(req, res){
     const get_options = {
         hostname: 'couchdb',
         port: 5984,
-        path: '/db/_design/Space/_view/0_All_Spaces',
+        path: '/db/_design/Space/_view/Spaces_info',
         method: 'GET',
         auth: process.env.COUCHDB_USER+":"+process.env.COUCHDB_PASSWORD
     };
@@ -197,9 +197,20 @@ router.get('/getSpaces/all', function(req, res){
         });
         out.on('end', function() {
             var x = JSON.parse(data);
-            console.log(x);
-            res.header("Content-Type",'application/json');
-            res.status(200).send(JSON.stringify(x, null, 4));
+            let output = {};
+            x.rows.forEach(element => {
+                output [element.key] = element.value.fields;
+            });
+            const isEmpty = Object.keys(output).length === 0;
+            if (isEmpty) {
+                res.status(404).send({error: "Nessuno spazio trovato"});
+            }
+            else {
+                res.header("Content-Type",'application/json');
+                res.status(200).send(JSON.stringify(output, null, 4));
+            }
+
+            // res.status(200).send(x);
         });
     });
 
@@ -403,12 +414,7 @@ router.get('/getSeats/all', function(req, res){
         console.log(error);
         res.status(503);
     });
-
-    usrs.end();
-});
-
-
-// stampa tutti i posti di un dato spazio
+    path params
 router.get('/getSeats/:typology/:space_name', function(req, res) {
     const get_options = {
         hostname: 'couchdb',

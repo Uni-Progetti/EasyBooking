@@ -7,6 +7,7 @@ const it = require('mocha').it;
 chai.use(chaiHttp);
 chai.should();
 
+/*
 describe("Test di prova", () => {
     it("should return status code 200 and be json", (done) => {
         chai.request("http://localhost:8080")
@@ -26,6 +27,7 @@ describe("Test di prova", () => {
             });
     });
 });
+*/
 
 /*
     it("users/:userId should return 200 and body should contain id: '2', username: 'Dave Davids'", (done) => {
@@ -46,3 +48,94 @@ describe("Test di prova", () => {
             });
     });
 */
+
+describe("Test per controllo risultati chiamata http", () => {
+    /*
+    it("should return the list of all departments", (done) => {
+        chai.request("http://localhost:8080/api")
+            .get("/getDepartments/all")
+            .end((err, res) => {
+                if(err) {
+                    console.log("ERROREEEEE:", err);
+                    done();
+                }
+                expect(res).to.have.status(200);
+                expect(res).to.be.json;
+                expect(res).to.have.property('body');
+
+                for (var e in res.body) {
+                    console.log(e);
+                    console.log("     " + res.body[e].manager);
+                }
+
+                done();
+            });
+    });
+    */
+
+    it("should return the list of all spaces", (done) => {
+        chai.request("http://localhost:8080/api")
+            .get("/getSpaces/all")
+            .end((err, res) => {
+                if(err) {
+                    console.log("ERROREEEEE:", err);
+                    done();
+                }
+                expect(res).to.have.status(200);
+                expect(res).to.be.json;
+                expect(res).to.have.property('body');
+                
+                // for (var e in res.body) {
+                    // console.log(e);
+                    // console.log('     ' + res.body[e].typology + ' ' + res.body[e].name + ' ' + res.body[e].dep_name);
+                // }
+
+                done();
+            });
+    });
+
+
+    it("should return the list of all spaces of typology: Aula", (done) => {
+        chai.request("http://localhost:8080/api")
+            .get("/getSpaces/Aula")
+            .end((err, res) => {
+                if(err) {
+                    console.log("ERROREEEEE:", err);
+                    done();
+                }
+                expect(res).to.have.status(200);
+                expect(res).to.be.json;
+                expect(res).to.have.property('body');
+                
+                // for (var e in res.body) {
+                //     console.log(e);
+                //     console.log('     ' + res.body[e].typology + ' ' + res.body[e].name + ' ' + res.body[e].dep_name);
+                // }
+
+                done();
+            });
+    });
+
+/*
+    it("should return the list of all seats", (done) => {
+        chai.request("http://localhost:8080/api")
+            .get("/getSeats/all")
+            .end((err, res) => {
+                if(err) {
+                    console.log("ERROREEEEE:", err);
+                    done();
+                }
+                expect(res).to.have.status(200);
+                expect(res).to.be.json;
+                expect(res).to.have.property('body');
+                
+                for (var e in res.body) {
+                    console.log(e);
+                    // console.log("     " + res.body[e].manager);
+                }
+
+                done();
+            });
+    });
+*/
+});
