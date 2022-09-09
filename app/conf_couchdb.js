@@ -3,9 +3,8 @@ const http = require('http');
 const https = require('https');
 
 function configureCouchDB(){
-    array=["_global_changes","_users","_replicator"];
+    array=["_global_changes","_users","_replicator", "refresh_tokens"];
     array.forEach(element => {
-        console.log(process.env.COUCHDB_USER+":"+process.env.COUCHDB_PASSWORD);
         const post_options = {
             hostname: '127.0.0.1',
             port: 5984,

@@ -9,44 +9,45 @@ const amqpUrl = process.env.AMQP_URL || 'amqp://localhost:5673';
 var amqp = require('amqplib/callback_api');
 const dayjs = require('dayjs');
 const jwt = require('jsonwebtoken');
+const security = require('./../security.js');
+const couchdb_utils = require('./../couchdb_utils.js');
 
 /* curl -d '{"username": "matteo.user@gmail.com", "password": "Password.0"}' -H "Content-Type: application/json" -X POST http://localhost:8080/api/login */
 router.post('/login', function (req, res) {
     const { username, password } = req.body;
-    const get_options = {
-        hostname: 'couchdb',
-        port: 5984,
-        path: '/db/'+username,
-        method: 'GET',
-        auth: process.env.COUCHDB_USER+":"+process.env.COUCHDB_PASSWORD
-    };
-
-    get_http(get_options, function(err, response){
+    couchdb_utils.get_from_couchdb('/db/'+username, function(err, response){
         if (err){
-            res.status(500).send({error: err});
+            return res.status(500).send({error: err});
         } else {
             crypto.pbkdf2(password, Buffer.from(response.fields.salt), 310000, 32, 'sha256', function(err, hashedPassword){
                 if (err){
-                    res.status(500).send({error: err});
+                    return res.status(500).send({error: err});
                 }
                 if (!crypto.timingSafeEqual(Buffer.from(response.fields.password), hashedPassword)) {
                     console.log('credenziali errate');
-                    res.status(401).send({error: "Wrong credentials!"});
+                    return res.status(401).send({error: "Wrong credentials!"});
                 }
-                const accessToken = jwt.sign({ username: username,  role: response.fields.role }, process.env.ACCESS_TOKEN_SECRET);
-                res.status(200).json({accessToken});
+                const accessToken = jwt.sign({ username: username,  role: response.fields.role }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '20m' });
+                const refreshToken = jwt.sign({ username: username,  role: response.fields.role }, process.env.REFRESH_TOKEN_SECRET);
+                const post_data =JSON.stringify({"owner": username ,"refresh_token": refreshToken, "iat": dayjs() });
+                couchdb_utils.update_or_create_to_couchdb("/refresh_tokens/"+accessToken, post_data, function(err, response){
+                    if (err){ return res.status(500).send({error: err}); };
+                    return res.status(200).json({accessToken, refreshToken});
+                });
             });           
         }
     });
-})
+});
 
-
-
-
-
-
-
-
+/* curl -d '{"token": "access_token"}' -H "Content-Type: application/json" -H "Authorization: Bearer access_token" -X POST http://localhost:8080/api/logout  */
+router.post('/logout', security.authenticateJWT ,function (req, res){
+    const { token } = req.body;
+    console.log(token);
+    couchdb_utils.delete_from_couchdb("/refresh_tokens/"+token, function(err, response){
+        if (err){return res.status(500).send({error: "Logout error: Refresh Token not removed"})};
+        return res.send("Logout successful");
+    });
+});
 
 /**
  * @api {get} /api/getDepartments/all Request All Departments information
@@ -109,48 +110,24 @@ router.post('/login', function (req, res) {
  *     }
  */
 
+/* curl http://localhost:8080/api/getDepartments/all -H "Authorization: Bearer access_token" */
 // stampa dipartimenti
-router.get('/getDepartments/all', function(req, res){
-    const get_options = {
-        hostname: 'couchdb',
-        port: 5984,
-        path: '/db/_design/Department/_view/Departments_info',
-        method: 'GET',
-        auth: process.env.COUCHDB_USER+":"+process.env.COUCHDB_PASSWORD
-    };
-
-    var data = "";
-    const usrs = http.request(get_options, out => {
-        console.log(`statusCode: ${out.statusCode}`);
-        out.setEncoding('utf8');
-        out.on('data', d => {
-            data += d.toString();
-            //process.stdout.write(d);
+router.get('/getDepartments/all', security.authenticateJWT ,function(req, res){
+    couchdb_utils.get_from_couchdb('/db/_design/Department/_view/Departments_info', function(err, response){
+        if(err){return res.status(404).send({error: err});};
+        let output = {};
+        response.rows.forEach(element => {
+            output [element.key] = element.value.fields;
         });
-        out.on('end', function() {
-            var x = JSON.parse(data);
-            let output = {};
-            x.rows.forEach(element => {
-                output [element.key] = element.value.fields;
-            });
-            //res_json = JSON.parse(res_json);
-            const isEmpty = Object.keys(output).lenght === 0;
-            if (isEmpty){
-                res.status(404).send({error: "Nessun Dipartimento trovato"});
-            } else {
-                res.header("Content-Type",'application/json');
-                res.status(200).send(JSON.stringify(output, null, 4));
-            }
-
-        });
+        //res_json = JSON.parse(res_json);
+        const isEmpty = Object.keys(output).lenght === 0;
+        if (isEmpty){
+            res.status(404).send({error: "Nessun Dipartimento trovato"});
+        } else {
+            res.header("Content-Type",'application/json');
+            res.status(200).send(JSON.stringify(output, null, 4));
+        }
     });
-
-    usrs.on('error', error => {
-        console.log(error);
-        res.status(503);
-    });
-
-    usrs.end();
 });
 
 /**
@@ -481,29 +458,5 @@ router.get('/getSeats/:typology/:space_name', function(req, res) {
 // stampa le mie prenotazioni
 // elimina prenotazioni
 // stampa utenti (se sei admin)
-
-function get_http(get_options, callback) {
-    var data = "";
-    const response = http.request(get_options, out => {
-        console.log(`statusCode: ${out.statusCode}`);
-        out.setEncoding('utf8');
-        out.on('data', d => {
-            data += d.toString();
-            //process.stdout.write(d);
-        });
-        out.on('end', function() {
-            var x = JSON.parse(data);
-            callback(null, x);
-        });
-    });
-
-    response.on('error', error => {
-        console.log(error);
-        callback(error, null);
-    });
-
-    response.end();   
-    
-}
 
 module.exports = router;
