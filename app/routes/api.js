@@ -414,7 +414,12 @@ router.get('/getSeats/all', function(req, res){
         console.log(error);
         res.status(503);
     });
-    path params
+
+    usrs.end();
+});
+
+
+// stampa tutti i posti di un dato spazio
 router.get('/getSeats/:typology/:space_name', function(req, res) {
     const get_options = {
         hostname: 'couchdb',
