@@ -28,10 +28,12 @@ block contentReservation
                         - curr_reserv_arr.push(reserv)
                 //- Raccoglie gli id dei posti delle prenotazioni dell'utete corrente e gli orari gia prenotati
                 - var reserved_seats_ids = []
+                - var reserved_seats_res_id = []
                 - var reserved_seats_wd = []
                 each reserv in reservs.rows
                     if reserv.key == userId
                         - reserved_seats_ids.push(reserv.value.seat_id)
+                        - reserved_seats_res_id.push(reserv.id)
                         - reserved_seats_wd.push(String(reserv.value.start_date.Y)+((String(reserv.value.start_date.M).length == 1)? "0"+String(reserv.value.start_date.M):String(reserv.value.start_date.M))+((String(reserv.value.start_date.D).length == 1)? "0"+String(reserv.value.start_date.D):String(reserv.value.start_date.D))+((String(reserv.value.start_date.h).length == 1)? "0"+String(reserv.value.start_date.h):String(reserv.value.start_date.h)))
 
                 //- La data di oggi
@@ -58,24 +60,24 @@ block contentReservation
                         if st.value.space_name == sp.key && st.value.typology == sp.value.typology
                             - curr_sp_st_arr.push(st)
 
-                    table(width="100%", style="margin: 5px")
+                    table(width="80%", style="margin: 1% 10% 1% 10%")
                         //- Prima riga che mostra il giorno della settimana e la data nel formato 'giorno-mese-anno'
                         tr
                             td(style="padding: 2px; text-align: center")
                                 h4 Orari
-                            td(style="padding: 2px; text-align: center")
+                            td(style="padding: 2px 20px 2px 20px; text-align: center")
                                 h4 #{it_days[(today.getDay()+0)]} #{String(new Date(new Date().setDate(today.getDate()+0)).getDate())+"/"+String(new Date(new Date().setDate(today.getDate()+0)).getMonth()+1)+"/"+String(new Date(new Date().setDate(today.getDate()+0)).getFullYear())}
-                            td(style="padding: 2px; text-align: center")
+                            td(style="padding: 2px 20px 2px 20px; text-align: center")
                                 h4 #{it_days[(today.getDay()+1)]} #{String(new Date(new Date().setDate(today.getDate()+1)).getDate())+"/"+String(new Date(new Date().setDate(today.getDate()+1)).getMonth()+1)+"/"+String(new Date(new Date().setDate(today.getDate()+1)).getFullYear())}
-                            td(style="padding: 2px; text-align: center")
+                            td(style="padding: 2px 20px 2px 20px; text-align: center")
                                 h4 #{it_days[(today.getDay()+2)]} #{String(new Date(new Date().setDate(today.getDate()+2)).getDate())+"/"+String(new Date(new Date().setDate(today.getDate()+2)).getMonth()+1)+"/"+String(new Date(new Date().setDate(today.getDate()+2)).getFullYear())}
-                            td(style="padding: 2px; text-align: center")
+                            td(style="padding: 2px 20px 2px 20px; text-align: center")
                                 h4 #{it_days[(today.getDay()+3)]} #{String(new Date(new Date().setDate(today.getDate()+3)).getDate())+"/"+String(new Date(new Date().setDate(today.getDate()+3)).getMonth()+1)+"/"+String(new Date(new Date().setDate(today.getDate()+3)).getFullYear())}
-                            td(style="padding: 2px; text-align: center")
+                            td(style="padding: 2px 20px 2px 20px; text-align: center")
                                 h4 #{it_days[(today.getDay()+4)]} #{String(new Date(new Date().setDate(today.getDate()+4)).getDate())+"/"+String(new Date(new Date().setDate(today.getDate()+4)).getMonth()+1)+"/"+String(new Date(new Date().setDate(today.getDate()+4)).getFullYear())}
-                            td(style="padding: 2px; text-align: center")
+                            td(style="padding: 2px 20px 2px 20px; text-align: center")
                                 h4 #{it_days[(today.getDay()+5)]} #{String(new Date(new Date().setDate(today.getDate()+5)).getDate())+"/"+String(new Date(new Date().setDate(today.getDate()+5)).getMonth()+1)+"/"+String(new Date(new Date().setDate(today.getDate()+5)).getFullYear())}
-                            td(style="padding: 2px; text-align: center")
+                            td(style="padding: 2px 20px 2px 20px; text-align: center")
                                 h4 #{it_days[(today.getDay()+6)]} #{String(new Date(new Date().setDate(today.getDate()+6)).getDate())+"/"+String(new Date(new Date().setDate(today.getDate()+6)).getMonth()+1)+"/"+String(new Date(new Date().setDate(today.getDate()+6)).getFullYear())}
 
                         //- Corpo delle righe che mostra gli orari e le check per prenotare
@@ -115,10 +117,10 @@ block contentReservation
                                             if (reserved_seats_wd.includes(start_date_YMDh_str))
                                                 - reserved_wd[d] = 1
                                             if (reserved_seats_ids.includes(st.id))
-                                                - reserved_seats[d] = 1
+                                                - reserved_seats[d] = reserved_seats_res_id[reserved_seats_ids.indexOf(st.id)]
                                             else
                                                 - free_seats_day[d] = sp.value.number_of_seats - st.value.position + 1
-                                                - row_seats[d] = st
+                                            - row_seats[d] = st
 
                                 //- Inserisce l'orario di riferimento della riga nel primo td
                                 td(style="padding: 2px; text-align: center") 
@@ -134,29 +136,22 @@ block contentReservation
                                     else if row_seats[d_number] == -1
                                         td(style="padding: 2px; text-align: center; color: grey") Scaduto
                                     //- Se l'utente corrente ha gia prenotato questo orario
-                                    else if reserved_seats[d_number] == 1
-                                        td(style="padding: 2px; text-align: center; color: green") Prenotato
-                                    //- Se l'orario corrente è gia stato prenotato in un altro spazio
-                                    else if reserved_wd[d_number] == 1
-                                        td(style="padding: 2px; text-align: center; color: grey") Non disponibile
-                                    //- Se i posti in quell'orario sono al completo
-                                    else if free_seats_day[d_number] == 0
-                                        td(style="padding: 2px; text-align: center; color: red") Completo
-                                    //- Se non ci troviamo in nessuno dei casi precedenti scrive il numero di posti disponibili e Mostra lo switch per prenotare
-                                    else
-                                        //- td(style="padding: 2px; text-align: center") B(#{free_seats_day[d_number]})
-                                        td(style="padding: 2px; text-align: center")
-                                            form(method="post" action="/reservation/make_res")
-
+                                    else if reserved_seats[d_number] != 0
+                                        td(style="padding: 2px; text-align: center; color: green")
+                                            form(method="post" action="/reservation/rm_res")
                                                 input(type="hidden" value=csrfToken                                      name="_csrf")
-                                                input(type="hidden" value=String(userId)                                 name="email")
-                                                input(type="hidden" value=String(row_seats[d_number].value.rev)          name="rev")
-                                                input(type="hidden" value=String(row_seats[d_number].id)                 name="id")
 
+                                                //- Reservation id
+                                                input(type="hidden" value=String(reserved_seats[d_number])               name="res_id")
+
+                                                //- Seat's data
+                                                input(type="hidden" value=String(row_seats[d_number].id)                 name="id")
+                                                input(type="hidden" value=String(row_seats[d_number].value.rev)          name="rev")
                                                 input(type="hidden" value=String(row_seats[d_number].key)                name="key")
                                                 input(type="hidden" value=String(row_seats[d_number].value.typology)     name="typology")
                                                 input(type="hidden" value=String(row_seats[d_number].value.space_name)   name="space_name")
                                                 input(type="hidden" value=String(row_seats[d_number].value.position)     name="position")
+                                                input(type="hidden" value=String(row_seats[d_number].value.state)        name="state")
                                                 //- Start_date
                                                 input(type="hidden" value=String(row_seats[d_number].value.start_date.Y) name="start_Y")
                                                 input(type="hidden" value=String(row_seats[d_number].value.start_date.M) name="start_M")
@@ -172,7 +167,44 @@ block contentReservation
                                                 input(type="hidden" value=String(row_seats[d_number].value.end_date.m)   name="end_m")
                                                 input(type="hidden" value=String(row_seats[d_number].value.end_date.s)   name="end_s")
 
+                                                input(type="submit" value="Prenotato\n(Click per disdire)\n" style="background-color: lightgreen")
+                                    //- Se l'orario corrente è gia stato prenotato in un altro spazio
+                                    else if reserved_wd[d_number] == 1
+                                        td(style="padding: 2px; text-align: center; color: grey") Non disponibile
+                                    //- Se i posti in quell'orario sono al completo
+                                    else if free_seats_day[d_number] == 0
+                                        td(style="padding: 2px; text-align: center; color: red") Completo
+                                    //- Se non ci troviamo in nessuno dei casi precedenti scrive il numero di posti disponibili e Mostra lo switch per prenotare
+                                    else
+                                        td(style="padding: 2px; text-align: center")
+                                            form(method="post" action="/reservation/make_res")
+                                                input(type="hidden" value=csrfToken                                      name="_csrf")
+
+                                                //- Reservation's owner (current user)
+                                                input(type="hidden" value=String(userId)                                 name="email")
+
+                                                //- Seat's data
+                                                input(type="hidden" value=String(row_seats[d_number].id)                 name="id")
+                                                input(type="hidden" value=String(row_seats[d_number].value.rev)          name="rev")
+                                                input(type="hidden" value=String(row_seats[d_number].key)                name="key")
+                                                input(type="hidden" value=String(row_seats[d_number].value.typology)     name="typology")
+                                                input(type="hidden" value=String(row_seats[d_number].value.space_name)   name="space_name")
+                                                input(type="hidden" value=String(row_seats[d_number].value.position)     name="position")
                                                 input(type="hidden" value=String(row_seats[d_number].value.state)        name="state")
+                                                //- Start_date
+                                                input(type="hidden" value=String(row_seats[d_number].value.start_date.Y) name="start_Y")
+                                                input(type="hidden" value=String(row_seats[d_number].value.start_date.M) name="start_M")
+                                                input(type="hidden" value=String(row_seats[d_number].value.start_date.D) name="start_D")
+                                                input(type="hidden" value=String(row_seats[d_number].value.start_date.h) name="start_h")
+                                                input(type="hidden" value=String(row_seats[d_number].value.start_date.m) name="start_m")
+                                                input(type="hidden" value=String(row_seats[d_number].value.start_date.s) name="start_s")
+                                                //- End_date
+                                                input(type="hidden" value=String(row_seats[d_number].value.end_date.Y)   name="end_Y")
+                                                input(type="hidden" value=String(row_seats[d_number].value.end_date.M)   name="end_M")
+                                                input(type="hidden" value=String(row_seats[d_number].value.end_date.D)   name="end_D")
+                                                input(type="hidden" value=String(row_seats[d_number].value.end_date.h)   name="end_h")
+                                                input(type="hidden" value=String(row_seats[d_number].value.end_date.m)   name="end_m")
+                                                input(type="hidden" value=String(row_seats[d_number].value.end_date.s)   name="end_s")
 
                                                 input(type="submit" value="Prenota\n"+free_seats_day[d_number]+" liberi")
                                     - d_number++
