@@ -47,7 +47,8 @@ function insert_views(){
 
     couch.insert(dbName, { "_id": "_design/Space", "views": {
         "0_All_Spaces": { "map": "function (doc) { if (doc.type == 'Space') emit( doc.fields.name, { typology: doc.fields.typology, dep_name: doc.fields.dep_name, number_of_seats: doc.fields.number_of_seats, rev: doc._rev } ) }" },
-        "Spaces_info": { "map": "function (doc) { if (doc.type == 'Space') emit( doc.fields.name, { fields: doc.fields, rev: doc._rev } ) }" }
+        "Spaces_info": { "map": "function (doc) { if (doc.type == 'Space') emit( doc.fields.name, { fields: doc.fields, rev: doc._rev } ) }" },
+        "All_Spaces_map": { "map": "function (doc) { if (doc.type == 'Space') emit( {dep_name: doc.fields.dep_name, typology: doc.fields.typology, name: doc.fields.name}, { fields: doc.fields, rev: doc._rev } ) }" }
     }, "language": "javascript" }).then(
         function(data, headers, status){ console.log("Views: Spaces\n 0_All_Spaces") },
         function(err){ console.log(err) }

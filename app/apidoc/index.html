@@ -19,13 +19,11 @@
 <!-- SIDENAV -->
 <script id="template-sidenav" type="text/x-handlebars-template">
 <nav id="scrollingNav">
-  <div class="sidenav-search" style="margin-bottom:15px">
+  <div class="sidenav-search">
     <input class="form-control search" data-action='filter-search' type="text" placeholder="{{__ "Filter..."}}">
     <span class="search-reset">x</span>
-    <br>
-    <a href="/home" style="margin-top:10px"> HOME </a>
   </div>
-  <ul class="sidenav nav nav-list list" style="margin-top:40px">
+  <ul class="sidenav nav nav-list list">
   {{#each nav}}
     {{#if title}}
       {{#if isHeader}}

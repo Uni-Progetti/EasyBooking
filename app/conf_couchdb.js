@@ -1,9 +1,10 @@
-const dotenv = require('dotenv').config({path: './../.env'});
 const http = require('http');
 const https = require('https');
+const path = require('path');
+require('dotenv').config({ path: path.resolve(process.cwd(), '../.env') });
 
 function configureCouchDB(){
-    array=["_global_changes","_users","_replicator", "refresh_tokens"];
+    array=["_global_changes","_users","_replicator", "refresh_tokens", "seats_updates"];
     array.forEach(element => {
         const post_options = {
             hostname: '127.0.0.1',

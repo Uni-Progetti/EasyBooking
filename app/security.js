@@ -1,13 +1,3 @@
-var express = require('express');
-var router = express.Router();
-var crypto = require('crypto');
-// const { render } = require('../app');
-const http = require('http');
-const https = require('https');
-const amqplib = require('amqplib');
-const amqpUrl = process.env.AMQP_URL || 'amqp://localhost:5673';
-var amqp = require('amqplib/callback_api');
-const dayjs = require('dayjs');
 const jwt = require('jsonwebtoken');
 
 const authenticateJWT = (req, res, next) => {

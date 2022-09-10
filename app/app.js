@@ -1,4 +1,3 @@
-const dotenv = require('dotenv').config()
 const jwt = require('jsonwebtoken');
 const bodyParser = require('body-parser');
 const createError = require('http-errors');
@@ -11,6 +10,9 @@ const logger = require('morgan');
 const session = require('express-session');
 const Expression = require('couchdb-expression')(session);
 const nodemailer = require('nodemailer');
+const schedule = require('node-schedule');
+const db_update = require('./db_update.js');
+const couchdb_utils = require('./couchdb_utils.js');
 const store = new Expression({
   username: process.env.COUCHDB_USER,         // default value = 'admin'
   password: process.env.COUCHDB_PASSWORD,     // default value = 'password'
@@ -35,6 +37,7 @@ var homeRouter = require('./routes/home');
 var reservationRouter = require('./routes/reservation');
 var personalAreaRouter = require('./routes/personalArea');
 var calendarRouter = require('./routes/calendar');
+const dayjs = require('dayjs');
 
 var app = express();
 
@@ -99,6 +102,27 @@ app.use("/apidoc", express.static(path.join(__dirname, "/apidoc")));
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   next(createError(404));
+});
+
+const job = schedule.scheduleJob('00 * * * *', function(){
+  couchdb_utils.get_from_couchdb('/seats_updates/updated', function(err, response_1){
+    if(err){
+      const post_data =JSON.stringify({"updated_at": dayjs() });
+      couchdb_utils.post_to_couchdb('/seats_updates/updated',post_data,function(err, response){
+        if(err){return console.log(err);};
+        db_update.seats_and_reservations_get();
+        console.log('\n\nDB update run at: ',dayjs(),'\n\n');
+      });
+    };
+    return console.log('\n\nUpdate already done!\n\n');
+  });
+});
+
+const job2 = schedule.scheduleJob('05 * * * *', function(){
+  couchdb_utils.delete_from_couchdb('/seats_updates/updated', function(err, response){
+    if(err){return console.log(err)};
+    return console.log(response);
+  });
 });
 
 // error handler

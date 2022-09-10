@@ -43,6 +43,8 @@ services:
       AMQP_URL: ${AMQP_URL}
       APP_EMAIL: ${APP_EMAIL}
       APP_EMAIL_PASS: ${APP_EMAIL_PASS}
+      ACCESS_TOKEN_SECRET: ${ACCESS_TOKEN_SECRET}
+      REFRESH_TOKEN_SECRET: ${REFRESH_TOKEN_SECRET}
       INSTANCE: app1
     networks:
       - app-network
@@ -66,6 +68,8 @@ services:
       AMQP_URL: ${AMQP_URL}
       APP_EMAIL: ${APP_EMAIL}
       APP_EMAIL_PASS: ${APP_EMAIL_PASS}
+      ACCESS_TOKEN_SECRET: ${ACCESS_TOKEN_SECRET}
+      REFRESH_TOKEN_SECRET: ${REFRESH_TOKEN_SECRET}
       INSTANCE: app2
     networks:
       - app-network
@@ -89,6 +93,8 @@ services:
       AMQP_URL: ${AMQP_URL}
       APP_EMAIL: ${APP_EMAIL}
       APP_EMAIL_PASS: ${APP_EMAIL_PASS}
+      ACCESS_TOKEN_SECRET: ${ACCESS_TOKEN_SECRET}
+      REFRESH_TOKEN_SECRET: ${REFRESH_TOKEN_SECRET}
       INSTANCE: app3
     networks:
       - app-network
@@ -102,8 +108,17 @@ services:
     volumes:
       - ./dbdata:/opt/couchdb/data
     environment: 
-      COUCHDB_USER: admin
-      COUCHDB_PASSWORD: secret
+      COUCHDB_USER: ${COUCHDB_USER}
+      COUCHDB_PASSWORD: ${COUCHDB_PASSWORD}
+      SESS_NAME: ${SESS_NAME}
+      SESSION_SECRET: ${SESSION_SECRET}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      AMQP_URL: ${AMQP_URL}
+      APP_EMAIL: ${APP_EMAIL}
+      APP_EMAIL_PASS: ${APP_EMAIL_PASS}
+      ACCESS_TOKEN_SECRET: ${ACCESS_TOKEN_SECRET}
+      REFRESH_TOKEN_SECRET: ${REFRESH_TOKEN_SECRET}
     networks:
       - app-network
   
