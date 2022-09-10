@@ -158,9 +158,9 @@ function insert_sp_wd_seat(dep){
         { dep_name: dep.name, day: "Martedì",   state: "Aperto", apertura: { h: 8, m: 0, s: 0 }, chiusura: { h: 20, m: 0, s: 0 } },
         { dep_name: dep.name, day: "Mercoledì", state: "Aperto", apertura: { h: 8, m: 0, s: 0 }, chiusura: { h: 20, m: 0, s: 0 } },
         { dep_name: dep.name, day: "Giovedì",   state: "Aperto", apertura: { h: 8, m: 0, s: 0 }, chiusura: { h: 20, m: 0, s: 0 } },
-        { dep_name: dep.name, day: "Venerdì",   state: "Aperto", apertura: { h: 8, m: 0, s: 0 }, chiusura: { h: 13, m: 0, s: 0 } },
-        { dep_name: dep.name, day: "Sabato",    state: "Chiuso", apertura: { h: 0, m: 0, s: 0 }, chiusura: { h:  0, m: 0, s: 0 } },
-        { dep_name: dep.name, day: "Domenica",  state: "Chiuso", apertura: { h: 0, m: 0, s: 0 }, chiusura: { h:  0, m: 0, s: 0 } }
+        { dep_name: dep.name, day: "Venerdì",   state: "Aperto", apertura: { h: 8, m: 0, s: 0 }, chiusura: { h: 20, m: 0, s: 0 } },
+        { dep_name: dep.name, day: "Sabato",    state: "Aperto", apertura: { h: 8, m: 0, s: 0 }, chiusura: { h: 20, m: 0, s: 0 } },
+        { dep_name: dep.name, day: "Domenica",  state: "Aperto", apertura: { h: 8, m: 0, s: 0 }, chiusura: { h: 20, m: 0, s: 0 } }
     ]
     // Inserimento orari
     wd_set.forEach(function(wd){

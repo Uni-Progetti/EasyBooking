@@ -24,7 +24,7 @@ block contentReservation
                 //- Raccoglie le prenotazioni del dipartimento corrente
                 - var curr_reserv_arr = []
                 each reserv in reservs.rows
-                    if reserv.key == dep.key
+                    if reserv.value.dep_name == dep.key
                         - curr_reserv_arr.push(reserv)
                 //- Raccoglie gli id dei posti delle prenotazioni dell'utete corrente e gli orari gia prenotati
                 - var reserved_seats_ids = []
@@ -86,7 +86,7 @@ block contentReservation
                                 - var reserved_seats = [0, 0, 0, 0, 0, 0, 0] //- Array per tenere memoria se il posto è prenotato dall'utente corrente o meno
                                 - var reserved_wd =    [0, 0, 0, 0, 0, 0, 0] //- Array per tenere memoria se l'orario è prenotato dall'utente corrente o meno
                                 - var free_seats_day = [0, 0, 0, 0, 0, 0, 0] //- Array per tenere memoria del numero di posti liberi per ogni giorno
-                                - var row_seats =   [0, 0, 0, 0, 0, 0, 0] //- Array per tenere memoria dell'id da prenotare nelle celle selezionate
+                                - var row_seats =      [0, 0, 0, 0, 0, 0, 0] //- Array per tenere memoria dell'id da prenotare nelle celle selezionate
 
                                 //- Inizializza le variabili sopra riportate per il completamento della tabella
                                 each st in curr_sp_st_arr
@@ -95,28 +95,6 @@ block contentReservation
                                     - const today_YMDh_str      = String((today.getFullYear()))+((String((today.getMonth()+1)).length == 1)? "0"+String((today.getMonth()+1)):String((today.getMonth()+1)))+((String((today.getDate())).length == 1)? "0"+String((today.getDate())):String((today.getDate())))+((String((today.getHours()+2)).length == 1)? "0"+String((today.getHours()+2)):String((today.getHours()+2)))
                                     - var   start_date_YMD_str  = String(st.value.start_date.Y)+((String(st.value.start_date.M).length == 1)? '0'+String(st.value.start_date.M):String(st.value.start_date.M))+((String(st.value.start_date.D).length == 1)? '0'+String(st.value.start_date.D):String(st.value.start_date.D))
                                     - var   start_date_YMDh_str = String(st.value.start_date.Y)+((String(st.value.start_date.M).length == 1)? '0'+String(st.value.start_date.M):String(st.value.start_date.M))+((String(st.value.start_date.D).length == 1)? '0'+String(st.value.start_date.D):String(st.value.start_date.D))+((String(st.value.start_date.h).length == 1)? "0"+String(st.value.start_date.h):String(st.value.start_date.h))
-
-                                    //- Controlla se il posto ha un data e un tempo precedenti a quelli odierni e quindi è da aggiornare
-                                    if (start_date_YMDh_str <= today_YMDh_str)
-                                        //- inizializza seat_res
-                                        - var seat_res = []
-                                        each reserv in reservs.rows
-                                            if reserv.value.seat_id == st.id
-                                                - seat_res.push(reserv)
-
-                                        //- Se la data del posto è di oggi ma l'orario è passato basta mettere expired nello stato dello spazio e delle sue prenotazioni
-                                        if (start_date_YMD_str == today_YMD_str)
-                                            - st.value.state = "Expired"
-                                            //- each exp_res in seat_res
-                                            //-     MODIFICA DA COUCHDB LA PRENOTAZIONE
-                                        //- Se invece non è di oggi ma di un giorno precedente
-                                        else
-                                            //- Aggiorna il nuovo posto con giorno corretto della settimana
-                                            //- st.update(position: 1, start_date: st.start_date+(604800), end_date: st.end_date+(604800), state: "Active")
-
-                                            //- //- Elimina le eventuali prenotazioni di quel posto
-                                            //- each old_res in seat_res
-                                            //-     ELIMINA DA COUCHDB LA PRENOTAZIONE
 
                                     - var today_plus_d = ''
                                     - var today_plus_day_num_str = ''
@@ -171,7 +149,7 @@ block contentReservation
                                             form(method="post" action="/reservation/make_res")
 
                                                 input(type="hidden" value=csrfToken                                      name="_csrf")
-                                                input(type="hidden" value=String(userId)                    name="email")
+                                                input(type="hidden" value=String(userId)                                 name="email")
                                                 input(type="hidden" value=String(row_seats[d_number].value.rev)          name="rev")
                                                 input(type="hidden" value=String(row_seats[d_number].id)                 name="id")
 
