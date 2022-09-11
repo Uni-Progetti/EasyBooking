@@ -104,7 +104,7 @@ app.use(function(req, res, next) {
   next(createError(404));
 });
 
-const job = schedule.scheduleJob('00 * * * *', function(){
+const update_seats_availability = schedule.scheduleJob('00 * * * *', function(){
   couchdb_utils.get_from_couchdb('/seats_updates/updated', function(err, response_1){
     if(err){
       const post_data =JSON.stringify({"updated_at": dayjs() });
@@ -118,12 +118,26 @@ const job = schedule.scheduleJob('00 * * * *', function(){
   });
 });
 
-const job2 = schedule.scheduleJob('05 * * * *', function(){
+const clean_db_seats_updates = schedule.scheduleJob('59 * * * *', function(){
   couchdb_utils.delete_from_couchdb('/seats_updates/updated', function(err, response){
     if(err){return console.log(err)};
     return console.log(response);
   });
 });
+
+const clean_db_expired_sessions = schedule.scheduleJob('30 * * * *', function(){
+  couchdb_utils.get_from_couchdb('/sessions/_design/session/_view/expires', function(err, response){
+    if (err){return console.log(err)};
+    response.rows.forEach(element => {
+      if(dayjs(element.value).isBefore(dayjs())){
+        couchdb_utils.delete_from_couchdb('/sessions/'+element.key, function(err, response){
+          if(err){return console.log(err)};
+        });
+      };
+    });
+  });
+});
+
 
 // error handler
 app.use(function(err, req, res, next) {

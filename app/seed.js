@@ -2,6 +2,8 @@ const dotenv = require('dotenv').config({path: './../.env'});
 const NodeCouchDb = require('node-couchdb')
 const dayjs = require('dayjs')
 var crypto = require('crypto');
+const couchdb_utils = require('./couchdb_utils.js');
+const db_update = require('./db_update.js');
 const dbName = 'db'
 
 const couch = new NodeCouchDb({
@@ -18,7 +20,32 @@ couch.listDatabases().then(function(dbs){
 })
 // Crea il db
 function create_seed_db(){ couch.createDatabase(dbName).then(
-    function(data, headers, status){ console.log("DB initialized\n"); insert_views() },
+    function(data, headers, status){
+        array=["_global_changes","_users","_replicator", "refresh_tokens", "seats_updates", "sessions"];
+        array.forEach(element => {
+            couchdb_utils.update_or_create_to_couchdb_out("/"+element,'{}', function(err, response){
+                if(err){
+                    console.log(err)
+                } else {
+                    console.log(response);
+                }
+            });
+        });
+        let post_view = JSON.stringify({
+            "_id": "_design/sessions",
+            "views": {
+              "expires": {
+                "map": "function (doc) {\n emit(doc._id, doc.cookie.expires || doc.cookie._expires);\n}"
+              }
+            },
+            "language": "javascript"
+          });
+        couchdb_utils.update_or_create_to_couchdb_out('/sessions/_design/session', post_view, function(err, response){
+            if (err){return console.log(err)};
+        })
+        console.log("DB initialized\n"); 
+        insert_views();
+    },
     function(err){ console.log(err) }
 )}
 
@@ -48,7 +75,7 @@ function insert_views(){
     couch.insert(dbName, { "_id": "_design/Space", "views": {
         "0_All_Spaces": { "map": "function (doc) { if (doc.type == 'Space') emit( doc.fields.name, { typology: doc.fields.typology, dep_name: doc.fields.dep_name, number_of_seats: doc.fields.number_of_seats, rev: doc._rev } ) }" },
         "Spaces_info": { "map": "function (doc) { if (doc.type == 'Space') emit( doc.fields.name, { fields: doc.fields, rev: doc._rev } ) }" },
-        "All_Spaces_map": { "map": "function (doc) { if (doc.type == 'Space') emit( {dep_name: doc.fields.dep_name, typology: doc.fields.typology, name: doc.fields.name}, { fields: doc.fields, rev: doc._rev } ) }" }
+        "All_Spaces_map": { "map": "function (doc) { if (doc.type == 'Space') emit( doc.fields.dep_name, { typology: doc.fields.typology, name: doc.fields.name } ) }" }
     }, "language": "javascript" }).then(
         function(data, headers, status){ console.log("Views: Spaces\n 0_All_Spaces") },
         function(err){ console.log(err) }
