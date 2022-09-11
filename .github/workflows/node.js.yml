@@ -22,6 +22,8 @@ env:
   BASE_64_CERT_KEY: ${{ secrets.BASE_64_CERT_KEY }}
   CERT_DHPARAM: ${{ secrets.CERT_DHPARAM }}
   CERT_NGINX: ${{ secrets.CERT_NGINX }}
+  ACCESS_TOKEN_SECRET: ${{ secrets.ACCESS_TOKEN_SECRET }}
+  REFRESH_TOKEN_SECRET: ${{ secrets.REFRESH_TOKEN_SECRET }}
   
 jobs:
   deploy:
@@ -47,6 +49,8 @@ jobs:
         run: docker ps -a
       - name: test connection nginx
         run: curl -k https://localhost:8083 && curl http://localhost:5984 && curl http://localhost:15672
+      - name: initialize db
+        run: pwd && node db_first_start.js
       - name: test npm
         run: npm test
       - name: docker-compose down
