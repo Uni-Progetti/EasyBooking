@@ -83,7 +83,7 @@ function seats_update( seats, reservations) {
                         "start_date": {
                             "Y": st_date_plus_7.getFullYear(),
                             "M": st_date_plus_7.getMonth()+1,
-                            "D": st_date_plus_7.getDay(),
+                            "D": st_date_plus_7.getDate(),
                             "h": st.value.start_date.h,
                             "m": 0,
                             "s": 0
@@ -91,7 +91,7 @@ function seats_update( seats, reservations) {
                         "end_date": {
                             "Y": st_date_plus_7.getFullYear(),
                             "M": st_date_plus_7.getMonth()+1,
-                            "D": st_date_plus_7.getDay(),
+                            "D": st_date_plus_7.getDate(),
                             "h": st.value.end_date.h,
                             "m": 0,
                             "s": 0
@@ -201,7 +201,7 @@ function seats_update_seed( seats, reservations) {
                         "start_date": {
                             "Y": st_date_plus_7.getFullYear(),
                             "M": st_date_plus_7.getMonth()+1,
-                            "D": st_date_plus_7.getDay(),
+                            "D": st_date_plus_7.getDate(),
                             "h": st.value.start_date.h,
                             "m": 0,
                             "s": 0
@@ -209,7 +209,7 @@ function seats_update_seed( seats, reservations) {
                         "end_date": {
                             "Y": st_date_plus_7.getFullYear(),
                             "M": st_date_plus_7.getMonth()+1,
-                            "D": st_date_plus_7.getDay(),
+                            "D": st_date_plus_7.getDate(),
                             "h": st.value.end_date.h,
                             "m": 0,
                             "s": 0
