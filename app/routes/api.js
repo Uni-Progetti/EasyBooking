@@ -111,8 +111,8 @@ router.post('/logout', security.authenticateJWT ,function (req, res){
  */
 
 /* curl http://localhost:8080/api/getDepartments/all -H "Authorization: Bearer access_token" */
-// stampa dipartimenti: nome dipartimento, manager e indirizzo
-router.get('/getDepartments/all', security.authenticateJWT ,function(req, res){
+// stampa dipartimenti
+router.get('/getDepartments/all' ,function(req, res){
     couchdb_utils.get_from_couchdb('/db/_design/Department/_view/Departments_info', function(err, response){
         if(err){return res.status(404).send({error: err});};
         let output = {};
@@ -182,7 +182,7 @@ router.get('/getSpaces/all', function(req, res){
     const get_options = {
         hostname: 'couchdb',
         port: 5984,
-        path: '/db/_design/Space/_view/Spaces_info',
+        path: '/db/_design/Space/_view/All_Spaces_map',
         method: 'GET',
         auth: process.env.COUCHDB_USER+":"+process.env.COUCHDB_PASSWORD
     };
@@ -198,24 +198,30 @@ router.get('/getSpaces/all', function(req, res){
         out.on('end', function() {
             var x = JSON.parse(data);
             let output = {};
+            let output_value = {};
+            let isEmpty = Object.keys(output).length === 0;
             x.rows.forEach(element => {
-                // output [element.value.fields.dep_name] = ['spazio: ' + element.value.fields.typology + ' ' + element.key + ' - numero di posti totali: ' + element.value.fields.number_of_seats];
-                var dip = element.value.fields.dep_name;
-                var tipologia = element.value.fields.typology;
-                var nome = element.key;
-                var num = element.value.fields.number_of_seats;
-                console.log(dip);
-                console.log(tipologia);
-                console.log(nome);
-                console.log(num);
-                output = [
-                        {"dipartimento": dip},
-                        {"spazio": tipologia + ' ' + nome},
-                        {"numero di posti totali": num},
-                        ];
-                
+                isEmpty = Object.keys(output).length === 0;
+                if(isEmpty || !(element.key in output)){
+                    let key = element.value.typology;
+                    let output_value = {};
+                    output_value [key] = [element.value.name];
+                    output [element.key] = output_value;
+                } else {
+                    let old_obj = output[element.key];
+                    if(element.value.typology in old_obj){
+                        let old_obj_val = old_obj[element.value.typology];
+                        let old_obj_val_arr = old_obj_val;
+                        old_obj_val_arr.push(element.value.name);
+                        old_obj [element.value.typology] = old_obj_val_arr.sort();
+                        output [element.key] = old_obj;
+                    } else {
+                        old_obj [element.value.typology] = [element.value.name];
+                        output [element.key] = old_obj;
+                    }
+                }
             });
-            const isEmpty = Object.keys(output).length === 0;
+            isEmpty = Object.keys(output).length === 0;
             if (isEmpty) {
                 res.status(404).send({error: "Nessuno spazio trovato"});
             }
