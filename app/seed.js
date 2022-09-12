@@ -7,7 +7,10 @@ const db_update = require('./db_update.js');
 const dbName = 'db'
 
 const couch = new NodeCouchDb({
-    auth: { user: process.env.COUCHDB_USER, password: process.env.COUCHDB_PASSWORD }
+    auth: {
+        user: process.env.COUCHDB_USER,
+        password: process.env.COUCHDB_PASSWORD
+    }
 })
 
 // Se il db esiste gia lo distrugge e poi lo ricrea
@@ -19,35 +22,37 @@ couch.listDatabases().then(function(dbs){
     else { create_seed_db() }
 })
 // Crea il db
-function create_seed_db(){ couch.createDatabase(dbName).then(
-    function(data, headers, status){
-        array=["_global_changes","_users","_replicator", "refresh_tokens", "seats_updates", "sessions"];
-        array.forEach(element => {
-            couchdb_utils.update_or_create_to_couchdb_out("/"+element,'{}', function(err, response){
-                if(err){
-                    console.log(err)
-                } else {
-                    console.log(response);
-                }
+function create_seed_db(){
+    couch.createDatabase(dbName).then(
+        function(data, headers, status){
+            array=["_global_changes","_users","_replicator", "refresh_tokens", "seats_updates", "sessions"];
+            array.forEach(element => {
+                couchdb_utils.update_or_create_to_couchdb_out("/"+element,'{}', function(err, response){
+                    if(err){
+                        console.log(err)
+                    } else {
+                        console.log(element+': '+response);
+                    }
+                });
             });
-        });
-        let post_view = JSON.stringify({
-            "_id": "_design/sessions",
-            "views": {
-              "expires": {
-                "map": "function (doc) {\n emit(doc._id, doc.cookie.expires || doc.cookie._expires);\n}"
-              }
-            },
-            "language": "javascript"
-          });
-        couchdb_utils.update_or_create_to_couchdb_out('/sessions/_design/session', post_view, function(err, response){
-            if (err){return console.log(err)};
-        })
-        console.log("DB initialized\n"); 
-        insert_views();
-    },
-    function(err){ console.log(err) }
-)}
+            let post_view = JSON.stringify({
+                "_id": "_design/sessions",
+                "views": {
+                    "expires": {
+                        "map": "function (doc) {\n emit(doc._id, doc.cookie.expires || doc.cookie._expires);\n}"
+                    }
+                },
+                "language": "javascript"
+            });
+            couchdb_utils.update_or_create_to_couchdb_out('/sessions/_design/session', post_view, function(err, response){
+                if (err){return console.log(err)};
+            })
+            console.log("DB initialized\n"); 
+            insert_views();
+        },
+        function(err){ console.log(err) }
+    )
+}
 
 // Inserisce le views
 function insert_views(){
@@ -65,39 +70,36 @@ function insert_views(){
     )
 
     couch.insert(dbName, { "_id": "_design/Department", "views": {
-        "0_All_Departments": { "map": "function (doc) { if (doc.type == 'Department') emit( doc.fields.name, { manager: doc.fields.manager, rev: doc._rev } ) }" },
-        "Departments_info": { "map": "function (doc) { if (doc.type == 'Department') emit( doc.fields.name, { fields: doc.fields, rev: doc._rev } ) }" }
+        "All_Departments":   { "map": "function (doc) { if (doc.type == 'Department') emit( doc.key, { fields: doc.fields, rev: doc._rev } ) }" }
     }, "language": "javascript" }).then(
-        function(data, headers, status){ console.log("Views: Departments\n 0_All_Departments\n Departments_info") },
+        function(data, headers, status){ console.log("Views: Departments\n All_Departments\n Departments_info") },
         function(err){ console.log(err) }
     )
 
     couch.insert(dbName, { "_id": "_design/Space", "views": {
-        "0_All_Spaces": { "map": "function (doc) { if (doc.type == 'Space') emit( doc.fields.name, { typology: doc.fields.typology, dep_name: doc.fields.dep_name, number_of_seats: doc.fields.number_of_seats, rev: doc._rev } ) }" },
-        "Spaces_info": { "map": "function (doc) { if (doc.type == 'Space') emit( doc.fields.name, { fields: doc.fields, rev: doc._rev } ) }" },
-        "All_Spaces_map": { "map": "function (doc) { if (doc.type == 'Space') emit( doc.fields.dep_name, { typology: doc.fields.typology, name: doc.fields.name } ) }" }
+        "All_Spaces":      { "map": "function (doc) { if (doc.type == 'Space') emit( doc.key,          { fields: doc.fields, rev: doc._rev }              ) }" },
+        "All_Spaces_keys": { "map": "function (doc) { if (doc.type == 'Space') emit( doc.key.dep_name, { typology: doc.key.typology, name: doc.key.name } ) }" }
     }, "language": "javascript" }).then(
-        function(data, headers, status){ console.log("Views: Spaces\n 0_All_Spaces") },
+        function(data, headers, status){ console.log("Views: Spaces\n All_Spaces") },
         function(err){ console.log(err) }
     )
 
     couch.insert(dbName, { "_id": "_design/WeekDay", "views": {
-        "0_All_WeekDays": { "map": "function (doc) { if (doc.type == 'WeekDay') emit( doc.fields.dep_name, { day: doc.fields.day, state: doc.fields.state, apertura: { h: doc.fields.apertura.h, m: doc.fields.apertura.m, s: doc.fields.apertura.s }, chiusura: { h: doc.fields.chiusura.h, m: doc.fields.chiusura.m, s: doc.fields.chiusura.s }, rev: doc._rev } ) }" }
+        "All_WeekDays":   { "map": "function (doc) { if (doc.type == 'WeekDay') emit( doc.key, { fields: doc.fields, rev: doc._rev } ) }" }
     }, "language": "javascript" }).then(
-        function(data, headers, status){ console.log("Views: WeekDays\n 0_All_WeekDays") },
+        function(data, headers, status){ console.log("Views: WeekDays\n All_WeekDays") },
         function(err){ console.log(err) }
     )
 
     couch.insert(dbName, { "_id": "_design/Seat", "views": {
-        "0_All_Seats": { "map": "function (doc) { if (doc.type == 'Seat') emit( doc.fields.dep_name, { typology: doc.fields.typology, space_name: doc.fields.space_name, position: doc.fields.position, start_date: { Y: doc.fields.start_date.Y, M: doc.fields.start_date.M, D: doc.fields.start_date.D, h: doc.fields.start_date.h, m: doc.fields.start_date.m, s: doc.fields.start_date.s },  end_date: { Y: doc.fields.end_date.Y, M: doc.fields.end_date.M, D: doc.fields.end_date.D, h: doc.fields.end_date.h, m: doc.fields.end_date.m, s: doc.fields.end_date.s }, state: doc.fields.state, rev: doc._rev } ) }" },
-        "Seats_By_Typology": { "map": "function (doc) { if (doc.type == 'Seat') emit( doc.fields.dep_name, { typology: doc.fields.typology, space_name: doc.fields.space_name, position: doc.fields.position, state: doc.fields.state, rev: doc._rev } ) }" }
+        "All_Seats":   { "map": "function (doc) { if (doc.type == 'Seat') emit( doc.key, { fields: doc.fields, rev: doc._rev } ) }" }
     }, "language": "javascript" }).then(
-        function(data, headers, status){ console.log("Views: Seats\n 0_All_Seats\n Seats_By_Typology") },
+        function(data, headers, status){ console.log("Views: Seats\n All_Seats\n Seats_By_Typology") },
         function(err){ console.log(err) }
     )
 
     couch.insert(dbName, { "_id": "_design/Reservation", "views": {
-        "0_All_Reservations": { "map": "function (doc) { if (doc.type == 'Reservation') emit( doc.fields.email, { email: doc.fields.dep_name, typology: doc.fields.typology, space_name: doc.fields.space_name, seat_id: doc.fields.seat_id, seat_number: doc.fields.seat_number, start_date: { Y: doc.fields.start_date.Y, M: doc.fields.start_date.M, D: doc.fields.start_date.D, h: doc.fields.start_date.h, m: doc.fields.start_date.m, s: doc.fields.start_date.s }, end_date: { Y: doc.fields.end_date.Y, M: doc.fields.end_date.M, D: doc.fields.end_date.D, h: doc.fields.end_date.h, m: doc.fields.end_date.m, s: doc.fields.end_date.s }, state: doc.fields.state, rev: doc._rev } ) }" }
+        "All_Reservations":  { "map": "function (doc) { if (doc.type == 'Reservation') emit( doc.key, { fields: doc.fields, rev: doc._rev } ) }" }
     }, "language": "javascript" }).then(
         function(data, headers, status){ console.log("Views: Reservations\n 0_All_Reservations") },
         function(err){ console.log(err) }
@@ -118,7 +120,6 @@ function insert_usr(){
     crypto.pbkdf2('Password.0', defSalt, 310000, 32, 'sha256', function(err, hashedPassword) {
 
         if (err) { return next(err); }
-
         defHash = hashedPassword;
         hashedPassword1 = hashedPassword;
 
@@ -143,14 +144,17 @@ function insert_usr(){
         // Inserimento
         console.log("\nUsers:")
         usr_array.forEach(function(usr){
-            couch.uniqid().then(function(ids){ const id = ids[0]
-
-                couch.insert(dbName, { īd: id, _id: usr.email , type: "User", fields: usr, confirmed_at: dayjs(), confirmation_expires: null, confirmation_token: null }).then(
-                    function(data, headers, status){ console.log("  "+usr.email); usr_count += 1; if (usr_count == 11) { insert_dep() } },
-                    function(err){ console.log(err) }
-                )
-
-            })
+            couch.insert(dbName, {
+                _id: usr.email,
+                type: "User",
+                fields: usr,
+                confirmed_at: dayjs(),
+                confirmation_expires: null,
+                confirmation_token: null
+            }).then(
+                function(data, headers, status){ usr_count += 1; console.log("  "+usr.email); if (usr_count == 11) { insert_dep() } },
+                function(err){ console.log(err) }
+            )
         })
     });
 }
@@ -160,20 +164,26 @@ function insert_dep(){
 
     const man_usr_set = { fra_man: "fra.manager@gmail.com", mat_man: "matteo.manager@gmail.com", mic_man: "michela.manager@gmail.com", don_man: "donia.manager@gmail.com", }
     const dep_set = [
-        // Scorri per vedere tutte le informazioni ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------->
-        { name: "Dipartimento di Francesco", manager: man_usr_set.fra_man, floors: 4, number_of_spaces: 4, via: "Piazzale Aldo Moro",           civico: "5",  cap: "00185", citta: "Roma",            provincia: "RM", latitude: "41.9012777", longitude: "12.5145879", description: "Per gestire o testare questo dipartimento accedi come 'fra.manager@gmail.com'"     },
-        { name: "Dipartimento di Matteo",    manager: man_usr_set.mat_man, floors: 4, number_of_spaces: 4, via: "Viale dello Scalo S. Lorenzo", civico: "82", cap: "00159", citta: "Roma",            provincia: "RM", latitude: "41.89684",   longitude: "12.5213",    description: "Per gestire o testare questo dipartimento accedi come 'matteo.manager@gmail.com'"  },
-        { name: "Dipartimento di Michela",   manager: man_usr_set.mic_man, floors: 4, number_of_spaces: 4, via: "Borgo Garibaldi",              civico: "12", cap: "00041", citta: " Albano Laziale", provincia: "RM", latitude: "41.748959",  longitude: "12.648700",  description: "Per gestire o testare questo dipartimento accedi come 'michela.manager@gmail.com'" },
-        { name: "Dipartimento di Donia",     manager: man_usr_set.don_man, floors: 4, number_of_spaces: 4, via: "Via mura dei francesi",        civico: "10", cap: "00043", citta: "Ciampino",        provincia: "RM", latitude: "41.80299",   longitude: "12.59893",   description: "Per gestire o testare questo dipartimento accedi come 'donia.manager@gmail.com'"   }
+        // Scorri per vedere tutte le informazioni ->-->-->-->-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------->
+        { key: "Dipartimento di Francesco",
+            fields: { manager: man_usr_set.fra_man, floors: 4, number_of_spaces: 4, via: "Piazzale Aldo Moro",           civico: "5",  cap: "00185", citta: "Roma",            provincia: "RM", latitude: "41.9012777", longitude: "12.5145879", description: "Per gestire o testare questo dipartimento accedi come 'fra.manager@gmail.com'"     }},
+        { key: "Dipartimento di Matteo",
+            fields: { manager: man_usr_set.mat_man, floors: 4, number_of_spaces: 4, via: "Viale dello Scalo S. Lorenzo", civico: "82", cap: "00159", citta: "Roma",            provincia: "RM", latitude: "41.89684",   longitude: "12.5213",    description: "Per gestire o testare questo dipartimento accedi come 'matteo.manager@gmail.com'"  }},
+        { key: "Dipartimento di Michela",
+            fields: { manager: man_usr_set.mic_man, floors: 4, number_of_spaces: 4, via: "Borgo Garibaldi",              civico: "12", cap: "00041", citta: " Albano Laziale", provincia: "RM", latitude: "41.748959",  longitude: "12.648700",  description: "Per gestire o testare questo dipartimento accedi come 'michela.manager@gmail.com'" }},
+        { key: "Dipartimento di Donia",
+            fields: { manager: man_usr_set.don_man, floors: 4, number_of_spaces: 4, via: "Via mura dei francesi",        civico: "10", cap: "00043", citta: "Ciampino",        provincia: "RM", latitude: "41.80299",   longitude: "12.59893",   description: "Per gestire o testare questo dipartimento accedi come 'donia.manager@gmail.com'"   }}
     ]
 
     dep_set.forEach(function(dep){
-        couch.uniqid().then(function(ids){ const id = ids[0]
-            couch.insert(dbName, { īd: id, type: "Department", fields: dep }).then(
-                function(data, headers, status){ console.log("DEP: "+dep.name); insert_sp_wd_seat(dep) },
-                function(err){ console.log(err) }
-            )
-        })
+        couch.insert(dbName, {
+            key: dep.key,
+            type: "Department",
+            fields: dep.fields
+        }).then(
+            function(data, headers, status){ console.log("DEP: "+dep.key); insert_sp_wd_seat(dep) },
+            function(err){ console.log(err) }
+        )
     })
 }
 
@@ -182,93 +192,110 @@ function insert_sp_wd_seat(dep){
 
     // Dati orari
     const wd_set = [
-        { dep_name: dep.name, day: "Lunedì",    state: "Aperto", apertura: { h: 8, m: 0, s: 0 }, chiusura: { h: 20, m: 0, s: 0 } },
-        { dep_name: dep.name, day: "Martedì",   state: "Aperto", apertura: { h: 8, m: 0, s: 0 }, chiusura: { h: 20, m: 0, s: 0 } },
-        { dep_name: dep.name, day: "Mercoledì", state: "Aperto", apertura: { h: 8, m: 0, s: 0 }, chiusura: { h: 20, m: 0, s: 0 } },
-        { dep_name: dep.name, day: "Giovedì",   state: "Aperto", apertura: { h: 8, m: 0, s: 0 }, chiusura: { h: 20, m: 0, s: 0 } },
-        { dep_name: dep.name, day: "Venerdì",   state: "Aperto", apertura: { h: 8, m: 0, s: 0 }, chiusura: { h: 20, m: 0, s: 0 } },
-        { dep_name: dep.name, day: "Sabato",    state: "Aperto", apertura: { h: 8, m: 0, s: 0 }, chiusura: { h: 20, m: 0, s: 0 } },
-        { dep_name: dep.name, day: "Domenica",  state: "Aperto", apertura: { h: 8, m: 0, s: 0 }, chiusura: { h: 20, m: 0, s: 0 } }
+        { key: { dep_name: dep.key, day: "Lunedì"    },
+            fields: { state: "Aperto", apertura: { h:  8, m: 0, s: 0 }, chiusura: { h: 20, m: 0, s: 0 } }},
+        { key: { dep_name: dep.key, day: "Martedì"   },
+            fields: { state: "Aperto", apertura: { h:  8, m: 0, s: 0 }, chiusura: { h: 20, m: 0, s: 0 } }},
+        { key: { dep_name: dep.key, day: "Mercoledì" },
+            fields: { state: "Aperto", apertura: { h:  8, m: 0, s: 0 }, chiusura: { h: 20, m: 0, s: 0 } }},
+        { key: { dep_name: dep.key, day: "Giovedì"   },
+            fields: { state: "Aperto", apertura: { h: 13, m: 0, s: 0 }, chiusura: { h: 20, m: 0, s: 0 } }},
+        { key: { dep_name: dep.key, day: "Venerdì"   },
+            fields: { state: "Aperto", apertura: { h:  8, m: 0, s: 0 }, chiusura: { h: 13, m: 0, s: 0 } }},
+        { key: { dep_name: dep.key, day: "Sabato"    },
+            fields: { state: "Chiuso", apertura: { h:  0, m: 0, s: 0 }, chiusura: { h:  0, m: 0, s: 0 } }},
+        { key: { dep_name: dep.key, day: "Domenica"  },
+            fields: { state: "Chiuso", apertura: { h:  0, m: 0, s: 0 }, chiusura: { h:  0, m: 0, s: 0 } }}
     ]
     // Inserimento orari
     wd_set.forEach(function(wd){
-        couch.uniqid().then(function(ids){ const id = ids[0]
-            couch.insert(dbName, { īd: id, type: "WeekDay", fields: wd }).then(
-                function(data, headers, status){ /* console.log("WD: "+wd.day+" - "+dep.name) */ },
-                function(err){ console.log(err) }
-            )
-        })
+        couch.insert(dbName, {
+            key: wd.key,
+            type: "WeekDay",
+            fields: wd.fields
+        }).then(
+            function(data, headers, status){ console.log("WD: "+wd.key.day+" - "+wd.key.dep_name) },
+            function(err){ console.log(err) }
+        )
     })
 
     // Dati spazi
     const sp_set = [
-        { dep_name: dep.name, typology: "Isola",       name: "C",   description: "Poche prese di corrente", floor: 1, number_of_seats: 2, state: "Abilitato" },
-        { dep_name: dep.name, typology: "Isola",       name: "D",   description: "Poche prese di corrente", floor: 1, number_of_seats: 2, state: "Abilitato" },
-        { dep_name: dep.name, typology: "Aula",        name: "106", description: "Ben illuminata ",         floor: 1, number_of_seats: 4, state: "Abilitato" },
-        { dep_name: dep.name, typology: "Aula",        name: "204", description: "Molto ampia",             floor: 2, number_of_seats: 8, state: "Abilitato" },
-        { dep_name: dep.name, typology: "Laboratorio", name: "15",  description: "",                        floor: 1, number_of_seats: 3, state: "Abilitato" },
+        { key: { name: "C",   typology: "Isola",       dep_name: dep.key },
+            fields: { floor: 1, number_of_seats: 2, state: "Abilitato", description: "Poche prese di corrente" }},
+        { key: { name: "D",   typology: "Isola",       dep_name: dep.key },
+            fields: { floor: 1, number_of_seats: 2, state: "Abilitato", description: "Poche prese di corrente" }},
+        { key: { name: "106", typology: "Aula",        dep_name: dep.key },
+            fields: { floor: 1, number_of_seats: 4, state: "Abilitato", description: "Ben illuminata "         }},
+        { key: { name: "204", typology: "Aula",        dep_name: dep.key },
+            fields: { floor: 2, number_of_seats: 8, state: "Abilitato", description: "Molto ampia"             }},
+        { key: { name: "15",  typology: "Laboratorio", dep_name: dep.key },
+            fields: { floor: 1, number_of_seats: 3, state: "Abilitato", description: ""                        }}
     ]
     // Inserimento spazi e Inserimento posti
     sp_set.forEach(function(sp){
-        couch.uniqid().then(function(ids){ const id = ids[0]
-            couch.insert(dbName, { īd: id, type: "Space", fields: sp }).then(
-                function(data, headers, status){
-                    // console.log("SP: "+sp.typology+" "+sp.name+" - "+dep.name)
+        couch.insert(dbName, {
+            key: sp.key,
+            type: "Space",
+            fields: sp.fields
+        }).then(
+            function(data, headers, status){
+                console.log("SP: "+sp.key.typology+" "+sp.key.name+" - "+sp.key.dep_name)
 
-                    // Per ogni orario del dipartimento
-                    wd_set.forEach(function(wd){
-                        if (wd.state == "Aperto"){
-                            const day = wd.day
-                            const offset_number = (day == "Domenica")?  0 :
-                                                  (day == "Lunedì")?    1 :
-                                                  (day == "Martedì")?   2 :
-                                                  (day == "Mercoledì")? 3 :
-                                                  (day == "Giovedì")?   4 :
-                                                  (day == "Venerdì")?   5 :
-                                                  (day == "Sabato")?    6 : 0
+                // Per ogni orario del dipartimento
+                wd_set.forEach(function(wd){
+                    if (wd.fields.state == "Aperto"){
+                        const day = wd.key.day
+                        const offset_number = (day == "Domenica")?  0 :
+                                              (day == "Lunedì")?    1 :
+                                              (day == "Martedì")?   2 :
+                                              (day == "Mercoledì")? 3 :
+                                              (day == "Giovedì")?   4 :
+                                              (day == "Venerdì")?   5 :
+                                              (day == "Sabato")?    6 : 0
 
-                            const today = new Date()
-                            const sunday = new Date((new Date()).setDate(today.getDate()-today.getDay()))
-                            const current_wd_date = ((new Date((new Date()).setDate(today.getDate()-today.getDay()+offset_number))) < today)? (new Date((new Date()).setDate(today.getDate()-today.getDay()+offset_number+7))) : (new Date((new Date()).setDate(today.getDate()-today.getDay()+offset_number)))
+                        const today = new Date()
+                        const sunday = new Date((new Date()).setDate(today.getDate()-today.getDay()))
+                        const current_wd_date = ((new Date((new Date()).setDate(today.getDate()-today.getDay()+offset_number))) < today)? (new Date((new Date()).setDate(today.getDate()-today.getDay()+offset_number+7))) : (new Date((new Date()).setDate(today.getDate()-today.getDay()+offset_number)))
 
-                            // Per ogni slot orario nel giorno corrente
-                            for (let h = 0 ; h < (wd.chiusura.h - wd.apertura.h) ; h++ ) {
+                        // Per ogni slot orario nel giorno corrente
+                        for (let h = 0 ; h < (wd.fields.chiusura.h - wd.fields.apertura.h) ; h++ ) {
 
-                                // Inizializza i dati del posto
-                                const Y_var  = current_wd_date.getFullYear()
-                                var   M_var  = current_wd_date.getMonth()+1
-                                var   D_var  = current_wd_date.getDate()
-                                var   ha_var = wd.apertura.h+h
-                                var   hc_var = wd.apertura.h+h+1
-                                const m_var  = 0
-                                const s_var  = 0
+                            // Inizializza i dati del posto
+                            const Y_var  = current_wd_date.getFullYear()
+                            const M_var  = current_wd_date.getMonth()+1
+                            const D_var  = current_wd_date.getDate()
+                            const start_h_var = wd.fields.apertura.h+h
+                            const end_h_var =   wd.fields.apertura.h+h+1
+                            const m_var  = 0
+                            const s_var  = 0
 
-                                const start_date = { Y: Y_var, M: M_var, D: D_var, h: ha_var, m: m_var, s: s_var }
-                                const end_date =   { Y: Y_var, M: M_var, D: D_var, h: hc_var, m: m_var, s: s_var }
+                            const start_date = { Y: Y_var, M: M_var, D: D_var, h: start_h_var, m: m_var, s: s_var }
+                            const end_date =   { Y: Y_var, M: M_var, D: D_var, h: end_h_var,   m: m_var, s: s_var }
 
-                                // Inserisce il posto
-                                couch.uniqid().then(function(ids){ const id = ids[0]
-                                    couch.insert(dbName, { īd: id, type: "Seat", fields: {
-                                        dep_name: dep.name,
-                                        typology: sp.typology,
-                                        space_name: sp.name,
+                            // Inserisce il posto
+                            couch.uniqid().then(function(ids){ const id = ids[0]
+                                couch.insert(dbName, {
+                                    key: { space_name: sp.key.name, typology: sp.key.typology, dep_name: sp.key.dep_name },
+                                    type: "Seat",
+                                    fields: {
                                         position: 1,
                                         start_date: start_date,
                                         end_date: end_date,
                                         state: "Active"
-                                    }}).then(
-                                        function(data, headers, status){
-                                            // console.log("S"+h+"\t"+sp.name+"\t"+dep.cap+"\t"+start_date.Y+"/"+start_date.M+"/"+start_date.D+"\t"+start_date.h+":"+start_date.m+":"+start_date.s)
-                                        },
-                                        function(err){ console.log(err) }
-                                    )
-                                })
-                            }
+                                    }
+                                }).then(
+                                    function(data, headers, status){
+                                        console.log("S"+h+"\t"+sp.key.name+"\t"+dep.fields.civico+"\t"+start_date.Y+"/"+start_date.M+"/"+start_date.D+"\t"+start_date.h+":"+start_date.m+":"+start_date.s)
+                                    },
+                                    function(err){ console.log(err) }
+                                )
+                            })
                         }
-                    })
-                },
-                function(err){ console.log(err) }
-            )
-        })
+                    }
+                })
+            },
+            function(err){ console.log(err) }
+        )
     })
 }

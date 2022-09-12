@@ -9,32 +9,32 @@ block contentReservation
                 //- Raccoglie gli orari del dipartimento corrente
                 - var curr_wd_arr = []
                 each wd in wds.rows
-                    if wd.key == dep.key
+                    if wd.key.dep_name == dep.key
                         - curr_wd_arr.push(wd)
                 //- Raccoglie gli spazi del dipartimento corrente
                 - var curr_sp_arr = []
                 each sp in sps.rows
-                    if sp.value.dep_name == dep.key
+                    if sp.key.dep_name == dep.key
                         - curr_sp_arr.push(sp)
                 //- Raccoglie i posti del dipartimento corrente
                 - var curr_st_arr = []
                 each st in sts.rows
-                    if st.key == dep.key
+                    if st.key.dep_name == dep.key
                         - curr_st_arr.push(st)
                 //- Raccoglie le prenotazioni del dipartimento corrente
                 - var curr_reserv_arr = []
                 each reserv in reservs.rows
-                    if reserv.value.dep_name == dep.key
+                    if reserv.value.fields.dep_name == dep.key
                         - curr_reserv_arr.push(reserv)
-                //- Raccoglie gli id dei posti delle prenotazioni dell'utete corrente e gli orari gia prenotati
+                //- Raccoglie gli id dei posti prenotati, delle prenotazioni e gli orari gia prenotati dell'utete corrente
                 - var reserved_seats_ids = []
                 - var reserved_seats_res_id = []
                 - var reserved_seats_wd = []
                 each reserv in reservs.rows
-                    if reserv.key == userId
-                        - reserved_seats_ids.push(reserv.value.seat_id)
+                    if reserv.value.fields.email == userId
+                        - reserved_seats_ids.push(reserv.value.fields.seat_id)
                         - reserved_seats_res_id.push(reserv.id)
-                        - reserved_seats_wd.push(String(reserv.value.start_date.Y)+((String(reserv.value.start_date.M).length == 1)? "0"+String(reserv.value.start_date.M):String(reserv.value.start_date.M))+((String(reserv.value.start_date.D).length == 1)? "0"+String(reserv.value.start_date.D):String(reserv.value.start_date.D))+((String(reserv.value.start_date.h).length == 1)? "0"+String(reserv.value.start_date.h):String(reserv.value.start_date.h)))
+                        - reserved_seats_wd.push(String(reserv.value.fields.start_date.Y)+((String(reserv.value.fields.start_date.M).length == 1)? "0"+String(reserv.value.fields.start_date.M):String(reserv.value.fields.start_date.M))+((String(reserv.value.fields.start_date.D).length == 1)? "0"+String(reserv.value.fields.start_date.D):String(reserv.value.fields.start_date.D))+((String(reserv.value.fields.start_date.h).length == 1)? "0"+String(reserv.value.fields.start_date.h):String(reserv.value.fields.start_date.h)))
 
                 //- La data di oggi
                 - const today = new Date()
@@ -46,18 +46,18 @@ block contentReservation
                 - var min_ap = 24
                 - var max_ch = 0
                 each wd in curr_wd_arr
-                    if (wd.value.state == "Aperto")
-                        - days[wd.value.day] = [wd.value.state, wd.value.apertura.h, wd.value.chiusura.h]
-                        - min_ap = (min_ap > wd.value.apertura.h)? wd.value.apertura.h : min_ap
-                        - max_ch = (max_ch < wd.value.chiusura.h)? wd.value.chiusura.h : max_ch
+                    if (wd.value.fields.state == "Aperto")
+                        - days[wd.key.day] = [wd.value.fields.state, wd.value.fields.apertura.h, wd.value.fields.chiusura.h]
+                        - min_ap = (min_ap > wd.value.fields.apertura.h)? wd.value.fields.apertura.h : min_ap
+                        - max_ch = (max_ch < wd.value.fields.chiusura.h)? wd.value.fields.chiusura.h : max_ch
 
                 each sp in curr_sp_arr
-                    h3 #{sp.value.typology} - #{sp.key}
+                    h3 #{sp.key.typology} - #{sp.key.name}
 
                     //- Raccoglie i posti dello spazio corrente
                     - var curr_sp_st_arr = []
                     each st in curr_st_arr
-                        if st.value.space_name == sp.key && st.value.typology == sp.value.typology
+                        if st.key.space_name == sp.key.name && st.key.typology == sp.key.typology
                             - curr_sp_st_arr.push(st)
 
                     table(width="80%", style="margin: 1% 10% 1% 10%")
@@ -95,8 +95,8 @@ block contentReservation
 
                                     - const today_YMD_str       = String((today.getFullYear()))+((String((today.getMonth()+1)).length == 1)? "0"+String((today.getMonth()+1)):String((today.getMonth()+1)))+((String((today.getDate())).length == 1)? "0"+String((today.getDate())):String((today.getDate())))
                                     - const today_YMDh_str      = String((today.getFullYear()))+((String((today.getMonth()+1)).length == 1)? "0"+String((today.getMonth()+1)):String((today.getMonth()+1)))+((String((today.getDate())).length == 1)? "0"+String((today.getDate())):String((today.getDate())))+((String((today.getHours()+2)).length == 1)? "0"+String((today.getHours()+2)):String((today.getHours()+2)))
-                                    - var   start_date_YMD_str  = String(st.value.start_date.Y)+((String(st.value.start_date.M).length == 1)? '0'+String(st.value.start_date.M):String(st.value.start_date.M))+((String(st.value.start_date.D).length == 1)? '0'+String(st.value.start_date.D):String(st.value.start_date.D))
-                                    - var   start_date_YMDh_str = String(st.value.start_date.Y)+((String(st.value.start_date.M).length == 1)? '0'+String(st.value.start_date.M):String(st.value.start_date.M))+((String(st.value.start_date.D).length == 1)? '0'+String(st.value.start_date.D):String(st.value.start_date.D))+((String(st.value.start_date.h).length == 1)? "0"+String(st.value.start_date.h):String(st.value.start_date.h))
+                                    - var   start_date_YMD_str  = String(st.value.fields.start_date.Y)+((String(st.value.fields.start_date.M).length == 1)? '0'+String(st.value.fields.start_date.M):String(st.value.fields.start_date.M))+((String(st.value.fields.start_date.D).length == 1)? '0'+String(st.value.fields.start_date.D):String(st.value.fields.start_date.D))
+                                    - var   start_date_YMDh_str = String(st.value.fields.start_date.Y)+((String(st.value.fields.start_date.M).length == 1)? '0'+String(st.value.fields.start_date.M):String(st.value.fields.start_date.M))+((String(st.value.fields.start_date.D).length == 1)? '0'+String(st.value.fields.start_date.D):String(st.value.fields.start_date.D))+((String(st.value.fields.start_date.h).length == 1)? "0"+String(st.value.fields.start_date.h):String(st.value.fields.start_date.h))
 
                                     - var today_plus_d = ''
                                     - var today_plus_day_num_str = ''
@@ -110,8 +110,8 @@ block contentReservation
                                         - d ++
 
                                     //- Inizializzazione
-                                    if (st.value.start_date.h == min_ap+h) && (start_date_YMD_str == today_plus_d_str)
-                                        if (st.value.state == "Expired") && (d == 0)
+                                    if (st.value.fields.start_date.h == min_ap+h) && (start_date_YMD_str == today_plus_d_str)
+                                        if (st.value.fields.state == "Expired") && (d == 0)
                                             - row_seats[d] = -1
                                         else
                                             if (reserved_seats_wd.includes(start_date_YMDh_str))
@@ -119,7 +119,7 @@ block contentReservation
                                             if (reserved_seats_ids.includes(st.id))
                                                 - reserved_seats[d] = reserved_seats_res_id[reserved_seats_ids.indexOf(st.id)]
                                             else
-                                                - free_seats_day[d] = sp.value.number_of_seats - st.value.position + 1
+                                                - free_seats_day[d] = sp.value.fields.number_of_seats - st.value.fields.position + 1
                                             - row_seats[d] = st
 
                                 //- Inserisce l'orario di riferimento della riga nel primo td
@@ -139,33 +139,31 @@ block contentReservation
                                     else if reserved_seats[d_number] != 0
                                         td(style="padding: 2px; text-align: center; color: green")
                                             form(method="post" action="/reservation/rm_res")
-                                                input(type="hidden" value=csrfToken                                      name="_csrf")
-
+                                                input(type="hidden" value=csrfToken                                             name="_csrf")
                                                 //- Reservation id
-                                                input(type="hidden" value=String(reserved_seats[d_number])               name="res_id")
-
+                                                input(type="hidden" value=String(reserved_seats[d_number])                      name="res_id")
                                                 //- Seat's data
-                                                input(type="hidden" value=String(row_seats[d_number].id)                 name="id")
-                                                input(type="hidden" value=String(row_seats[d_number].value.rev)          name="rev")
-                                                input(type="hidden" value=String(row_seats[d_number].key)                name="key")
-                                                input(type="hidden" value=String(row_seats[d_number].value.typology)     name="typology")
-                                                input(type="hidden" value=String(row_seats[d_number].value.space_name)   name="space_name")
-                                                input(type="hidden" value=String(row_seats[d_number].value.position)     name="position")
-                                                input(type="hidden" value=String(row_seats[d_number].value.state)        name="state")
+                                                input(type="hidden" value=String(row_seats[d_number].id)                        name="id")
+                                                input(type="hidden" value=String(row_seats[d_number].value.rev)                 name="rev")
+                                                input(type="hidden" value=String(row_seats[d_number].key.dep_name)              name="dep_name")
+                                                input(type="hidden" value=String(row_seats[d_number].key.typology)              name="typology")
+                                                input(type="hidden" value=String(row_seats[d_number].key.space_name)            name="space_name")
+                                                input(type="hidden" value=String(row_seats[d_number].value.fields.position)     name="position")
+                                                input(type="hidden" value=String(row_seats[d_number].value.fields.state)        name="state")
                                                 //- Start_date
-                                                input(type="hidden" value=String(row_seats[d_number].value.start_date.Y) name="start_Y")
-                                                input(type="hidden" value=String(row_seats[d_number].value.start_date.M) name="start_M")
-                                                input(type="hidden" value=String(row_seats[d_number].value.start_date.D) name="start_D")
-                                                input(type="hidden" value=String(row_seats[d_number].value.start_date.h) name="start_h")
-                                                input(type="hidden" value=String(row_seats[d_number].value.start_date.m) name="start_m")
-                                                input(type="hidden" value=String(row_seats[d_number].value.start_date.s) name="start_s")
+                                                input(type="hidden" value=String(row_seats[d_number].value.fields.start_date.Y) name="start_Y")
+                                                input(type="hidden" value=String(row_seats[d_number].value.fields.start_date.M) name="start_M")
+                                                input(type="hidden" value=String(row_seats[d_number].value.fields.start_date.D) name="start_D")
+                                                input(type="hidden" value=String(row_seats[d_number].value.fields.start_date.h) name="start_h")
+                                                input(type="hidden" value=String(row_seats[d_number].value.fields.start_date.m) name="start_m")
+                                                input(type="hidden" value=String(row_seats[d_number].value.fields.start_date.s) name="start_s")
                                                 //- End_date
-                                                input(type="hidden" value=String(row_seats[d_number].value.end_date.Y)   name="end_Y")
-                                                input(type="hidden" value=String(row_seats[d_number].value.end_date.M)   name="end_M")
-                                                input(type="hidden" value=String(row_seats[d_number].value.end_date.D)   name="end_D")
-                                                input(type="hidden" value=String(row_seats[d_number].value.end_date.h)   name="end_h")
-                                                input(type="hidden" value=String(row_seats[d_number].value.end_date.m)   name="end_m")
-                                                input(type="hidden" value=String(row_seats[d_number].value.end_date.s)   name="end_s")
+                                                input(type="hidden" value=String(row_seats[d_number].value.fields.end_date.Y)   name="end_Y")
+                                                input(type="hidden" value=String(row_seats[d_number].value.fields.end_date.M)   name="end_M")
+                                                input(type="hidden" value=String(row_seats[d_number].value.fields.end_date.D)   name="end_D")
+                                                input(type="hidden" value=String(row_seats[d_number].value.fields.end_date.h)   name="end_h")
+                                                input(type="hidden" value=String(row_seats[d_number].value.fields.end_date.m)   name="end_m")
+                                                input(type="hidden" value=String(row_seats[d_number].value.fields.end_date.s)   name="end_s")
 
                                                 input(type="submit" value="Prenotato\n(Click per disdire)\n" style="background-color: lightgreen")
                                     //- Se l'orario corrente è gia stato prenotato in un altro spazio
@@ -178,33 +176,31 @@ block contentReservation
                                     else
                                         td(style="padding: 2px; text-align: center")
                                             form(method="post" action="/reservation/make_res")
-                                                input(type="hidden" value=csrfToken                                      name="_csrf")
-
+                                                input(type="hidden" value=csrfToken                                             name="_csrf")
                                                 //- Reservation's owner (current user)
-                                                input(type="hidden" value=String(userId)                                 name="email")
-
+                                                input(type="hidden" value=String(userId)                                        name="email")
                                                 //- Seat's data
-                                                input(type="hidden" value=String(row_seats[d_number].id)                 name="id")
-                                                input(type="hidden" value=String(row_seats[d_number].value.rev)          name="rev")
-                                                input(type="hidden" value=String(row_seats[d_number].key)                name="key")
-                                                input(type="hidden" value=String(row_seats[d_number].value.typology)     name="typology")
-                                                input(type="hidden" value=String(row_seats[d_number].value.space_name)   name="space_name")
-                                                input(type="hidden" value=String(row_seats[d_number].value.position)     name="position")
-                                                input(type="hidden" value=String(row_seats[d_number].value.state)        name="state")
+                                                input(type="hidden" value=String(row_seats[d_number].id)                        name="id")
+                                                input(type="hidden" value=String(row_seats[d_number].value.rev)                 name="rev")
+                                                input(type="hidden" value=String(row_seats[d_number].key.dep_name)              name="dep_name")
+                                                input(type="hidden" value=String(row_seats[d_number].key.typology)              name="typology")
+                                                input(type="hidden" value=String(row_seats[d_number].key.space_name)            name="space_name")
+                                                input(type="hidden" value=String(row_seats[d_number].value.fields.position)     name="position")
+                                                input(type="hidden" value=String(row_seats[d_number].value.fields.state)        name="state")
                                                 //- Start_date
-                                                input(type="hidden" value=String(row_seats[d_number].value.start_date.Y) name="start_Y")
-                                                input(type="hidden" value=String(row_seats[d_number].value.start_date.M) name="start_M")
-                                                input(type="hidden" value=String(row_seats[d_number].value.start_date.D) name="start_D")
-                                                input(type="hidden" value=String(row_seats[d_number].value.start_date.h) name="start_h")
-                                                input(type="hidden" value=String(row_seats[d_number].value.start_date.m) name="start_m")
-                                                input(type="hidden" value=String(row_seats[d_number].value.start_date.s) name="start_s")
+                                                input(type="hidden" value=String(row_seats[d_number].value.fields.start_date.Y) name="start_Y")
+                                                input(type="hidden" value=String(row_seats[d_number].value.fields.start_date.M) name="start_M")
+                                                input(type="hidden" value=String(row_seats[d_number].value.fields.start_date.D) name="start_D")
+                                                input(type="hidden" value=String(row_seats[d_number].value.fields.start_date.h) name="start_h")
+                                                input(type="hidden" value=String(row_seats[d_number].value.fields.start_date.m) name="start_m")
+                                                input(type="hidden" value=String(row_seats[d_number].value.fields.start_date.s) name="start_s")
                                                 //- End_date
-                                                input(type="hidden" value=String(row_seats[d_number].value.end_date.Y)   name="end_Y")
-                                                input(type="hidden" value=String(row_seats[d_number].value.end_date.M)   name="end_M")
-                                                input(type="hidden" value=String(row_seats[d_number].value.end_date.D)   name="end_D")
-                                                input(type="hidden" value=String(row_seats[d_number].value.end_date.h)   name="end_h")
-                                                input(type="hidden" value=String(row_seats[d_number].value.end_date.m)   name="end_m")
-                                                input(type="hidden" value=String(row_seats[d_number].value.end_date.s)   name="end_s")
+                                                input(type="hidden" value=String(row_seats[d_number].value.fields.end_date.Y)   name="end_Y")
+                                                input(type="hidden" value=String(row_seats[d_number].value.fields.end_date.M)   name="end_M")
+                                                input(type="hidden" value=String(row_seats[d_number].value.fields.end_date.D)   name="end_D")
+                                                input(type="hidden" value=String(row_seats[d_number].value.fields.end_date.h)   name="end_h")
+                                                input(type="hidden" value=String(row_seats[d_number].value.fields.end_date.m)   name="end_m")
+                                                input(type="hidden" value=String(row_seats[d_number].value.fields.end_date.s)   name="end_s")
 
                                                 input(type="submit" value="Prenota\n"+free_seats_day[d_number]+" liberi")
                                     - d_number++

@@ -34,7 +34,7 @@ router.post('/login', function (req, res) {
                     if (err){ return res.status(500).send({error: err}); };
                     return res.status(200).json({accessToken, refreshToken});
                 });
-            });           
+            });
         }
     });
 });
@@ -113,13 +113,13 @@ router.post('/logout', security.authenticateJWT ,function (req, res){
 /* curl http://localhost:8080/api/getDepartments/all -H "Authorization: Bearer access_token" */
 // stampa dipartimenti
 router.get('/getDepartments/all' ,function(req, res){
-    couchdb_utils.get_from_couchdb('/db/_design/Department/_view/Departments_info', function(err, response){
+    couchdb_utils.get_from_couchdb('/db/_design/Department/_view/All_Departments', function(err, response){
         if(err){return res.status(404).send({error: err});};
         let output = {};
         response.rows.forEach(element => {
             output [element.key] = element.value.fields;
         });
-        //res_json = JSON.parse(res_json);
+        // res_json = JSON.parse(res_json);
         const isEmpty = Object.keys(output).lenght === 0;
         if (isEmpty){
             res.status(404).send({error: "Nessun Dipartimento trovato"});
@@ -182,7 +182,7 @@ router.get('/getSpaces/all', function(req, res){
     const get_options = {
         hostname: 'couchdb',
         port: 5984,
-        path: '/db/_design/Space/_view/All_Spaces_map',
+        path: '/db/_design/Space/_view/All_Spaces_keys',
         method: 'GET',
         auth: process.env.COUCHDB_USER+":"+process.env.COUCHDB_PASSWORD
     };
@@ -198,22 +198,20 @@ router.get('/getSpaces/all', function(req, res){
         out.on('end', function() {
             var x = JSON.parse(data);
             let output = {};
-            let output_value = {};
             let isEmpty = Object.keys(output).length === 0;
             x.rows.forEach(element => {
                 isEmpty = Object.keys(output).length === 0;
                 if(isEmpty || !(element.key in output)){
-                    let key = element.value.typology;
+                    let typology_key = element.value.typology;
                     let output_value = {};
-                    output_value [key] = [element.value.name];
+                    output_value[typology_key] = [element.value.name];
                     output [element.key] = output_value;
                 } else {
                     let old_obj = output[element.key];
                     if(element.value.typology in old_obj){
                         let old_obj_val = old_obj[element.value.typology];
-                        let old_obj_val_arr = old_obj_val;
-                        old_obj_val_arr.push(element.value.name);
-                        old_obj [element.value.typology] = old_obj_val_arr.sort();
+                        old_obj_val.push(element.value.name);
+                        old_obj [element.value.typology] = old_obj_val.sort();
                         output [element.key] = old_obj;
                     } else {
                         old_obj [element.value.typology] = [element.value.name];
@@ -283,7 +281,7 @@ router.get('/getSpaces/:typology', function(req, res){
     const get_options = {
         hostname: 'couchdb',
         port: 5984,
-        path: '/db/_design/Space/_view/All_Spaces_map',
+        path: '/db/_design/Space/_view/All_Spaces_keys',
         method: 'GET',
         auth: process.env.COUCHDB_USER+":"+process.env.COUCHDB_PASSWORD
     };
@@ -299,7 +297,6 @@ router.get('/getSpaces/:typology', function(req, res){
         out.on('end', function() {
             var x = JSON.parse(data);
             let output = {};
-            let output_value = {};
             let isEmpty = Object.keys(output).length === 0;
             let tip = req.params.typology;
             console.log(tip);
@@ -307,17 +304,16 @@ router.get('/getSpaces/:typology', function(req, res){
                 isEmpty = Object.keys(output).length === 0;
                 console.log(element.value.typology);
                 if((isEmpty || (!(element.key in output))) && element.value.typology == tip){
-                    let key = element.value.typology;
+                    let typology_key = element.value.typology;
                     let output_value = {};
-                    output_value [key] = [element.value.name];
+                    output_value [typology_key] = [element.value.name];
                     output [element.key] = output_value;
                 } else if (element.value.typology == tip){
                     let old_obj = output[element.key];
                     if(element.value.typology in old_obj){
                         let old_obj_val = old_obj[element.value.typology];
-                        let old_obj_val_arr = old_obj_val;
-                        old_obj_val_arr.push(element.value.name);
-                        old_obj [element.value.typology] = old_obj_val_arr.sort();
+                        old_obj_val.push(element.value.name);
+                        old_obj [element.value.typology] = old_obj_val.sort();
                         output [element.key] = old_obj;
                     } else {
                         old_obj [element.value.typology] = [element.value.name];
@@ -327,7 +323,7 @@ router.get('/getSpaces/:typology', function(req, res){
             });
             isEmpty = Object.keys(output).length === 0;
             if (isEmpty) {
-                res.status(404).send({error: "Nessuno spazio trovato"});
+                res.status(404).send({error: "Nessuno spazio trovato per la tipologia: "+tip});
             }
             else {
                 res.header("Content-Type",'application/json');
@@ -345,16 +341,14 @@ router.get('/getSpaces/:typology', function(req, res){
     usrs.end();
 });
 
-
 // effettua una prenotazione
 
-
 // stampa le mie prenotazioni
-router.get('/getReserevations/all', function(req, res){
+router.get('/getReservations/:email', security.authenticateJWT, function(req, res){
     const get_options = {
         hostname: 'couchdb',
         port: 5984,
-        path: '/db/_design/Space/_view/0_All_Reservations',
+        path: '/db/_design/Reservation/_view/All_Reservations',
         method: 'GET',
         auth: process.env.COUCHDB_USER+":"+process.env.COUCHDB_PASSWORD
     };
@@ -370,33 +364,35 @@ router.get('/getReserevations/all', function(req, res){
         out.on('end', function() {
             var x = JSON.parse(data);
             let output = {};
+            let isEmpty = Object.keys(output).length === 0;
+            let usr_email = req.params.email;
             x.rows.forEach(element => {
-                // output [element.value.fields.dep_name] = ['spazio: ' + element.value.fields.typology + ' ' + element.key + ' - numero di posti totali: ' + element.value.fields.number_of_seats];
-                var dip = element.value.fields.dep_name;
-                var tipologia = element.value.fields.typology;
-                var nome = element.key;
-                var num = element.value.fields.number_of_seats;
-                console.log(dip);
-                console.log(tipologia);
-                console.log(nome);
-                console.log(num);
-                output = 
-                    {"oggetto" : [
-                        {"dipartimento": dip},
-                        {"spazio": tipologia + ' ' + nome},
-                        {"numero di posti totali": num},
-                        ]};
-                console.log(output);
-                res.status(200).send(output);
+                let department_key = element.value.fields.dep_name;
+                let element_email = element.value.fields.email;
+                let element_format = {
+                    "Spazio": element.value.fields.typology+' - '+element.value.fields.space_name,
+                    "Posto": element.value.fields.position,
+                    "Inizio": (((element.value.fields.start_date.D).length == 1)? "0"+(element.value.fields.start_date.D):(element.value.fields.start_date.D))+'/'+(((element.value.fields.start_date.M).length == 1)? "0"+(element.value.fields.start_date.M):(element.value.fields.start_date.M))+'/'+element.value.fields.start_date.Y+' - '+(((element.value.fields.start_date.h).length == 1)? "0"+(element.value.fields.start_date.h):(element.value.fields.start_date.h))+':'+(((element.value.fields.start_date.m).length == 1)? "0"+(element.value.fields.start_date.m):(element.value.fields.start_date.m))+':'+(((element.value.fields.start_date.s).length == 1)? "0"+(element.value.fields.start_date.s):(element.value.fields.start_date.s)),
+                    "Fine": (((element.value.fields.end_date.D).length == 1)? "0"+(element.value.fields.end_date.D):(element.value.fields.end_date.D))+'/'+(((element.value.fields.end_date.M).length == 1)? "0"+(element.value.fields.end_date.M):(element.value.fields.end_date.M))+'/'+element.value.fields.end_date.Y+' - '+(((element.value.fields.end_date.h).length == 1)? "0"+(element.value.fields.end_date.h):(element.value.fields.end_date.h))+':'+(((element.value.fields.end_date.m).length == 1)? "0"+(element.value.fields.end_date.m):(element.value.fields.end_date.m))+':'+(((element.value.fields.end_date.s).length == 1)? "0"+(element.value.fields.end_date.s):(element.value.fields.end_date.s))
+                };
+                isEmpty = Object.keys(output).length === 0;
+                if((isEmpty || (!(department_key in output))) && element_email == usr_email){
+                    output[department_key] = [element_format];
+                }
+                else if (element_email == usr_email){
+                    let old_obj = output[department_key];
+                    old_obj.push(element_format);
+                    output[department_key] = old_obj;
+                }
             });
-            // const isEmpty = Object.keys(output).length === 0;
-            // if (isEmpty) {
-            //     res.status(404).send({error: "Nessuno spazio trovato"});
-            // }
-            // else {
-            //     res.header("Content-Type",'application/json');
-            //     res.status(200).send(JSON.stringify(output, null, 4));
-            // }
+            isEmpty = Object.keys(output).length === 0;
+            if (isEmpty) {
+                res.status(404).send({error: "Nessuna prenotazione trovata"});
+            }
+            else {
+                res.header("Content-Type",'application/json');
+                res.status(200).send(JSON.stringify(output, null, 4));
+            }
 
             // res.status(200).send(x);
         });
@@ -404,12 +400,11 @@ router.get('/getReserevations/all', function(req, res){
 
     usrs.on('error', error => {
         console.log(error);
-        res.status(503);
+        return res.status(503);
     });
 
     usrs.end();
 });
-
 
 // elimina prenotazioni
 
