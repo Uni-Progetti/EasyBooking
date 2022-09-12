@@ -95,7 +95,7 @@ describe("Test per controllo risultati chiamata http", () => {
     });
 
     // TUTTI GLI SPAZI DI TIPOLOGIA AULA
-    it("should return the list of all spaces of typology: Aula", (done) => {
+    it("should return the list of all spaces of typology Aula", (done) => {
         chai.request("http://localhost:8080/api")
             .get("/getSpaces/Aula")
             .end((err, res) => {
@@ -107,11 +107,7 @@ describe("Test per controllo risultati chiamata http", () => {
                 expect(res).to.be.json;
                 expect(res).to.have.property('body');
                 
-                for (var e in res.body) {
-                    expect(res.body[e]).to.include('Aula');
-                    console.log(res.body[e]);
-                }
-
+                console.log(res.body);
                 done();
             });
     });

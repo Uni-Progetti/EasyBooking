@@ -283,7 +283,7 @@ router.get('/getSpaces/:typology', function(req, res){
     const get_options = {
         hostname: 'couchdb',
         port: 5984,
-        path: '/db/_design/Space/_view/Spaces_info',
+        path: '/db/_design/Space/_view/All_Spaces_map',
         method: 'GET',
         auth: process.env.COUCHDB_USER+":"+process.env.COUCHDB_PASSWORD
     };
@@ -298,37 +298,42 @@ router.get('/getSpaces/:typology', function(req, res){
         });
         out.on('end', function() {
             var x = JSON.parse(data);
-            console.log(x);
-            var output = {};
+            let output = {};
+            let output_value = {};
+            let isEmpty = Object.keys(output).length === 0;
+            let tip = req.params.typology;
+            console.log(tip);
             x.rows.forEach(element => {
-                if (element.value.fields.typology == req.params.typology) {
-                    // output.push(element.value.fields.typology + ' ' + element.key + ' - ' + element.value.fields.dep_name);
-                    var dip = element.value.fields.dep_name;
-                    var tipologia = element.value.fields.typology;
-                    var nome = element.key;
-                    var num = element.value.fields.number_of_seats;
-                    console.log(dip);
-                    console.log(tipologia);
-                    console.log(nome);
-                    console.log(num);
-                    output = 
-                        {"oggetto": [
-                            {"dipartimento": dip},
-                            {"spazio": tipologia + ' ' + nome},
-                            {"numero di posti totali": num},
-                            ]};
+                isEmpty = Object.keys(output).length === 0;
+                console.log(element.value.typology);
+                if((isEmpty || (!(element.key in output))) && element.value.typology == tip){
+                    let key = element.value.typology;
+                    let output_value = {};
+                    output_value [key] = [element.value.name];
+                    output [element.key] = output_value;
+                } else if (element.value.typology == tip){
+                    let old_obj = output[element.key];
+                    if(element.value.typology in old_obj){
+                        let old_obj_val = old_obj[element.value.typology];
+                        let old_obj_val_arr = old_obj_val;
+                        old_obj_val_arr.push(element.value.name);
+                        old_obj [element.value.typology] = old_obj_val_arr.sort();
+                        output [element.key] = old_obj;
+                    } else {
+                        old_obj [element.value.typology] = [element.value.name];
+                        output [element.key] = old_obj;
                     }
-                    res.header("Content-Type",'application/json');
-                    res.status(200).send(JSON.stringify(output, null, 4));
+                }
             });
-            const isEmpty = Object.keys(output).length === 0;
+            isEmpty = Object.keys(output).length === 0;
             if (isEmpty) {
-                res.status(404).send({error: "Nessun elemento trovato per la tipologia " + req.params.typology});
+                res.status(404).send({error: "Nessuno spazio trovato"});
             }
             else {
                 res.header("Content-Type",'application/json');
                 res.status(200).send(JSON.stringify(output, null, 4));
             }
+
         });
     });
 
