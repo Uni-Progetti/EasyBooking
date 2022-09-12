@@ -111,7 +111,7 @@ router.post('/logout', security.authenticateJWT ,function (req, res){
  */
 
 /* curl http://localhost:8080/api/getDepartments/all -H "Authorization: Bearer access_token" */
-// stampa dipartimenti
+// stampa dipartimenti: nome dipartimento, manager e indirizzo
 router.get('/getDepartments/all', security.authenticateJWT ,function(req, res){
     couchdb_utils.get_from_couchdb('/db/_design/Department/_view/Departments_info', function(err, response){
         if(err){return res.status(404).send({error: err});};
@@ -177,7 +177,7 @@ router.get('/getDepartments/all', security.authenticateJWT ,function(req, res){
  *       "error": "Nessuno Spazio trovato"
  *     }
  */
-// stampa tutti gli spazi
+// stampa tutti gli spazi: tipologia, nome e dipartimento
 router.get('/getSpaces/all', function(req, res){
     const get_options = {
         hostname: 'couchdb',
@@ -199,7 +199,21 @@ router.get('/getSpaces/all', function(req, res){
             var x = JSON.parse(data);
             let output = {};
             x.rows.forEach(element => {
-                output [element.key] = element.value.fields;
+                // output [element.value.fields.dep_name] = ['spazio: ' + element.value.fields.typology + ' ' + element.key + ' - numero di posti totali: ' + element.value.fields.number_of_seats];
+                var dip = element.value.fields.dep_name;
+                var tipologia = element.value.fields.typology;
+                var nome = element.key;
+                var num = element.value.fields.number_of_seats;
+                console.log(dip);
+                console.log(tipologia);
+                console.log(nome);
+                console.log(num);
+                output = [
+                        {"dipartimento": dip},
+                        {"spazio": tipologia + ' ' + nome},
+                        {"numero di posti totali": num},
+                        ];
+                
             });
             const isEmpty = Object.keys(output).length === 0;
             if (isEmpty) {
@@ -216,7 +230,7 @@ router.get('/getSpaces/all', function(req, res){
 
     usrs.on('error', error => {
         console.log(error);
-        res.status(503);
+        return res.status(503);
     });
 
     usrs.end();
@@ -263,7 +277,7 @@ router.get('/getSpaces/:typology', function(req, res){
     const get_options = {
         hostname: 'couchdb',
         port: 5984,
-        path: '/db/_design/Space/_view/0_All_Spaces',
+        path: '/db/_design/Space/_view/Spaces_info',
         method: 'GET',
         auth: process.env.COUCHDB_USER+":"+process.env.COUCHDB_PASSWORD
     };
@@ -281,9 +295,25 @@ router.get('/getSpaces/:typology', function(req, res){
             console.log(x);
             var output = {};
             x.rows.forEach(element => {
-                if (element.value.typology == req.params.typology) {
-                    output [element.key] = element.value; 
-                }
+                if (element.value.fields.typology == req.params.typology) {
+                    // output.push(element.value.fields.typology + ' ' + element.key + ' - ' + element.value.fields.dep_name);
+                    var dip = element.value.fields.dep_name;
+                    var tipologia = element.value.fields.typology;
+                    var nome = element.key;
+                    var num = element.value.fields.number_of_seats;
+                    console.log(dip);
+                    console.log(tipologia);
+                    console.log(nome);
+                    console.log(num);
+                    output = 
+                        {"oggetto": [
+                            {"dipartimento": dip},
+                            {"spazio": tipologia + ' ' + nome},
+                            {"numero di posti totali": num},
+                            ]};
+                    }
+                    res.header("Content-Type",'application/json');
+                    res.status(200).send(JSON.stringify(output, null, 4));
             });
             const isEmpty = Object.keys(output).length === 0;
             if (isEmpty) {
@@ -304,92 +334,16 @@ router.get('/getSpaces/:typology', function(req, res){
     usrs.end();
 });
 
-/**
- * @api {get} /getSeats/all Request all Seats 
- * @apiName GetSeats
- * @apiGroup Seats
- *
- * 
- *
- * @apiSuccess {String} name of the Seat.
- * @apiSuccess {String} info of the Seat.
- *
- * @apiSuccessExample Success-Response:
- *     HTTP/1.1 200 OK
- * 
-        {
-            [
-                {
-                    "id": "24a020e2735a757dd5c996cf3fd400c2",
-                    "key": "Dipartimento di Michela",
-                    "value": {
-                        "typology": "Isola",
-                        "space_name": "D",
-                        "position": 1,
-                        "start_date": {
-                            "Y": 2022,
-                            "M": 9,
-                            "D": 12,
-                            "h": 15,
-                            "m": 0,
-                            "s": 0
-                        },
-                        "end_date": {
-                            "Y": 2022,
-                            "M": 9,
-                            "D": 12,
-                            "h": 16,
-                            "m": 0,
-                            "s": 0
-                        },
-                        "state": "Active",
-                        "rev": "1-5888c91af04950b7e4261b99fb7c31f4"
-                    }
-                },
-                {
-                    "id": "24a020e2735a757dd5c996cf3fd40857",
-                    "key": "Dipartimento di Michela",
-                    "value": {
-                        "typology": "Aula",
-                        "space_name": "106",
-                        "position": 1,
-                        "start_date": {
-                            "Y": 2022,
-                            "M": 9,
-                            "D": 6,
-                            "h": 8,
-                            "m": 0,
-                            "s": 0
-                        },
-                        "end_date": {
-                            "Y": 2022,
-                            "M": 9,
-                            "D": 6,
-                            "h": 9,
-                            "m": 0,
-                            "s": 0
-                        },
-                        "state": "Active",
-                        "rev": "1-1265afe741f07a277661b658a5635a66"
-                    }
-                }
-            ]
-        }
- *
- * @apiError NotFound No Space was found.
- *
- * @apiErrorExample Error-Response:
- *     HTTP/1.1 404 Not Found
- *     {
- *       "error": "Nessun elemento trovato per la tipologia ${typology}"
- *     }
- */
-// stampa tutti i posti
-router.get('/getSeats/all', function(req, res){
+
+// effettua una prenotazione
+
+
+// stampa le mie prenotazioni
+router.get('/getReserevations/all', function(req, res){
     const get_options = {
         hostname: 'couchdb',
         port: 5984,
-        path: '/db/_design/Seat/_view/0_All_Seats',
+        path: '/db/_design/Space/_view/0_All_Reservations',
         method: 'GET',
         auth: process.env.COUCHDB_USER+":"+process.env.COUCHDB_PASSWORD
     };
@@ -404,9 +358,36 @@ router.get('/getSeats/all', function(req, res){
         });
         out.on('end', function() {
             var x = JSON.parse(data);
-            console.log(x);
-            res.header("Content-Type",'application/json');
-            res.status(200).send(JSON.stringify(x, null, 4));
+            let output = {};
+            x.rows.forEach(element => {
+                // output [element.value.fields.dep_name] = ['spazio: ' + element.value.fields.typology + ' ' + element.key + ' - numero di posti totali: ' + element.value.fields.number_of_seats];
+                var dip = element.value.fields.dep_name;
+                var tipologia = element.value.fields.typology;
+                var nome = element.key;
+                var num = element.value.fields.number_of_seats;
+                console.log(dip);
+                console.log(tipologia);
+                console.log(nome);
+                console.log(num);
+                output = 
+                    {"oggetto" : [
+                        {"dipartimento": dip},
+                        {"spazio": tipologia + ' ' + nome},
+                        {"numero di posti totali": num},
+                        ]};
+                console.log(output);
+                res.status(200).send(output);
+            });
+            // const isEmpty = Object.keys(output).length === 0;
+            // if (isEmpty) {
+            //     res.status(404).send({error: "Nessuno spazio trovato"});
+            // }
+            // else {
+            //     res.header("Content-Type",'application/json');
+            //     res.status(200).send(JSON.stringify(output, null, 4));
+            // }
+
+            // res.status(200).send(x);
         });
     });
 
@@ -419,55 +400,6 @@ router.get('/getSeats/all', function(req, res){
 });
 
 
-// stampa tutti i posti di un dato spazio
-router.get('/getSeats/:typology/:space_name', function(req, res) {
-    const get_options = {
-        hostname: 'couchdb',
-        port: 5984,
-        path: '/db/_design/Seat/_view/Seats_By_Typology',
-        method: 'GET',
-        auth: process.env.COUCHDB_USER+":"+process.env.COUCHDB_PASSWORD
-    };
-
-    var data = "";
-    const usrs = http.request(get_options, out => {
-        console.log(`statusCode: ${out.statusCode}`);
-        out.setEncoding('utf8');
-        out.on('data', d => {
-            data += d.toString();
-            //process.stdout.write(d);
-        });
-        out.on('end', function() {
-            var x = JSON.parse(data);
-            console.log(x);
-            var output = {};
-            x.rows.forEach(element => {
-                if (element.value.typology == req.params.typology && element.value.space_name == req.params.space_name) {
-                    output [element.key] = element.value;
-                }
-            });
-            const isEmpty = Object.keys(output).length === 0;
-            if (isEmpty) {
-                res.status(404).send({error: "Nessun elemeneto trovato per lo spazio " + req.params.typology + " " + req.params.space_name});
-            }
-            else {
-                res.header("Content-Type",'application/json');
-                res.status(200).send(JSON.stringify(output, null, 4));
-            }
-        });
-    });
-
-    usrs.on('error', error => {
-        console.log(error);
-        res.status(503);
-    });
-
-    usrs.end();
-})
-
-
-// stampa le mie prenotazioni
 // elimina prenotazioni
-// stampa utenti (se sei admin)
 
 module.exports = router;

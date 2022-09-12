@@ -50,7 +50,7 @@ describe("Test di prova", () => {
 */
 
 describe("Test per controllo risultati chiamata http", () => {
-    /*
+    // TUTTI I DIPARTIMENTI 
     it("should return the list of all departments", (done) => {
         chai.request("http://localhost:8080/api")
             .get("/getDepartments/all")
@@ -71,8 +71,9 @@ describe("Test per controllo risultati chiamata http", () => {
                 done();
             });
     });
-    */
 
+
+    // TUTTI GLI SPAZI
     it("should return the list of all spaces", (done) => {
         chai.request("http://localhost:8080/api")
             .get("/getSpaces/all")
@@ -85,16 +86,15 @@ describe("Test per controllo risultati chiamata http", () => {
                 expect(res).to.be.json;
                 expect(res).to.have.property('body');
                 
-                // for (var e in res.body) {
-                    // console.log(e);
-                    // console.log('     ' + res.body[e].typology + ' ' + res.body[e].name + ' ' + res.body[e].dep_name);
-                // }
+                for (var e in res.body) {
+                    console.log(res.body[e]);
+                }
 
                 done();
             });
     });
 
-
+    // TUTTI GLI SPAZI DI TIPOLOGIA AULA
     it("should return the list of all spaces of typology: Aula", (done) => {
         chai.request("http://localhost:8080/api")
             .get("/getSpaces/Aula")
@@ -107,35 +107,13 @@ describe("Test per controllo risultati chiamata http", () => {
                 expect(res).to.be.json;
                 expect(res).to.have.property('body');
                 
-                // for (var e in res.body) {
-                //     console.log(e);
-                //     console.log('     ' + res.body[e].typology + ' ' + res.body[e].name + ' ' + res.body[e].dep_name);
-                // }
-
-                done();
-            });
-    });
-
-/*
-    it("should return the list of all seats", (done) => {
-        chai.request("http://localhost:8080/api")
-            .get("/getSeats/all")
-            .end((err, res) => {
-                if(err) {
-                    console.log("ERROREEEEE:", err);
-                    done();
-                }
-                expect(res).to.have.status(200);
-                expect(res).to.be.json;
-                expect(res).to.have.property('body');
-                
                 for (var e in res.body) {
-                    console.log(e);
-                    // console.log("     " + res.body[e].manager);
+                    expect(res.body[e]).to.include('Aula');
+                    console.log(res.body[e]);
                 }
 
                 done();
             });
     });
-*/
+
 });
