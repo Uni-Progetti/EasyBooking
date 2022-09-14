@@ -344,7 +344,7 @@ router.get('/getSpaces/:typology', function(req, res){
 // effettua una prenotazione
 
 // stampa le mie prenotazioni
-router.get('/getReservations/:email', security.authenticateJWT, function(req, res){
+router.get('/getReservations/:email', function(req, res){
     const get_options = {
         hostname: 'couchdb',
         port: 5984,

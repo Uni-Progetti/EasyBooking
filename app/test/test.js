@@ -108,8 +108,48 @@ describe("Test per controllo risultati chiamata http", () => {
                 expect(res).to.have.property('body');
                 
                 console.log(res.body);
+                let ris = Object.values(res.body);
+                console.log(ris);
+                let ris_string = JSON.stringify(ris);
+                console.log(ris_string);
+                expect(ris_string).to.contain("Aula");
+                // for (var e in res.body) {
+                    // console.log(res.body[e]);
+                    // let blocco = res.body[e][0];
+                    // console.log("---");
+                    // let jsBlocco = JSON.stringify(blocco);
+                    // console.log(jsBlocco);
+                    // expect(jsBlocco).to.contain("Aula");
+                // }
+
                 done();
             });
     });
 
+    // TUTTE LE PRENOTAZIONI DI UN UTENTE (email)
+    it("should return the list of all reservations of a given user (email)", (done) => {
+        chai.request("http://localhost:8080/api")
+            .get("/getReservations/fuselli.1883535@studenti.uniroma1.it")
+            .end((err, res) => {
+                if(err) {
+                    console.log("ERROREEEEE:", err);
+                    done();
+                }
+                expect(res).to.have.status(200);
+                expect(res).to.be.json;
+                expect(res).to.have.property('body');
+                
+                console.log(res.body);
+                for (var e in res.body) {
+                    console.log(res.body[e]);
+                    let blocco = res.body[e][0];
+                    console.log("---");
+                    let jsBlocco = JSON.stringify(blocco);
+                    console.log(jsBlocco);
+                    expect(jsBlocco).to.contain("Spazio");
+                }
+                
+                done();
+            });
+    });
 });

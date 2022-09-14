@@ -1,6 +1,9 @@
 document.addEventListener('DOMContentLoaded', function() {
     var calendarEl = document.getElementById('calendar');
   
+    // chiamata a calendar per accedere (dopo controlli su accesso)
+    // creare array con gli eventi restituiti da calendar
+
     var calendar = new FullCalendar.Calendar(calendarEl, {
       initialView: 'dayGridMonth',
       initialDate: '2022-08-07',
