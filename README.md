@@ -14,7 +14,7 @@
 <br />
 <div align="center">
   <a href="https://github.com/Uni-Progetti/EasyBooking">
-    <img src="logo.png" alt="Logo" width="200" height="200">
+    <img src="./app/public/images/logo_readme.svg" alt="Logo" width="200" height="200">
   </a>
 
 <h3 align="center">EasyBooking</h3>

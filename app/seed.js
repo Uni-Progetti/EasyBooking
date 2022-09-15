@@ -77,7 +77,7 @@ function insert_views(){
     )
 
     couch.insert(dbName, { "_id": "_design/Space", "views": {
-        "All_Spaces":      { "map": "function (doc) { if (doc.type == 'Space') emit( doc.key,          { fields: doc.fields, rev: doc._rev }              ) }" },
+        "All_Spaces":      { "map": "function (doc) { if (doc.type == 'Space') emit( doc.key,          { fields: doc.fields, rev: doc._rev, _id: doc._id }) }" },
         "All_Spaces_keys": { "map": "function (doc) { if (doc.type == 'Space') emit( doc.key.dep_name, { typology: doc.key.typology, name: doc.key.name } ) }" }
     }, "language": "javascript" }).then(
         function(data, headers, status){ console.log("Views: Spaces\n All_Spaces") },
@@ -92,7 +92,8 @@ function insert_views(){
     )
 
     couch.insert(dbName, { "_id": "_design/Seat", "views": {
-        "All_Seats":   { "map": "function (doc) { if (doc.type == 'Seat') emit( doc.key, { fields: doc.fields, rev: doc._rev } ) }" }
+        "All_Seats":    { "map": "function (doc)    { if (doc.type == 'Seat') emit( doc.key, { fields: doc.fields, rev: doc._rev } ) }" },
+        "Active_Seats": { "map": "function (doc)    { if (doc.type == 'Seat' && doc.fields.state == 'Active') emit( doc.key, { fields: doc.fields, _rev: doc._rev, _id: doc._id } ) }" }
     }, "language": "javascript" }).then(
         function(data, headers, status){ console.log("Views: Seats\n All_Seats\n Seats_By_Typology") },
         function(err){ console.log(err) }
