@@ -66,20 +66,20 @@ router.post('/make_res', function(req, res){
         "fields": {
             "position": (parseInt(req.body.position)+1),
             "start_date": {
-                "Y": req.body.start_Y,
-                "M": req.body.start_M,
-                "D": req.body.start_D,
-                "h": req.body.start_h,
-                "m": req.body.start_m,
-                "s": req.body.start_s
+                "Y": parseInt(req.body.start_Y),
+                "M": parseInt(req.body.start_M),
+                "D": parseInt(req.body.start_D),
+                "h": parseInt(req.body.start_h),
+                "m": parseInt(req.body.start_m),
+                "s": parseInt(req.body.start_s)
             },
             "end_date": {
-                "Y": req.body.end_Y,
-                "M": req.body.end_M,
-                "D": req.body.end_D,
-                "h": req.body.end_h,
-                "m": req.body.end_m,
-                "s": req.body.end_s
+                "Y": parseInt(req.body.end_Y),
+                "M": parseInt(req.body.end_M),
+                "D": parseInt(req.body.end_D),
+                "h": parseInt(req.body.end_h),
+                "m": parseInt(req.body.end_m),
+                "s": parseInt(req.body.end_s)
             },
             "state": "Active"
         },
@@ -116,6 +116,7 @@ router.post('/make_res', function(req, res){
                 "m": parseInt(req.body.end_m),
                 "s": parseInt(req.body.end_s)
             },
+            "is_sync": false,
             "state": "Active"
         }
     });
@@ -144,20 +145,20 @@ router.post('/rm_res', function(req, res){
             "space_name": req.body.space_name,
             "position": (parseInt(req.body.position)-1),
             "start_date": {
-                "Y": req.body.start_Y,
-                "M": req.body.start_M,
-                "D": req.body.start_D,
-                "h": req.body.start_h,
-                "m": req.body.start_m,
-                "s": req.body.start_s
+                "Y": parseInt(req.body.start_Y),
+                "M": parseInt(req.body.start_M),
+                "D": parseInt(req.body.start_D),
+                "h": parseInt(req.body.start_h),
+                "m": parseInt(req.body.start_m),
+                "s": parseInt(req.body.start_s)
             },
             "end_date": {
-                "Y": req.body.end_Y,
-                "M": req.body.end_M,
-                "D": req.body.end_D,
-                "h": req.body.end_h,
-                "m": req.body.end_m,
-                "s": req.body.end_s
+                "Y": parseInt(req.body.end_Y),
+                "M": parseInt(req.body.end_M),
+                "D": parseInt(req.body.end_D),
+                "h": parseInt(req.body.end_h),
+                "m": parseInt(req.body.end_m),
+                "s": parseInt(req.body.end_s)
             },
             "state": "Active"
         },

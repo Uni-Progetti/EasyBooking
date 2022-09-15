@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 const https = require('node:https');
+const couchdb_utils = require("../couchdb_utils.js")
 
 /* Reindirizza al login se non autenticati. */
 const redirectLogin = function(req, res, next){
@@ -11,7 +12,6 @@ const redirectLogin = function(req, res, next){
     }
 }
 
-  
 /* GET personal_area page. */
 router.get('/', redirectLogin ,function(req, res) {
     getCalendarEvents(req, res, req.session.access_token, '', '');
@@ -28,7 +28,7 @@ function getCalendarEvents(req, res, access_token , calendar, start_date){
           Authorization: `Bearer ${access_token}`,
         },
       };
-      
+
     const request = https.request(options, (response) => {
         console.log('statusCode:', response.statusCode);
         console.log('headers:', response.headers);
@@ -41,10 +41,17 @@ function getCalendarEvents(req, res, access_token , calendar, start_date){
         response.on('end', (end) =>{
             //let parsed_data = JSON.parse(data);
             console.log(data);
-            res.render('personalArea',{userId: req.session.userId ,csrfToken: req.csrfToken(),location: req.location});
+            // GET all_reservations view: http://localhost:5984/db/_design/Reservation/_view/All_Reservations/
+            couchdb_utils.get_from_couchdb('/db/_design/Reservation/_view/All_Reservations/', function(err, reservations_response) {
+              if (err) { console.log(err) }
+              else { var reservations = reservations_response
+                  // Render della pagina home
+                  res.render('personalArea',{userId: req.session.userId, reservations: reservations.rows, csrfToken: req.csrfToken(), location: req.location });
+              }
+            })
         });
     });
-    
+
     request.on('error', (e) => {
         console.error(e);
         return false;

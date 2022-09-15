@@ -1,4 +1,53 @@
-extends layout 
+extends layout
 
 block content
-    p pagina info
+    #informations.ms-auto.me-auto
+        .row.mx-4.my-3
+            .col-md-2.col-lg-3.d-flex.justify-content-center
+                img.bg-dark.d-inline-block.align-text-top(src='/images/logo_nav.svg' width='200' height='200' style="border-radius: 5%; padding: 30px;")
+            .col-md-10.col-lg-9
+                h3.my-3 Funzionalità
+                | Il sito è progettato per consentire agli utenti di prenotare spazi all'interno di un dipartimento.
+                br
+                | Ogni utente registrato può accedere all'area personale dove può modificare la password e, eventualmente, sincronizzare le prenotazioni effettuate con il proprio account Google Calendar.
+
+        .row.mx-4.pt-3.mb-5
+            .col-sm-6.col-md-4.col-lg-4.mb-4.px-4
+                h3.mb-3 Utente base
+                | Accedi con le tue credenziali, effettua prenotazioni e gestiscile nella tua area personale
+            //- .col-sm-6.col-md-4.col-lg-4.mb-4.px-4
+            //-     h3.mb-3 Utente manager
+            //-     | Oltre a tutte le funzionalità di un utente base, al momento della registrazione verrai reindirizzato alla creazione di un nuovo dipartimento, che potrai gestire dalla tua area personale
+            .col-sm-6.col-md-4.col-lg-4.mb-4.px-4
+                h3.mb-3 Prenotazione
+                | Effettua prenotazioni degli spazi nel tuo dipartimento del cuore in tutta facilità
+            //- .col-sm-6.col-md-4.col-lg-4.mb-4.px-4
+            //-     h3.mb-3 Prenotazione rapida
+            //-     | Prenoti sempre lo stesso posto o hai bisogno di un posto di riserva in caso ti fossi dimenticato di prenotare? Nessun problema, effettua la prenotazione rapida!
+            .col-sm-6.col-md-4.col-lg-4.mb-4.px-4
+                h3.mb-3 Calendar
+                | Sincronizza il tuo calendario di Google nell'area personale, potrai visualizzare tutti i tuoi impegni e le nuove prenotazioni
+
+        .text-center.mt-5.pb-2
+            h3.mb-3 Executive Team
+            | Per dubbi o difficoltà non esitare a contattarci al seguente indirizzo mail "INDIRIZZO EMAIL"
+
+        .row.mx-4.my-4
+            .col-lg-4.mb-4
+                .card
+                    img(src='/images/uranus.jpg' width='100%' height='100%' style="border-radius: 1%")
+                    .card-body.text-center
+                        h5 Michela Fuselli
+                        p.small Co-funder & CEO
+            .col-lg-4.mb-4
+                .card
+                    img(src='/images/jupiter.jpg' width='100%' height='100%' style="border-radius: 1%")
+                    .card-body.text-center
+                        h5 Francesco Guarino
+                        p.small Co-funder & CEO
+            .col-lg-4.mb-4
+                .card
+                    img(src='/images/mars.jpg' width='100%' height='100%' style="border-radius: 1%")
+                    .card-body.text-center
+                        h5 Matteo Tedesco
+                        p.small Co-funder & CEO

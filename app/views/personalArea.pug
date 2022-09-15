@@ -1,17 +1,56 @@
 extends layout
 
 block content
-    section.personalArea
-        p Ecco la tua area personale
+    #personalArea.ms-auto.me-auto
+        h1 Area personale
 
-        section.calendario
-            block contentCalendario
-                form(action='/calendar' method='post')
-                    section
-                        label(for='current-password') Password
-                        input#current-password(name='password' type='password' autocomplete='current-password' required='')
-                        input(type="hidden" name="_csrf" value=csrfToken)
-                        button(type='submit') Sincronizza
-                #calendar 
+        //- form(action='/calendar' method='post')
+        //-     .row.mx-0
+        //-         .col-lg-6
+        //-             label.mt-2 Usarname
+        //-             h4.mt-2(style="text-align: left") #{userId}
+        //-         .col-lg-6
+        //-             label.mt-2(for='current-password') Password
+        //-             input#current-password(name='password' type='password' autocomplete='current-password' required='')
+        //-             input(type="hidden" name="_csrf" value=csrfToken)
+        //-         button.mt-2(type='submit') Sincronizza
+        //-     hr
+
+        .row.mt-4
+            //- Calendario
+            #personalAreaCalendar.col-lg-6
+                #calendar
                 script(src='javascripts/fullcalendar.js')
+            //- Prenotazioni
+            #personalAreaReservations.col-lg-6
+                .row.mt-3.mx-0(style="height: fit-content")
+                    .col-lg-6.pt-2
+                        h3 Le tue prenotazioni
+                    .col-lg-3
+                        form(action='/reservation' method='get')
+                            button(type='submit') Prenota
+                    .col-lg-3
+                        //- form(action='/function' method='get')
+                        button(type='submit') Sincronizza
 
+                    table.mt-3
+                        tr#personalAreaReservationsTr
+                            th.px-2 Dipartimento
+                            th.px-2 Aula
+                            th.px-2 Spazio
+                            th.px-2 Posto
+                            th.px-2 Data
+                            th.px-2 Ora inizio
+                            th.px-2 Ora fine
+                            th.px-2 Sinconizzata
+                        each res in reservations
+                            if (res.value.fields.email == userId)
+                                tr#personalAreaReservationsTr
+                                    td.px-2(width="fit-content") #{res.value.fields.dep_name}
+                                    td.px-2(width="fit-content") #{res.value.fields.typology}
+                                    td.px-2(width="fit-content") #{res.value.fields.space_name}
+                                    td.px-2(width="fit-content") #{res.value.fields.seat_number}
+                                    td.px-2(width="fit-content") #{res.value.fields.start_date.D+'/'+res.value.fields.start_date.M+'/'+res.value.fields.start_date.Y}
+                                    td.px-2(width="fit-content") #{res.value.fields.start_date.h}
+                                    td.px-2(width="fit-content") #{res.value.fields.end_date.h}
+                                    td.px-2(width="fit-content") #{(res.value.fields.is_sync)? "Si":"No"}

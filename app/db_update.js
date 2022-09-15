@@ -70,7 +70,7 @@ function seats_update( seats, reservations) {
             // Se invece non è di oggi ma di un giorno precedente
             else {
                 // Inizializza i dati del nuovo giorno
-                const st_date_plus_7 = new Date(st.value.fields.start_date.Y, st.value.fields.start_date.M, (st.value.fields.start_date.D)+7)
+                const st_date_plus_7 = new Date(st.value.fields.start_date.Y, st.value.fields.start_date.M-1, (st.value.fields.start_date.D)+7)
                 // Aggiorna il posto con il nuovo giorno corretto della settimana http://localhost:5984/db
                 const update_seat_postData = JSON.stringify({
                     "_id": st.id,
@@ -184,7 +184,7 @@ function seats_update_seed( seats, reservations) {
             // Se invece non è di oggi ma di un giorno precedente
             else {
                 // Inizializza i dati del nuovo giorno
-                const st_date_plus_7 = new Date(st.value.fields.start_date.Y, st.value.fields.start_date.M, (st.value.fields.start_date.D)+7)
+                const st_date_plus_7 = new Date(st.value.fields.start_date.Y, st.value.fields.start_date.M-1, (st.value.fields.start_date.D)+7)
                 // Aggiorna il posto con il nuovo giorno corretto della settimana http://localhost:5984/db
                 const update_seat_postData = JSON.stringify({
                     "_id": st.id,

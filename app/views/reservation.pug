@@ -1,89 +1,96 @@
 extends layout
 
-block contentReservation
-    div(style="text-align: center")
+block content
+    #reservation.ms-auto.me-auto
         h1 Effettua una prenotazione
 
         each dep in deps.rows
-                h3 #{dep.key}
-                //- Raccoglie gli orari del dipartimento corrente
-                - var curr_wd_arr = []
-                each wd in wds.rows
-                    if wd.key.dep_name == dep.key
-                        - curr_wd_arr.push(wd)
-                //- Raccoglie gli spazi del dipartimento corrente
-                - var curr_sp_arr = []
-                each sp in sps.rows
-                    if sp.key.dep_name == dep.key
-                        - curr_sp_arr.push(sp)
-                //- Raccoglie i posti del dipartimento corrente
-                - var curr_st_arr = []
-                each st in sts.rows
-                    if st.key.dep_name == dep.key
-                        - curr_st_arr.push(st)
-                //- Raccoglie le prenotazioni del dipartimento corrente
-                - var curr_reserv_arr = []
-                each reserv in reservs.rows
-                    if reserv.value.fields.dep_name == dep.key
-                        - curr_reserv_arr.push(reserv)
-                //- Raccoglie gli id dei posti prenotati, delle prenotazioni e gli orari gia prenotati dell'utete corrente
-                - var reserved_seats_ids = []
-                - var reserved_seats_res_id = []
-                - var reserved_seats_wd = []
-                each reserv in reservs.rows
-                    if reserv.value.fields.email == userId
-                        - reserved_seats_ids.push(reserv.value.fields.seat_id)
-                        - reserved_seats_res_id.push(reserv.id)
-                        - reserved_seats_wd.push(String(reserv.value.fields.start_date.Y)+((String(reserv.value.fields.start_date.M).length == 1)? "0"+String(reserv.value.fields.start_date.M):String(reserv.value.fields.start_date.M))+((String(reserv.value.fields.start_date.D).length == 1)? "0"+String(reserv.value.fields.start_date.D):String(reserv.value.fields.start_date.D))+((String(reserv.value.fields.start_date.h).length == 1)? "0"+String(reserv.value.fields.start_date.h):String(reserv.value.fields.start_date.h)))
+            //- Raccoglie gli orari del dipartimento corrente
+            - var curr_wd_arr = []
+            each wd in wds.rows
+                if wd.key.dep_name == dep.key
+                    - curr_wd_arr.push(wd)
+            //- Raccoglie gli spazi del dipartimento corrente
+            - var curr_sp_arr = []
+            each sp in sps.rows
+                if sp.key.dep_name == dep.key
+                    - curr_sp_arr.push(sp)
+            //- Raccoglie i posti del dipartimento corrente
+            - var curr_st_arr = []
+            each st in sts.rows
+                if st.key.dep_name == dep.key
+                    - curr_st_arr.push(st)
+            //- Raccoglie le prenotazioni del dipartimento corrente
+            - var curr_reserv_arr = []
+            each reserv in reservs.rows
+                if reserv.value.fields.dep_name == dep.key
+                    - curr_reserv_arr.push(reserv)
+            //- Raccoglie gli id dei posti prenotati, delle prenotazioni e gli orari gia prenotati dell'utete corrente
+            - var reserved_seats_ids = []
+            - var reserved_seats_res_id = []
+            - var reserved_seats_wd = []
+            each reserv in reservs.rows
+                if reserv.value.fields.email == userId
+                    - reserved_seats_ids.push(reserv.value.fields.seat_id)
+                    - reserved_seats_res_id.push(reserv.id)
+                    - reserved_seats_wd.push(String(reserv.value.fields.start_date.Y)+((String(reserv.value.fields.start_date.M).length == 1)? "0"+String(reserv.value.fields.start_date.M):String(reserv.value.fields.start_date.M))+((String(reserv.value.fields.start_date.D).length == 1)? "0"+String(reserv.value.fields.start_date.D):String(reserv.value.fields.start_date.D))+((String(reserv.value.fields.start_date.h).length == 1)? "0"+String(reserv.value.fields.start_date.h):String(reserv.value.fields.start_date.h)))
 
-                //- La data di oggi
-                - const today = new Date()
-                //- Array per l'inserimento dei giorni in italiano nella tabella
-                - var it_days = ["Domenica", "Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato", "Domenica", "Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"]
-                //- Dizionario per inizializzare i dati da inserire nelle righe della tabella
-                - var days = {"Lunedì": ["Chiuso", 24, 0], "Martedì": ["Chiuso", 24, 0], "Mercoledì": ["Chiuso", 24, 0], "Giovedì": ["Chiuso", 24, 0], "Venerdì": ["Chiuso", 24, 0], "Sabato": ["Chiuso", 24, 0], "Domenica": ["Chiuso", 24, 0]}
-                //- Insericse i dati del dipartimento corrente in days e inizializza il minimo orario di apertura ed il massimo orario di chiusura della settimana
-                - var min_ap = 24
-                - var max_ch = 0
-                each wd in curr_wd_arr
-                    if (wd.value.fields.state == "Aperto")
-                        - days[wd.key.day] = [wd.value.fields.state, wd.value.fields.apertura.h, wd.value.fields.chiusura.h]
-                        - min_ap = (min_ap > wd.value.fields.apertura.h)? wd.value.fields.apertura.h : min_ap
-                        - max_ch = (max_ch < wd.value.fields.chiusura.h)? wd.value.fields.chiusura.h : max_ch
+            //- La data di oggi
+            - const today = new Date()
+            //- Array per l'inserimento dei giorni in italiano nella tabella
+            - var it_days = ["Domenica", "Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato", "Domenica", "Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"]
+            //- Dizionario per inizializzare i dati da inserire nelle righe della tabella
+            - var days = {"Lunedì": ["Chiuso", 24, 0], "Martedì": ["Chiuso", 24, 0], "Mercoledì": ["Chiuso", 24, 0], "Giovedì": ["Chiuso", 24, 0], "Venerdì": ["Chiuso", 24, 0], "Sabato": ["Chiuso", 24, 0], "Domenica": ["Chiuso", 24, 0]}
+            //- Insericse i dati del dipartimento corrente in days e inizializza il minimo orario di apertura ed il massimo orario di chiusura della settimana
+            - var min_ap = 24
+            - var max_ch = 0
+            each wd in curr_wd_arr
+                if (wd.value.fields.state == "Aperto")
+                    - days[wd.key.day] = [wd.value.fields.state, wd.value.fields.apertura.h, wd.value.fields.chiusura.h]
+                    - min_ap = (min_ap > wd.value.fields.apertura.h)? wd.value.fields.apertura.h : min_ap
+                    - max_ch = (max_ch < wd.value.fields.chiusura.h)? wd.value.fields.chiusura.h : max_ch
 
-                each sp in curr_sp_arr
-                    h3 #{sp.key.typology} - #{sp.key.name}
+            //- Inizio pagina
+            h2 #{dep.key}
 
-                    //- Raccoglie i posti dello spazio corrente
-                    - var curr_sp_st_arr = []
-                    each st in curr_st_arr
-                        if st.key.space_name == sp.key.name && st.key.typology == sp.key.typology
-                            - curr_sp_st_arr.push(st)
+            each sp in curr_sp_arr
+                //- Raccoglie i posti dello spazio corrente
+                - var curr_sp_st_arr = []
+                each st in curr_st_arr
+                    if st.key.space_name == sp.key.name && st.key.typology == sp.key.typology
+                        - curr_sp_st_arr.push(st)
 
-                    table(width="80%", style="margin: 1% 10% 1% 10%")
-                        //- Prima riga che mostra il giorno della settimana e la data nel formato 'giorno-mese-anno'
-                        tr
-                            td(style="padding: 2px; text-align: center")
-                                h4 Orari
-                            td(style="padding: 2px 20px 2px 20px; text-align: center")
-                                h4 #{it_days[(today.getDay()+0)]} #{String(new Date(new Date().setDate(today.getDate()+0)).getDate())+"/"+String(new Date(new Date().setDate(today.getDate()+0)).getMonth()+1)+"/"+String(new Date(new Date().setDate(today.getDate()+0)).getFullYear())}
-                            td(style="padding: 2px 20px 2px 20px; text-align: center")
-                                h4 #{it_days[(today.getDay()+1)]} #{String(new Date(new Date().setDate(today.getDate()+1)).getDate())+"/"+String(new Date(new Date().setDate(today.getDate()+1)).getMonth()+1)+"/"+String(new Date(new Date().setDate(today.getDate()+1)).getFullYear())}
-                            td(style="padding: 2px 20px 2px 20px; text-align: center")
-                                h4 #{it_days[(today.getDay()+2)]} #{String(new Date(new Date().setDate(today.getDate()+2)).getDate())+"/"+String(new Date(new Date().setDate(today.getDate()+2)).getMonth()+1)+"/"+String(new Date(new Date().setDate(today.getDate()+2)).getFullYear())}
-                            td(style="padding: 2px 20px 2px 20px; text-align: center")
-                                h4 #{it_days[(today.getDay()+3)]} #{String(new Date(new Date().setDate(today.getDate()+3)).getDate())+"/"+String(new Date(new Date().setDate(today.getDate()+3)).getMonth()+1)+"/"+String(new Date(new Date().setDate(today.getDate()+3)).getFullYear())}
-                            td(style="padding: 2px 20px 2px 20px; text-align: center")
-                                h4 #{it_days[(today.getDay()+4)]} #{String(new Date(new Date().setDate(today.getDate()+4)).getDate())+"/"+String(new Date(new Date().setDate(today.getDate()+4)).getMonth()+1)+"/"+String(new Date(new Date().setDate(today.getDate()+4)).getFullYear())}
-                            td(style="padding: 2px 20px 2px 20px; text-align: center")
-                                h4 #{it_days[(today.getDay()+5)]} #{String(new Date(new Date().setDate(today.getDate()+5)).getDate())+"/"+String(new Date(new Date().setDate(today.getDate()+5)).getMonth()+1)+"/"+String(new Date(new Date().setDate(today.getDate()+5)).getFullYear())}
-                            td(style="padding: 2px 20px 2px 20px; text-align: center")
-                                h4 #{it_days[(today.getDay()+6)]} #{String(new Date(new Date().setDate(today.getDate()+6)).getDate())+"/"+String(new Date(new Date().setDate(today.getDate()+6)).getMonth()+1)+"/"+String(new Date(new Date().setDate(today.getDate()+6)).getFullYear())}
+                h2 #{sp.key.typology} - #{sp.key.name}
+                table#reservationSpaceTables.ms-auto.me-auto
+                    //- Prima riga che mostra il giorno della settimana e la data nel formato 'giorno-mese-anno'
+                    tr
+                        td.text-center.px-1.py-1
+                            h6 Orari
+                        td.h6.text-center.px-1.py-1
+                            p.mb-0 #{it_days[(today.getDay()+0)]}
+                            p.mb-0 #{String(new Date(new Date().setDate(today.getDate()+0)).getDate())+"/"+String(new Date(new Date().setDate(today.getDate()+0)).getMonth()+1)+"/"+String(new Date(new Date().setDate(today.getDate()+0)).getFullYear())}
+                        td.h6.text-center.px-1.py-1
+                            p.mb-0 #{it_days[(today.getDay()+1)]}
+                            p.mb-0 #{String(new Date(new Date().setDate(today.getDate()+1)).getDate())+"/"+String(new Date(new Date().setDate(today.getDate()+1)).getMonth()+1)+"/"+String(new Date(new Date().setDate(today.getDate()+1)).getFullYear())}
+                        td.h6.text-center.px-1.py-1
+                            p.mb-0 #{it_days[(today.getDay()+2)]}
+                            p.mb-0 #{String(new Date(new Date().setDate(today.getDate()+2)).getDate())+"/"+String(new Date(new Date().setDate(today.getDate()+2)).getMonth()+1)+"/"+String(new Date(new Date().setDate(today.getDate()+2)).getFullYear())}
+                        td.h6.text-center.px-1.py-1
+                            p.mb-0 #{it_days[(today.getDay()+3)]}
+                            p.mb-0 #{String(new Date(new Date().setDate(today.getDate()+3)).getDate())+"/"+String(new Date(new Date().setDate(today.getDate()+3)).getMonth()+1)+"/"+String(new Date(new Date().setDate(today.getDate()+3)).getFullYear())}
+                        td.h6.text-center.px-1.py-1
+                            p.mb-0 #{it_days[(today.getDay()+4)]}
+                            p.mb-0 #{String(new Date(new Date().setDate(today.getDate()+4)).getDate())+"/"+String(new Date(new Date().setDate(today.getDate()+4)).getMonth()+1)+"/"+String(new Date(new Date().setDate(today.getDate()+4)).getFullYear())}
+                        td.h6.text-center.px-1.py-1
+                            p.mb-0 #{it_days[(today.getDay()+5)]}
+                            p.mb-0 #{String(new Date(new Date().setDate(today.getDate()+5)).getDate())+"/"+String(new Date(new Date().setDate(today.getDate()+5)).getMonth()+1)+"/"+String(new Date(new Date().setDate(today.getDate()+5)).getFullYear())}
+                        td.h6.text-center.px-1.py-1
+                            p.mb-0 #{it_days[(today.getDay()+6)]}
+                            p.mb-0 #{String(new Date(new Date().setDate(today.getDate()+6)).getDate())+"/"+String(new Date(new Date().setDate(today.getDate()+6)).getMonth()+1)+"/"+String(new Date(new Date().setDate(today.getDate()+6)).getFullYear())}
 
-                        //- Corpo delle righe che mostra gli orari e le check per prenotare
-                        //- Per ogni ora tra l'apertura minima e la chiusura massima
-                        - var h = 0
-                        while h < max_ch-min_ap
+                    //- Per ogni ora tra l'apertura minima e la chiusura massima ciclo che costruisce il corpo delle righe che mostra gli orari e le check per prenotare
+                    - var h = 0
+                    while h < max_ch-min_ap
                             tr
                                 - var reserved_seats = [0, 0, 0, 0, 0, 0, 0] //- Array per tenere memoria se il posto è prenotato dall'utente corrente o meno
                                 - var reserved_wd =    [0, 0, 0, 0, 0, 0, 0] //- Array per tenere memoria se l'orario è prenotato dall'utente corrente o meno
@@ -123,21 +130,20 @@ block contentReservation
                                             - row_seats[d] = st
 
                                 //- Inserisce l'orario di riferimento della riga nel primo td
-                                td(style="padding: 2px; text-align: center") 
-                                    h6 #{(String(min_ap+h).length == 1)? '0'+(min_ap+h):(min_ap+h)}:00
-                                    //- p #{'free_seats_day'+free_seats_day}
+                                td.text-center.px-2.py-1
+                                    label #{(String(min_ap+h).length == 1)? '0'+(min_ap+h):(min_ap+h)}:00
                                 //- Inserisce i dati opportuni a seconda dei casi nei 7 td dei giorni della settimana
                                 each d_number in [0,1,2,3,4,5,6]
-                                    //- Controlla se è chiuso
-                                    - var current_wd_control = days[it_days[(new Date((new Date()).setDate(today.getDate()+d_number))).getDay()]]
-                                    if current_wd_control[0] == "Chiuso" || (((min_ap+h) < current_wd_control[1]) || ((min_ap+h) >= current_wd_control[2]))
-                                        td(style="padding: 2px; text-align: center; color: grey") Chiuso
-                                    //- Se ormai è un orario oltrepassato e quindi non più prenotabile
-                                    else if row_seats[d_number] == -1
-                                        td(style="padding: 2px; text-align: center; color: grey") Scaduto
-                                    //- Se l'utente corrente ha gia prenotato questo orario
-                                    else if reserved_seats[d_number] != 0
-                                        td(style="padding: 2px; text-align: center; color: green")
+                                    td.text-center.px-1.py-1(style="width:14%")
+                                        //- Controlla se è chiuso
+                                        - var current_wd_control = days[it_days[(new Date((new Date()).setDate(today.getDate()+d_number))).getDay()]]
+                                        if current_wd_control[0] == "Chiuso" || (((min_ap+h) < current_wd_control[1]) || ((min_ap+h) >= current_wd_control[2]))
+                                            p.mb-0(style="color: grey") Chiuso
+                                        //- Se ormai è un orario oltrepassato e quindi non più prenotabile
+                                        else if row_seats[d_number] == -1
+                                            p.mb-0(style="color: grey") Scaduto
+                                        //- Se l'utente corrente ha gia prenotato questo orario
+                                        else if reserved_seats[d_number] != 0
                                             form(method="post" action="/reservation/rm_res")
                                                 input(type="hidden" value=csrfToken                                             name="_csrf")
                                                 //- Reservation id
@@ -165,16 +171,16 @@ block contentReservation
                                                 input(type="hidden" value=String(row_seats[d_number].value.fields.end_date.m)   name="end_m")
                                                 input(type="hidden" value=String(row_seats[d_number].value.fields.end_date.s)   name="end_s")
 
-                                                input(type="submit" value="Prenotato\n(Click per disdire)\n" style="background-color: lightgreen")
-                                    //- Se l'orario corrente è gia stato prenotato in un altro spazio
-                                    else if reserved_wd[d_number] == 1
-                                        td(style="padding: 2px; text-align: center; color: grey") Non disponibile
-                                    //- Se i posti in quell'orario sono al completo
-                                    else if free_seats_day[d_number] == 0
-                                        td(style="padding: 2px; text-align: center; color: red") Completo
-                                    //- Se non ci troviamo in nessuno dei casi precedenti scrive il numero di posti disponibili e Mostra lo switch per prenotare
-                                    else
-                                        td(style="padding: 2px; text-align: center")
+                                                input(type="submit" id="reservationTableBtnDelete" value="Prenotato\n(Click per disdire)")
+                                        //- Se l'orario corrente è gia stato prenotato in un altro spazio
+                                        else if reserved_wd[d_number] == 1
+                                            p.mb-0(style="color: grey") Hai gia prenotato
+                                            p.mb-0(style="color: grey") questo orario
+                                        //- Se i posti in quell'orario sono al completo
+                                        else if free_seats_day[d_number] == 0
+                                            p.mb-0(style="color: red") Completo
+                                        //- Se non ci troviamo in nessuno dei casi precedenti scrive il numero di posti disponibili e Mostra lo switch per prenotare
+                                        else
                                             form(method="post" action="/reservation/make_res")
                                                 input(type="hidden" value=csrfToken                                             name="_csrf")
                                                 //- Reservation's owner (current user)
@@ -202,6 +208,8 @@ block contentReservation
                                                 input(type="hidden" value=String(row_seats[d_number].value.fields.end_date.m)   name="end_m")
                                                 input(type="hidden" value=String(row_seats[d_number].value.fields.end_date.s)   name="end_s")
 
-                                                input(type="submit" value="Prenota\n"+free_seats_day[d_number]+" liberi")
+                                                input(type="submit" id="reservationTableBtnMake" value="Prenota\n"+free_seats_day[d_number]+" liberi")
                                     - d_number++
                             - h++
+                hr
+            hr

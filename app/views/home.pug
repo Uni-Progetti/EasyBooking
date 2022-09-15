@@ -1,18 +1,35 @@
 extends layout
 
 block content
-	section.home
-		section.homeTitle
-			h3 HOME 
-				p Eccoci nella home
-		.row
-			.col-lg-6
-				p DIPARTIMENTIIII
-			.col-lg-3 
-			.col-lg-3
-				section.homeReservation
-					form(action='/reservation' method='get')
-						button(type='submit') effettua una nuova prenotazione
-				section.homeMap
-					#map
-					script(src='javascripts/webmap.js' charset='utf-8') 
+	h1 HOME
+
+	.row
+		//- Dipartimenti
+		#homeDepartments.col-lg-6
+			.row
+				each dep in departments
+					#homeSingleDepartment.col-lg-6
+						.card
+							.card-header.pt-3.pb-2
+								h3 #{dep.key}
+								small #{dep.value.fields.via+', '+dep.value.fields.civico+', '+dep.value.fields.cap+', '+dep.value.fields.citta+', '+dep.value.fields.provincia}
+							.card-body
+								p.mt-0.mb-2
+									label.h6.my-0 Manager:
+									small #{' '+dep.value.fields.manager}
+								p.mt-0.mb-2
+									label.h6.my-0 Description:
+									br
+									small #{dep.value.fields.description}
+		
+		//- Mappa e Bottone Effettua Prenotazione
+		.col-lg-6
+			//- Bottone Effettua Prenotazione
+			#homeMakeReservationBtn
+				form.mt-3(action='/reservation' method='get')
+					button(type='submit') Effettua prenotazione
+			//- Mappa
+			#homeMap
+				h3 Mappa
+				#map
+				script(src='javascripts/webmap.js' charset='utf-8')

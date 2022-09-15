@@ -19,26 +19,27 @@
 <!-- SIDENAV -->
 <script id="template-sidenav" type="text/x-handlebars-template">
 <nav id="scrollingNav">
-  <div class="sidenav-search">
-    <input class="form-control search" data-action='filter-search' type="text" placeholder="{{__ "Filter..."}}">
+  <div class="sidenav-search" style="display: grid; height: 90px; padding: 10px;">
+    <input class="form-control search" data-action='filter-search' type="text" placeholder="{{__ "Filter..."}}" style="height: fit-content; width: 100%;">
     <span class="search-reset">x</span>
+    <a href="/" style="color: white; font-weight: 800; padding: 7px 15px 7px 15px; background-color: rgba(200, 50, 40, 1); border: solid 1px; border-color: black; border-radius: 5px; height: fit-content; text-align: center; width: 100%; margin-top: 7px;"> EasyBooking Home </a>
   </div>
-  <ul class="sidenav nav nav-list list">
-  {{#each nav}}
-    {{#if title}}
-      {{#if isHeader}}
-        {{#if isFixed}}
-          <li class="nav-fixed nav-header navbar-btn nav-list-item" data-group="{{group}}"><a href="#api-{{group}}" data-name="show-api-{{group}}" class="show-api api-{{group}}-init">{{underscoreToSpace title}}</a></li>
+  <ul class="sidenav nav nav-list list" style="top: 90px;">
+    {{#each nav}}
+      {{#if title}}
+        {{#if isHeader}}
+          {{#if isFixed}}
+            <li class="nav-fixed nav-header navbar-btn nav-list-item" data-group="{{group}}"><a href="#api-{{group}}" data-name="show-api-{{group}}" class="show-api api-{{group}}-init">{{underscoreToSpace title}}</a></li>
+          {{else}}
+            <li class="nav-header nav-list-item" data-group="{{group}}"><a href="#api-{{group}}" data-group="show-api-{{group}}" class="show-group api-{{group}}-init">{{underscoreToSpace title}}</a></li>
+          {{/if}}
         {{else}}
-          <li class="nav-header nav-list-item" data-group="{{group}}"><a href="#api-{{group}}" data-group="show-api-{{group}}" class="show-group api-{{group}}-init">{{underscoreToSpace title}}</a></li>
+          <li class="{{#if hidden}}hide {{/if}}" data-group="{{group}}" data-name="{{name}}" data-version="{{version}}">
+            <a href="#api-{{group}}-{{name}}" title="{{url}}" data-group="show-api-{{group}}" data-name="show-api-{{group}}-{{name}}" class="nav-list-item show-api api-{{group}}-{{name}}-init">{{title}}<div class="nav-list-url-item hide">{{url}}</div></a>
+          </li>
         {{/if}}
-      {{else}}
-        <li class="{{#if hidden}}hide {{/if}}" data-group="{{group}}" data-name="{{name}}" data-version="{{version}}">
-          <a href="#api-{{group}}-{{name}}" title="{{url}}" data-group="show-api-{{group}}" data-name="show-api-{{group}}-{{name}}" class="nav-list-item show-api api-{{group}}-{{name}}-init">{{title}}<div class="nav-list-url-item hide">{{url}}</div></a>
-        </li>
       {{/if}}
-    {{/if}}
-  {{/each}}
+    {{/each}}
   </ul>
 </nav>
 </script>

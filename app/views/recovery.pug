@@ -1,12 +1,21 @@
 extends layout 
 
 block content
-	section.recovery
-		h4 Change password
-		form(action='/password_recovery' method='post')
-		section
-			label(for='username') Username
+	#centeredForm.ms-auto.me-auto
+		#recovery
+			h1 Cambia password
+			form(action='/password_recovery' method='post')
+
+			label.mt-2(for='username') Username
 			input#username(name='username' type='text' autocomplete='username' required='' autofocus='')
 			input(type='hidden' name='_csrf' value=csrfToken)
-		button(type='submit') Change password
-		hr
+
+			button.mt-4(type='submit') Invia
+
+			hr
+			p.help
+				label Ti sei ricordato la password?
+				a.mx-2(href='/login') Accedi
+			p.help
+				label Ti sei ricordato di non avere un account?
+				a.mx-2(href='/signup') Registrati

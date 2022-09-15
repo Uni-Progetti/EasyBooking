@@ -1,24 +1,30 @@
 extends layout 
 
 block content
-	section.login
-		h4 Sign in
-		form(action='/login/password' method='post')
-			section
-				label(for='username') Username
+	#centeredForm.ms-auto.me-auto
+		#login
+			h1 Sign in
+			form(action='/login/password' method='post')
+
+				label.mt-2(for='username') Username
 				input#username(name='username' type='text' autocomplete='username' required='' autofocus='')
-			section
-				label(for='current-password') Password
+
+				label.mt-2(for='current-password') Password
 				input#current-password(name='password' type='password' autocomplete='current-password' required='')
+
 				input(type="hidden" name="_csrf" value=csrfToken)
-				button(type='submit') Sign in
-		form(action='/google' method='get')
-			section
-				button(type='submit') Login con Google
-		hr
-		p.help
-			| Don't have an account? 
-			a(href='/signup') Sign up
-		p.help
-			| Forgot your password? 
-			a(href='/password_recovery') Recover your password
+
+				button.mt-4(type='submit') Accedi
+
+			hr
+			label.mt-2 Clicca quì per accedere tramite un account di google
+			form(action='/google' method='get')
+				button(type='submit') Accedi con Google
+
+			hr
+			p.help
+				label Non possiedi un account?
+				a.mx-2(href='/signup') Registrazione
+			p.help
+				label Password dimenticata?
+				a.mx-2(href='/password_recovery') Recupera la tua password

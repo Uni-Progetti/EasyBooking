@@ -3,33 +3,45 @@ html
   head
     title= title
     meta(name='viewport' content='width=device-width, initial-scale=1')
-    link(rel='stylesheet', href='/stylesheets/style.css')
-    link(rel='stylesheet', type='text/css', href='/stylesheets/login.css')
+
+    link(rel='stylesheet', type='text/css', href='/stylesheets/style.css')
+
     link(rel="stylesheet", type='text/css' href="css/bootstrap.min.css")
     script(language='javascript' src='js/bootstrap.min.js')
+
     link(rel='stylesheet' href='leaflet.css')
+
     link(rel='stylesheet', href='fullcalendar/main.css')
     script(language='javascript', src='fullcalendar/main.js')
+
     script(language='javascript' src='dayjs/dayjs.min.js')
 
-    nav.navbar.navbar-expand-lg.navbar-dark.bg-dark
+  body
+    //- Barra superiore
+    nav#topNavbar.navbar.navbar-expand-lg.navbar-dark.bg-dark
       .container-fluid
+
+        //- Logo
         a.navbar-brand(href='/home')
-          img.d-inline-block.align-text-top(src='/images/logo_nav.svg' alt='' width='30' height='30')
-        button.navbar-toggler(type='button' data-bs-toggle='collapse' data-bs-target='#navbarSupportedContent' aria-controls='navbarSupportedContent' aria-expanded='false' aria-label='Toggle navigation')
+          img.d-inline-block.align-text-top(src='/images/logo_nav.svg' width='70' height='70')
+
+        //- Bottone per il toggle della lista dei links
+        button.navbar-toggler(type='button' data-bs-toggle='collapse' data-bs-target='#navbarSupportedContent' style="width: fit-content")
           span.navbar-toggler-icon
+
+        //- Lista dei links
         #navbarSupportedContent.collapse.navbar-collapse
-          ul.navbar-nav.me-auto.mb-2.mb-lg-0
+          ul.navbar-nav.mb-2.mb-lg-0(style="width: 100%")
             li.nav-item
               if location == 'localhost:8083/home'
                 a.nav-link.active(href='/home') Home
-              else 
+              else
                 a.nav-link(href='/home') Home
             li.nav-item
               if location == 'localhost:8083/reservation'
-                a.nav-link.active(href='/reservation') Prenotazione
-              else 
-                a.nav-link(href='/reservation') Prenotazione
+                a.nav-link.active(href='/reservation') Effettua Prenotazioni
+              else
+                a.nav-link(href='/reservation') Effettua Prenotazioni
             li.nav-item
               if location == 'localhost:8083/personalArea'
                 a.nav-link.active(href='/personalArea') Area personale
@@ -38,49 +50,40 @@ html
             li.nav-item
               if location == 'localhost:8083/apidoc'
                 a.nav-link.active(href='/apidoc') API Documentation
-              else 
+              else
                 a.nav-link(href='/apidoc') API Documentation
             li.nav-item
               if location == 'localhost:8083/info'
-                a.nav-link.active(href='/info') Info
-              else 
-                a.nav-link(href='/info') Info
-          ul.navbar-nav.me-end.mb-2.mb-lg-0
-            if userId 
-              li.nav-item 
-                a.nav-link(href='/personalArea') #{userId}
-            li.nav-item
-              if userId
-                a.nav-link(href='/logout') Logout
+                a.nav-link.active(href='/info') Informazioni
               else
-                if location == 'localhost:8083/login'
-                  a.nav-link.active(href='/login') Login
-                else 
-                  a.nav-link(href='/login') Login
+                a.nav-link(href='/info') Informazioni
+            li.nav-item.ms-auto.me-0
+              if userId
+                li.nav-item
+                  a.nav-link(href='/personalArea') Utente: #{userId}
+                li.nav-item
+                  a.nav-link(href='/logout') Esci
+              else
+                li.nav-item
+                  if location == 'localhost:8083/login'
+                    a.nav-link.active(href='/login') Accedi
+                  else
+                    a.nav-link(href='/login') Accedi
 
-      
-      
+  //- Messaggi di notifica dal sito
+  if message
+    if message.type=='danger'
+      div#alertMessages(class= "alert alert-danger alert-dismissible fade show" role='alert')
+        strong #{message.intro} #{message.message}
+        button.btn-close(type='button' data-bs-dismiss='alert' aria-label='Close')
+    else if message.type=='warning'
+      div#alertMessages(class= "alert alert-warning alert-dismissible fade show" role='alert')
+        strong #{message.intro} #{message.message}
+        button.btn-close(type='button' data-bs-dismiss='alert' aria-label='Close')
+    else
+      div#alertMessages(class= "alert alert-info alert-dismissible fade show" role='alert')
+        strong #{message.intro} #{message.message}
+        button.btn-close(type='button' data-bs-dismiss='alert' aria-label='Close')
 
-    if message
-      if message.type=='danger'
-        div(class= "alert alert-danger alert-dismissible fade show" role='alert')
-          strong #{message.intro}
-          |  #{message.message}
-          button.btn-close(type='button' data-bs-dismiss='alert' aria-label='Close')
-      else if message.type=='warning'
-        div(class= "alert alert-warning alert-dismissible fade show" role='alert')
-          strong #{message.intro}
-          |  #{message.message}
-          button.btn-close(type='button' data-bs-dismiss='alert' aria-label='Close')
-      else 
-        div(class= "alert alert-info alert-dismissible fade show" role='alert')
-          strong #{message.intro}
-          |  #{message.message}
-          button.btn-close(type='button' data-bs-dismiss='alert' aria-label='Close') 
- 
-  section.prompt 
-    block content 
-  section
-    block contentReservation
- 
-
+  .prompt
+    block content
