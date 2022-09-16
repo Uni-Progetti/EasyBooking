@@ -20,7 +20,22 @@ block content
             //- Calendario
             #personalAreaCalendar.col-lg-6
                 #calendar
-                script(src='javascripts/fullcalendar.js')
+                script.
+                    const data = !{jsStringify(cal_events)};
+                    document.addEventListener('DOMContentLoaded', function() {
+                        new FullCalendar.Calendar(document.getElementById('calendar'), {
+                            headerToolbar: {
+                                left: 'prev',
+                                center: 'title',
+                                right: 'next'
+                            },
+                            footerToolbar: {
+                                left: 'today',
+                                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                            },
+                            events: data
+                        }).render();
+                    });
             //- Prenotazioni
             #personalAreaReservations.col-lg-6
                 .row.mt-3.mx-0(style="height: fit-content")
