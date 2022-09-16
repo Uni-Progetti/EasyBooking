@@ -14,18 +14,18 @@ const schedule = require('node-schedule');
 const db_update = require('./db_update.js');
 const couchdb_utils = require('./couchdb_utils.js');
 const store = new Expression({
-  username: process.env.COUCHDB_USER,         // default value = 'admin'
-  password: process.env.COUCHDB_PASSWORD,     // default value = 'password'
-  hostname: 'couchdb',    // default value = 'localhost'
-  port: '5984',             // default value = 5984
-  database: 'sessions',     // default value = 'sessions'
-  https: false              // default value = false
+  username: process.env.COUCHDB_USER,     // default value = 'admin'
+  password: process.env.COUCHDB_PASSWORD, // default value = 'password'
+  hostname: 'couchdb',                    // default value = 'localhost'
+  port:     '5984',                       // default value = 5984
+  database: 'sessions',                   // default value = 'sessions'
+  https:    false                         // default value = false
 });
 const transporter = nodemailer.createTransport({
   service: 'gmail',
     auth: {
       user: process.env.APP_EMAIL,
-      pass: process.env.APP_EMAIL_PASS,
+      pass: process.env.APP_EMAIL_PASS
     },
 });
 
@@ -34,6 +34,7 @@ var apiRouter = require('./routes/api');
 var usersRouter = require('./routes/users');
 var authRouter = require('./routes/auth');
 var homeRouter = require('./routes/home');
+var adminRouter = require('./routes/admin');
 var reservationRouter = require('./routes/reservation');
 var personalAreaRouter = require('./routes/personalArea');
 var calendarRouter = require('./routes/calendar');
@@ -53,9 +54,9 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser(process.env.SESSION_SECRET));
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.static(__dirname + '/node_modules/bootstrap/dist'));// file di bootstrap .css e .js
-app.use(express.static(__dirname + '/node_modules/leaflet/dist'));// file di leaflet .css e .js
-app.use(express.static(__dirname + '/node_modules'));// file di fullcalendar .css e .js
+app.use(express.static(__dirname + '/node_modules/bootstrap/dist')); // file di bootstrap    .css e .js
+app.use(express.static(__dirname + '/node_modules/leaflet/dist'));   // file di leaflet      .css e .js
+app.use(express.static(__dirname + '/node_modules'));                // file di fullcalendar .css e .js
 
 app.use(session({
   name: process.env.SESS_NAME,
@@ -92,6 +93,7 @@ app.use('/info', infoRouter);
 app.use('/users', usersRouter);
 app.use('/', authRouter);
 app.use('/home', homeRouter);
+app.use('/admin', adminRouter);
 app.use('/reservation', reservationRouter);
 app.use('/personalArea', personalAreaRouter);
 app.use('/calendar', calendarRouter);

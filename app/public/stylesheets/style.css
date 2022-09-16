@@ -132,6 +132,23 @@ p.help {
 }
 .fc-button-primary:hover { background-color: #dd3030 !important; }
 
+/* ADMIN */
+#admin { width: 80%; }
+#adminReservations,
+#adminDepartments, #adminUsers {}
+#adminReservationsTr,
+#adminDepartmentsTr, #adminUsersTr {
+	width: 100%;
+	border: solid 1px;
+	border-color: lightgray;
+}
+.adminTablesScrollableBody {
+    overflow: scroll !important;
+    height: 100px !important;
+}
+.adminButtons {
+	padding: 5px;
+}
 
 /* RESERVATION */
 #reservation {

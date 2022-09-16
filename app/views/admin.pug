@@ -1,0 +1,69 @@
+extends layout
+
+block content
+    #admin.ms-auto.me-auto
+        h1 Gestione sito
+
+        .row
+            #adminUsers.col-lg-5.mt-3
+                h2 Utenti
+                table.mt-2(width="100%")
+                    tr#adminUsersTr
+                        th.px-2 Email
+                        th.px-2 Ruolo
+                        th.px-2 Blocca/Sblocca
+                    each usr in users
+                        tr#adminUsersTr
+                            td.px-2(width="fit-content") #{usr.key}
+                            td.px-2(width="fit-content") #{usr.value.role}
+                            td.px-2(width="fit-content")
+                                //- if Sbloccato
+                                //-     form(action='/' method='')
+                                button.adminButtons(type='submit') Blocca
+                                //- if Bloccato
+                                //-     form(action='/' method='')
+                                //-         button.adminButtons(type='submit') Sblocca
+
+            //- Dipartimenti
+            #adminDepartments.col-lg-7.mt-3
+                h2 Dipartimenti
+                table.mt-2(width="100%")
+                    tr#adminDepartmentsTr
+                        th.px-2 Nome
+                        th.px-2 Manager
+                        th.px-2 Indirizzo
+                        th.px-2 Elimina
+                    each dep in departments
+                        tr#adminDepartmentsTr
+                            td.px-2(width="fit-content") #{dep.key}
+                            td.px-2(width="fit-content") #{dep.value.fields.manager}
+                            td.px-2(width="fit-content") #{dep.value.fields.via+', '+dep.value.fields.civico+', '+dep.value.fields.cap+', '+dep.value.fields.citta+', '+dep.value.fields.provincia}
+                            td.px-2(width="fit-content")
+                                //- form(action='/' method='')
+                                button.adminButtons(type='submit') X
+
+            //- Prenotazioni
+            #adminReservations.col-lg-12.mt-3
+                h2 Prenotazioni
+                table.mt-2(width="100%")
+                    tr#adminReservationsTr
+                        th.px-2 Utente
+                        th.px-2 Dipartimento
+                        th.px-2 Aula
+                        th.px-2 Spazio
+                        th.px-2 Data
+                        th.px-2 Ora inizio
+                        th.px-2 Ora fine
+                        th.px-2 Elimina
+                    each res in reservations
+                        tr#adminReservationsTr
+                            td.px-2(width="fit-content") #{res.value.fields.email}
+                            td.px-2(width="fit-content") #{res.value.fields.dep_name}
+                            td.px-2(width="fit-content") #{res.value.fields.typology}
+                            td.px-2(width="fit-content") #{res.value.fields.space_name}
+                            td.px-2(width="fit-content") #{res.value.fields.start_date.D+'/'+res.value.fields.start_date.M+'/'+res.value.fields.start_date.Y}
+                            td.px-2(width="fit-content") #{res.value.fields.start_date.h}
+                            td.px-2(width="fit-content") #{res.value.fields.end_date.h}
+                            td.px-2(width="fit-content")
+                                //- form(action='/' method='')
+                                button.adminButtons(type='submit') X
