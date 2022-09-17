@@ -1,7 +1,4 @@
-extends layout
 
-block content
-  #error.ms-auto.me-auto
-    h2= message
-    h4= error.status
-    pre #{error.stack}
+h2 #{message}
+h4 #{error.status}
+pre #{error.stack}

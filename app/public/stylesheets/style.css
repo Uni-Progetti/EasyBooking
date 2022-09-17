@@ -6,6 +6,7 @@
 	background: #fff;
 }
 .row {
+	margin: 0px !important;
 	width: 100%;
 	height: fit-content;
 }
@@ -86,7 +87,6 @@ p.help {
 	text-align: center;
 	font-weight: 400;
 }
-#error { width: 80%; }
 
 
 /* HOME */
@@ -132,23 +132,33 @@ p.help {
 }
 .fc-button-primary:hover { background-color: #dd3030 !important; }
 
+
 /* ADMIN */
 #admin { width: 80%; }
-#adminReservations,
-#adminDepartments, #adminUsers {}
-#adminReservationsTr,
-#adminDepartmentsTr, #adminUsersTr {
-	width: 100%;
-	border: solid 1px;
+#adminReservationsRow, #adminDepartmentsRow, #adminUsersRow {
+	border-bottom: solid 1px;
 	border-color: lightgray;
 }
-.adminTablesScrollableBody {
-    overflow: scroll !important;
-    height: 100px !important;
+#adminReservationsRow:hover, #adminDepartmentsRow:hover, #adminUsersRow:hover { background-color: #e9e9e9; }
+.adminGridHead, .adminGridBody {
+	overflow-y: scroll;
+	padding: 0px 2px 5px 15px;
 }
+.adminGridHead { height: 38px; }
+.adminGridBody { height: 200px; }
 .adminButtons {
+	width: 100%;
+	height: fit-content;
+	font-weight: 700;
+	color: white;
+	background: #cd3030;
+	border: solid 2px;
+	border-color: black;
+	border-radius: 5px !important;
+	cursor: pointer;
 	padding: 5px;
 }
+.adminButtons:hover { background-color: #dd3030; }
 
 /* RESERVATION */
 #reservation {

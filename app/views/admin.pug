@@ -5,68 +5,79 @@ block content
         h1 Gestione sito
 
         .row
-            #adminUsers.col-lg-5.mt-3
-                h2 Utenti
-                table.mt-2(width="100%")
-                    tr#adminUsersTr
-                        th.px-2 Email
-                        th.px-2 Ruolo
-                        th.px-2 Blocca/Sblocca
+            //- Utenti
+            #adminUsers.col-lg-5.mt-3.px-0
+                h2.my-2 Utenti
+                .adminGridHead
+                    .row#adminUsersRow
+                        .col-lg-7.px-2.pt-1.h6 Email
+                        .col-lg-2.px-2.pt-1.h6 Ruolo
+                        .col-lg-3.px-2.pt-1.h6 S/Blocca
+                .adminGridBody
                     each usr in users
-                        tr#adminUsersTr
-                            td.px-2(width="fit-content") #{usr.key}
-                            td.px-2(width="fit-content") #{usr.value.role}
-                            td.px-2(width="fit-content")
+                        .row#adminUsersRow
+                            .col-lg-7.px-2(width="fit-content") #{usr.key}
+                            .col-lg-2.px-2(width="fit-content") #{usr.value.role}
+                            .col-lg-3.px-2(width="fit-content")
                                 if usr.value.locked == 'true'
                                     form(action='/admin/unlock' method='post')
                                         button.adminButtons(type='submit') Sblocca
                                         input(type="hidden" name="_csrf" value=csrfToken)
-                                        input(type="hidden" name="user_to_unlock" value=usr.key)                                   
-                                else                                       
+                                        input(type="hidden" name="user_to_unlock" value=usr.key)
+                                else
                                     form(action='/admin/lock' method='post')
                                         button.adminButtons(type='submit') Blocca
                                         input(type="hidden" name="_csrf" value=csrfToken)
-                                        input(type="hidden" name="user_to_lock" value=usr.key)  
+                                        input(type="hidden" name="user_to_lock" value=usr.key)
+
             //- Dipartimenti
-            #adminDepartments.col-lg-7.mt-3
-                h2 Dipartimenti
-                table.mt-2(width="100%")
-                    tr#adminDepartmentsTr
-                        th.px-2 Nome
-                        th.px-2 Manager
-                        th.px-2 Indirizzo
-                        th.px-2 Elimina
+            #adminDepartments.col-lg-7.mt-3.px-0
+                h2.my-2 Dipartimenti
+                .adminGridHead
+                    .row#adminDepartmentsRow
+                        .col-lg-3.px-2.pt-1.h6 Nome
+                        .col-lg-4.px-2.pt-1.h6 Manager
+                        .col-lg-4.px-2.pt-1.h6 Indirizzo
+                        .col-lg-1.px-2.pt-1.h6 Elimina
+                .adminGridBody
                     each dep in departments
-                        tr#adminDepartmentsTr
-                            td.px-2(width="fit-content") #{dep.key}
-                            td.px-2(width="fit-content") #{dep.value.fields.manager}
-                            td.px-2(width="fit-content") #{dep.value.fields.via+', '+dep.value.fields.civico+', '+dep.value.fields.cap+', '+dep.value.fields.citta+', '+dep.value.fields.provincia}
-                            td.px-2(width="fit-content")
-                                //- form(action='/' method='')
-                                button.adminButtons(type='submit') X
+                        .row#adminDepartmentsRow
+                            .col-lg-3.px-2(width="fit-content") #{dep.key}
+                            .col-lg-4.px-2(width="fit-content") #{dep.value.fields.manager}
+                            .col-lg-4.px-2(width="fit-content") #{dep.value.fields.via+', '+dep.value.fields.civico+', '+dep.value.fields.cap+', '+dep.value.fields.citta+', '+dep.value.fields.provincia}
+                            .col-lg-1.px-2(width="fit-content")
+                                form(method="post" action="/admin/rm_dep")
+                                    input(type="hidden" value=csrfToken       name="_csrf")
+                                    input(type="hidden" value=String(dep.key) name="dep_name")
+                                    input(type="hidden" value=String(dep.id)  name="dep_id")
+                                    input.adminButtons(type='submit' value="X")
 
             //- Prenotazioni
-            #adminReservations.col-lg-12.mt-3
-                h2 Prenotazioni
-                table.mt-2(width="100%")
-                    tr#adminReservationsTr
-                        th.px-2 Utente
-                        th.px-2 Dipartimento
-                        th.px-2 Aula
-                        th.px-2 Spazio
-                        th.px-2 Data
-                        th.px-2 Ora inizio
-                        th.px-2 Ora fine
-                        th.px-2 Elimina
+            #adminReservations.col-lg-12.mt-3.px-0
+                h2.my-2 Prenotazioni
+                .adminGridHead
+                    .row#adminReservationsRow
+                        .col-lg-3.px-2.h6 Utente
+                        .col-lg-3.px-2.h6 Dipartimento
+                        .col-lg-1.px-2.h6 Aula
+                        .col-lg-1.px-2.h6 Spazio
+                        .col-lg-1.px-2.h6 Data
+                        .col-lg-1.px-2.h6 Ora inizio
+                        .col-lg-1.px-2.h6 Ora fine
+                        .col-lg-1.px-2.h6 Elimina
+                .adminGridBody
                     each res in reservations
-                        tr#adminReservationsTr
-                            td.px-2(width="fit-content") #{res.value.fields.email}
-                            td.px-2(width="fit-content") #{res.value.fields.dep_name}
-                            td.px-2(width="fit-content") #{res.value.fields.typology}
-                            td.px-2(width="fit-content") #{res.value.fields.space_name}
-                            td.px-2(width="fit-content") #{res.value.fields.start_date.D+'/'+res.value.fields.start_date.M+'/'+res.value.fields.start_date.Y}
-                            td.px-2(width="fit-content") #{res.value.fields.start_date.h}
-                            td.px-2(width="fit-content") #{res.value.fields.end_date.h}
-                            td.px-2(width="fit-content")
-                                //- form(action='/' method='')
-                                button.adminButtons(type='submit') X
+                        .row#adminDepartmentsRow
+                            .col-lg-3.px-2(width="fit-content") #{res.value.fields.email}
+                            .col-lg-3.px-2(width="fit-content") #{res.value.fields.dep_name}
+                            .col-lg-1.px-2(width="fit-content") #{res.value.fields.typology}
+                            .col-lg-1.px-2(width="fit-content") #{res.value.fields.space_name}
+                            .col-lg-1.px-2(width="fit-content") #{res.value.fields.start_date.D+'/'+res.value.fields.start_date.M+'/'+res.value.fields.start_date.Y}
+                            .col-lg-1.px-2(width="fit-content") #{res.value.fields.start_date.h}
+                            .col-lg-1.px-2(width="fit-content") #{res.value.fields.end_date.h}
+                            .col-lg-1.px-2(width="fit-content")
+                                form(method="post" action="/admin/rm_res")
+                                    input(type="hidden" value=csrfToken                        name="_csrf")
+                                    input(type="hidden" value=String(res.id)                   name="res_id")
+                                    input(type="hidden" value=String(res.value.fields.seat_id) name="seat_id")
+                                    input.adminButtons(type='submit' value="X")

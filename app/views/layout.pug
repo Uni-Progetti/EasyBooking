@@ -60,10 +60,10 @@ html
             //- if """""current_user.role""""" == "admin"
             if true
               li.nav-item
-                if location == 'localhost:8083/info'
-                  a.nav-link.active(href='/admin') Gestione sito(da inserire il controllo di accessibilità per gli admin)
+                if location == 'localhost:8083/admin'
+                  a.nav-link.active(href='/admin') Gestione sito
                 else
-                  a.nav-link(href='/admin') Gestione sito(da inserire il controllo di accessibilità per gli admin)
+                  a.nav-link(href='/admin') Gestione sito
             li.nav-item.ms-auto.me-0
               if userId
                 li.nav-item

@@ -343,8 +343,6 @@ router.get('/getSpaces/:typology', function(req, res){
     usrs.end();
 });
 
-// effettua una prenotazione
-
 // stampa le mie prenotazioni
 router.get('/getReservations', security.authenticateJWT ,function(req, res){
     const get_options = {
@@ -409,7 +407,9 @@ router.get('/getReservations', security.authenticateJWT ,function(req, res){
     usrs.end();
 });
 
-/* curl -d '{"email": "matteo.user@gmail.com","dep_name": "Dipartimento di Matteo", "typology": "Aula", "space_name": "106", "start_date": {"Y": "2022", "M": "9", "D": "14", "h": "9" }}' -H "Content-Type: application/json" -X POST http://localhost:8080/api/make_res  */
+// effettua una prenotazione
+/* curl -d '{"email": "matteo.user@gmail.com","dep_name": "Dipartimento di Matteo", "typology": "Aula", "space_name": "106", "start_date": {"Y": "2022", "M": "9", "D": "19", "h": "9" }}' -H "Content-Type: application/json" -X POST http://localhost:8080/api/make_res  */
+/* curl -d '{"email": "fra.admin@gmail.com","dep_name": "Dipartimento di Donia", "typology": "Aula", "space_name": "106", "start_date": { "Y": "2022", "M": "9", "D": "19", "h": "9" }}' -H "Content-Type: application/json" -X POST http://localhost:8080/api/make_res */
 router.post('/make_res', function(req, res){
     var _rev = null;
     var _id = '';
@@ -541,7 +541,7 @@ router.post('/make_res', function(req, res){
                                         console.log(result);
                                         return res.send(result);
                                     }
-                                })                        
+                                })
                             }
                         })
                     }
@@ -605,6 +605,75 @@ function date_already_reserved(start_date, username, callback){
     })
 }
 
-// elimina prenotazioni
+// elimina una prenotazione
+/* curl -d '{"email": "matteo.user@gmail.com","dep_name": "Dipartimento di Donia", "typology": "Aula", "space_name": "106", "start_date": { "Y": "2022", "M": "9", "D": "19", "h": "9" }}' -H "Content-Type: application/json" -X POST http://localhost:8080/api/rm_res */
+/* curl -d '{"email": "fra.admin@gmail.com","dep_name": "Dipartimento di Donia", "typology": "Aula", "space_name": "106", "start_date": { "Y": "2022", "M": "9", "D": "19", "h": "9" }}' -H "Content-Type: application/json" -X POST http://localhost:8080/api/rm_res */
+router.post('/rm_res', function(req, res){
+    // GET all_reservations view: http://localhost:5984/db/_design/Reservation/_view/All_Reservations/
+    couchdb_utils.get_from_couchdb('/db/_design/Reservation/_view/All_Reservations/', function(err, reservations_response) {
+        if (err) { console.log(err); return res.send(err) }
+        else { var reservations = reservations_response.rows
+            // Find reservation
+            var res_found = 0
+            reservations.forEach(function(resr){
+                if ( resr.value.fields.email == req.body.email && resr.value.fields.dep_name == req.body.dep_name && resr.value.fields.typology == req.body.typology && resr.value.fields.space_name == req.body.space_name && resr.value.fields.start_date.Y == parseInt(req.body.start_date.Y) && resr.value.fields.start_date.M == parseInt(req.body.start_date.M) && resr.value.fields.start_date.D == parseInt(req.body.start_date.D) && resr.value.fields.start_date.h == parseInt(req.body.start_date.h) ) {
+                    res_found = 1
+                    couchdb_utils.delete_from_couchdb('/db/'+resr.id, function(err, response) {
+                        if (err) { console.log(err); return res.send(err) }
+                        else {
+                            console.log("\nReservation deleted! Increasing seat position...\n")
+                            // GET seat
+                            couchdb_utils.get_from_couchdb('/db/'+resr.value.fields.seat_id, function(err, seat_response) {
+                                if (err) { console.log(err); return res.send(err) }
+                                else { var seat = seat_response
+                                    // Decrease seat position
+                                    const decrease_st_position_postData = JSON.stringify({
+                                        "key": seat.key,
+                                        "type": "Seat",
+                                        "fields": {
+                                            "position": (seat.fields.position)-1,
+                                            "start_date": {
+                                                "Y": seat.fields.start_date.Y,
+                                                "M": seat.fields.start_date.M,
+                                                "D": seat.fields.start_date.D,
+                                                "h": seat.fields.start_date.h,
+                                                "m": seat.fields.start_date.m,
+                                                "s": seat.fields.start_date.s
+                                            },
+                                            "end_date": {
+                                                "Y": seat.fields.end_date.Y,
+                                                "M": seat.fields.end_date.M,
+                                                "D": seat.fields.end_date.D,
+                                                "h": seat.fields.end_date.h,
+                                                "m": seat.fields.end_date.m,
+                                                "s": seat.fields.end_date.s
+                                            },
+                                            "state": "Active"
+                                        },
+                                        "_rev": seat._rev
+                                    });
+                                    couchdb_utils.post_to_couchdb('/db/'+seat._id, decrease_st_position_postData, function(err, response) {
+                                        if (err) { console.log(err); return res.send(err) }
+                                        else {
+                                            console.log("\nSeat position decreased!\n")
+                                            return res.send({message: "Prenotazione eliminata correttamente!", seat_id: resr.value.fields.seat_id})
+                                        }
+                                    })
+                                }
+                            })
+                        }
+                    })
+                }
+                console.log("Reservation: "+resr.id+" [checked]")
+            })
+            console.log("\nChecked "+reservations.length+" reservations")
+            if (res_found == 0) {
+                console.log("Reservation not found!\n")
+                return res.send({message: "Prenotazione non trovata! Pre favore controlla i dati della richiesta."})
+            }
+            else { console.log("Result: Reservation found. Deleting...\n") }
+        }
+    })
+});
 
 module.exports = router;

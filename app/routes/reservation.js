@@ -140,9 +140,6 @@ router.post('/rm_res', function(req, res){
         "key": { dep_name: req.body.dep_name, typology: req.body.typology, space_name: req.body.space_name },
         "type": "Seat",
         "fields": {
-            "dep_name": req.body.dep_name,
-            "typology": req.body.typology,
-            "space_name": req.body.space_name,
             "position": (parseInt(req.body.position)-1),
             "start_date": {
                 "Y": parseInt(req.body.start_Y),

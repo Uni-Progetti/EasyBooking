@@ -68,5 +68,114 @@ router.post('/unlock', security.redirectLogin, security.isAdmin, function(req , 
   })
 });
 
+// POST remove reservation + decrease seat position
+router.post('/rm_res', function(req, res){
+  // Delete reservation
+  couchdb_utils.delete_from_couchdb('/db/'+req.body.res_id, function(err, response) {
+    if (err) {console.log(err)}
+    else {/*console.log("RESERVATION DELETED: "+req.body.res_id)*/}
+  })
+  // GET seat
+  couchdb_utils.get_from_couchdb('/db/'+req.body.seat_id, function(err, seat_response) {
+    if (err) { console.log(err) }
+    else { var seat = seat_response 
+      // Decrease seat position
+      const decrease_st_position_postData = JSON.stringify({
+        "key": seat.key,
+        "type": "Seat",
+        "fields": {
+          "position": (seat.fields.position)-1,
+          "start_date": {
+            "Y": seat.fields.start_date.Y,
+            "M": seat.fields.start_date.M,
+            "D": seat.fields.start_date.D,
+            "h": seat.fields.start_date.h,
+            "m": seat.fields.start_date.m,
+            "s": seat.fields.start_date.s
+          },
+          "end_date": {
+            "Y": seat.fields.end_date.Y,
+            "M": seat.fields.end_date.M,
+            "D": seat.fields.end_date.D,
+            "h": seat.fields.end_date.h,
+            "m": seat.fields.end_date.m,
+            "s": seat.fields.end_date.s
+          },
+          "state": "Active"
+        },
+        "_rev": seat._rev
+      });
+      couchdb_utils.post_to_couchdb('/db/'+seat._id, decrease_st_position_postData, function(err, response) {
+        if (err) {console.log(err)}
+        else { res.redirect('/admin') }
+      })
+    }
+  })
+})
+
+// POST remove department + all his spaces, seats and weekdays
+router.post('/rm_dep', function(req, res){
+  // GET all_weekdays view: http://localhost:5984/db/_design/WeekDay/_view/All_WeekDays/
+  couchdb_utils.get_from_couchdb('/db/_design/WeekDay/_view/All_WeekDays/', function(err, weekdays_response) {
+    if (err) { console.log(err) }
+    else { var weekdays = weekdays_response.rows
+      // GET all_spaces view: http://localhost:5984/db/_design/Space/_view/All_Spaces/
+      couchdb_utils.get_from_couchdb('/db/_design/Space/_view/All_Spaces/', function(err, spaces_response) {
+        if (err) { console.log(err) }
+        else { var spaces = spaces_response.rows
+          // GET all_seats view: http://localhost:5984/db/_design/Seat/_view/All_Seats/
+          couchdb_utils.get_from_couchdb('/db/_design/Seat/_view/All_Seats/', function(err, seats_response) {
+            if (err) { console.log(err) }
+            else { var seats = seats_response.rows
+              // GET all_reservations view: http://localhost:5984/db/_design/Reservation/_view/All_Reservations/
+              couchdb_utils.get_from_couchdb('/db/_design/Reservation/_view/All_Reservations/', function(err, reservations_response) {
+                if (err) { console.log(err) }
+                else { var reservations = reservations_response.rows
+                  // Delete weekdays
+                  weekdays.forEach(function(wd){
+                    if (wd.key.dep_name == req.body.dep_name) {
+                      couchdb_utils.delete_from_couchdb('/db/'+wd.id, function(err, response) {
+                        if (err) {console.log(err)}
+                      })
+                    }
+                  })
+                  // Delete spaces
+                  spaces.forEach(function(sp){
+                    if (sp.key.dep_name == req.body.dep_name) {
+                      couchdb_utils.delete_from_couchdb('/db/'+sp.id, function(err, response) {
+                        if (err) {console.log(err)}
+                      })
+                    }
+                  })
+                  // Delete seats
+                  seats.forEach(function(st){
+                    if (st.key.dep_name == req.body.dep_name) {
+                      couchdb_utils.delete_from_couchdb('/db/'+st.id, function(err, response) {
+                        if (err) {console.log(err)}
+                      })
+                    }
+                  })
+                  // Delete reservations
+                  reservations.forEach(function(res){
+                    if (res.value.fields.dep_name == req.body.dep_name) {
+                      couchdb_utils.delete_from_couchdb('/db/'+res.id, function(err, response) {
+                        if (err) {console.log(err)}
+                      })
+                    }
+                  })
+                  // Delete department
+                  couchdb_utils.delete_from_couchdb('/db/'+req.body.dep_id, function(err, response) {
+                    if (err) {console.log(err)}
+                    else { res.redirect('/admin') }
+                  })
+                }
+              })
+            }
+          })
+        }
+      })
+    }
+  })
+})
 
 module.exports = router;
