@@ -154,7 +154,7 @@ describe("Test per controllo risultati chiamata http", () => {
     it("should return the list of all reservations of a given user (email)", (done) => {
         
         chai.request("http://localhost:8080/api")
-            .get("/getReservations/fuselli.1883535@studenti.uniroma1.it")
+            .get("/getReservations")
             .set({ "Authorization": `Bearer ${access_token}` })
             .end((err, res) => {
                 if(err) {

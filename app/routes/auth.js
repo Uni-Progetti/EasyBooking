@@ -468,6 +468,7 @@ function createUser(req, res, salt, hashedPassword){
               "role": "user",
               "salt": salt,
             },
+            "locked": 'false',
             "confirmed_at": null,
             "confirmation_expires": dayjs().add(1, 'day'),
             "confirmation_token": token,
@@ -593,8 +594,19 @@ function authenticateSession(options, req, res){
           res.redirect('/login');
           return;
         };
+        if(x.locked == "true"){
+          console.log("Account bloccato");
+          req.session.message = {
+            type: 'danger',
+            intro: 'Account bloccato! ',
+            message: 'Controlla la tua email e segui le istruzioni per sbloccare il tuo account.'
+          }
+          res.redirect('/login');
+          return;
+        }
         req.session.userId = req.body.username.toLowerCase();
         req.session.username = req.body.username.toLowerCase();
+        req.session.role = x.fields.role;
         console.log('credenziali corrette');
         req.session.message = {
           type: 'info',
@@ -726,10 +738,19 @@ function getGoogleEmail(req, res, access_token, refresh_token){
           if (err) { return next(err); }
           var AddToDB = addGoogleUserToDB(x.email, access_token, refresh_token,hashedPassword,salt);
         });
+        if(AddToDB && AddToDB=="locked"){
+          req.session.message = {
+            type: 'danger',
+            intro: 'Errore autenticazione!',
+            message: 'Il tuo account è stato bloccato da un amministratore, controlla la mail per visualizzare istruzioni sullo sblocco dell\' account.'
+          }
+          return res.redirect('/login'); 
+        }
         req.session.userId = x.email;
         req.session.username = x.email;
         req.session.access_token = access_token;
         req.session.refresh_token = refresh_token;
+        req.session.role = "user";
         req.session.message = {
           type: 'info',
           intro: ' ',
@@ -796,6 +817,7 @@ function addGoogleUserToDB(email, access_token, refresh_token, hashedPassword, s
             "refresh_token": refresh_token,
             "access_token": access_token,
           },
+          "locked": 'false',
           "confirmed_at": dayjs(),
           "confirmation_expires": null,
           "confirmation_token": null,
@@ -835,55 +857,60 @@ function addGoogleUserToDB(email, access_token, refresh_token, hashedPassword, s
         request.end();
       } else {
         console.log("utente già registrato!");
-        const postData = JSON.stringify({
-          "_id": x._id,
-          "type": "User",
-          "fields": {
-            "email": x.fields.email,
-            "password": x.fields.password,
-            "role": "user",
-            "salt": x.fields.salt,
-            "refresh_token": refresh_token,
-            "access_token": access_token,
-          },
-          "confirmed_at": x.confirmed_at,
-          "confirmation_expires": x.confirmation_expires,
-          "confirmation_token": x.confirmation_token,
-          "_rev": x._rev,
-        });
-        const options = {
-          hostname: 'couchdb',
-          port: 5984,
-          path: '/db/'+email,
-          method: 'PUT',
-          auth: process.env.COUCHDB_USER+":"+process.env.COUCHDB_PASSWORD,
-          headers: {
-            'Content-Type': 'application/json',
-            'Content-Length': Buffer.byteLength(postData)
-          },
-        };
-      
-        const request = http.request(options, (out) => {
-          console.log(`STATUS: ${out.statusCode}`);
-          console.log(`HEADERS: ${JSON.stringify(out.headers)}`);
-          out.setEncoding('utf8');
-          out.on('data', (chunk) => {
-            console.log(`BODY: ${chunk}`);
+        if(x.locked=='false'){
+          const postData = JSON.stringify({
+            "_id": x._id,
+            "type": "User",
+            "fields": {
+              "email": x.fields.email,
+              "password": x.fields.password,
+              "role": "user",
+              "salt": x.fields.salt,
+              "refresh_token": refresh_token,
+              "access_token": access_token,
+            },
+            "locked": x.locked,
+            "confirmed_at": x.confirmed_at,
+            "confirmation_expires": x.confirmation_expires,
+            "confirmation_token": x.confirmation_token,
+            "_rev": x._rev,
           });
-          out.on('end', () => {
-            console.log('No more data in response.');
-            return true;
+          const options = {
+            hostname: 'couchdb',
+            port: 5984,
+            path: '/db/'+email,
+            method: 'PUT',
+            auth: process.env.COUCHDB_USER+":"+process.env.COUCHDB_PASSWORD,
+            headers: {
+              'Content-Type': 'application/json',
+              'Content-Length': Buffer.byteLength(postData)
+            },
+          };
+        
+          const request = http.request(options, (out) => {
+            console.log(`STATUS: ${out.statusCode}`);
+            console.log(`HEADERS: ${JSON.stringify(out.headers)}`);
+            out.setEncoding('utf8');
+            out.on('data', (chunk) => {
+              console.log(`BODY: ${chunk}`);
+            });
+            out.on('end', () => {
+              console.log('No more data in response.');
+              return true;
+            });
           });
-        });
-        
-        request.on('error', (e) => {
-          console.error(`problem with request: ${e.message}`);
-          return false;
-        });
-        
-        // Write data to request body
-        request.write(postData);
-        request.end();
+          
+          request.on('error', (e) => {
+            console.error(`problem with request: ${e.message}`);
+            return false;
+          });
+          
+          // Write data to request body
+          request.write(postData);
+          request.end();
+        } else {
+          return "locked"
+        }
       }
     });
   });

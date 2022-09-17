@@ -58,7 +58,7 @@ function create_seed_db(){
 function insert_views(){
 
     couch.insert(dbName, { "_id": "_design/User", "views": {
-        "0_All_Users":     { "map": "function (doc) { if (doc.type == 'User')                                emit( doc.fields.email, { email: doc.fields.email, role: doc.fields.role, password: doc.fields.password, rev: doc._rev }); }" },
+        "0_All_Users":     { "map": "function (doc) { if (doc.type == 'User')                                emit( doc.fields.email, { email: doc.fields.email, role: doc.fields.role, password: doc.fields.password, rev: doc._rev , locked: doc.locked}); }" },
         "1_Base_Users":    { "map": "function (doc) { if (doc.type == 'User' & doc.fields.role == 'user')    emit( doc.fields.email, { email: doc.fields.email, role: doc.fields.role, password: doc.fields.password, rev: doc._rev }); }" },
         "2_Manager_Users": { "map": "function (doc) { if (doc.type == 'User' & doc.fields.role == 'manager') emit( doc.fields.email, { email: doc.fields.email, role: doc.fields.role, password: doc.fields.password, rev: doc._rev }); }" },
         "3_admin_Users":   { "map": "function (doc) { if (doc.type == 'User' & doc.fields.role == 'admin')   emit( doc.fields.email, { email: doc.fields.email, role: doc.fields.role, password: doc.fields.password, rev: doc._rev }); }" },
@@ -149,6 +149,7 @@ function insert_usr(){
                 _id: usr.email,
                 type: "User",
                 fields: usr,
+                locked: false,
                 confirmed_at: dayjs(),
                 confirmation_expires: null,
                 confirmation_token: null

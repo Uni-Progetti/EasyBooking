@@ -30,6 +30,19 @@ const authenticateJWT = (req, res, next) => {
     }
 };
 
+const isAdmin = function(req, res, next){
+    if(req.session.role == "admin"){
+        next();
+    } else {
+        req.session.message = {
+            type: 'danger',
+            intro: ' ',
+            message: 'Per visualizzare la pagina devi essere un Admin!'
+          }
+        res.redirect('back');
+    }
+}
+
 /* Reindirizza al login se non autenticati. */
 const redirectLogin = function(req, res, next){
     if(!req.session.userId){
@@ -76,3 +89,4 @@ module.exports.redirectLogin = redirectLogin;
 module.exports.redirectHome = redirectHome;
 module.exports.authenticateJWT = authenticateJWT;
 module.exports.check_body = check_body;
+module.exports.isAdmin = isAdmin;

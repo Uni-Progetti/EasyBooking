@@ -346,7 +346,7 @@ router.get('/getSpaces/:typology', function(req, res){
 // effettua una prenotazione
 
 // stampa le mie prenotazioni
-router.get('/getReservations/:email', function(req, res){
+router.get('/getReservations', security.authenticateJWT ,function(req, res){
     const get_options = {
         hostname: 'couchdb',
         port: 5984,
@@ -367,7 +367,7 @@ router.get('/getReservations/:email', function(req, res){
             var x = JSON.parse(data);
             let output = {};
             let isEmpty = Object.keys(output).length === 0;
-            let usr_email = req.params.email;
+            let usr_email = req.user.username;
             x.rows.forEach(element => {
                 let department_key = element.value.fields.dep_name;
                 let element_email = element.value.fields.email;
@@ -389,7 +389,8 @@ router.get('/getReservations/:email', function(req, res){
             });
             isEmpty = Object.keys(output).length === 0;
             if (isEmpty) {
-                res.status(404).send({error: "Nessuna prenotazione trovata"});
+                res.header("Content-Type",'application/json');
+                res.status(200).send(JSON.stringify({message: "Nessuna prenotazione trovata"}, null, 4));
             }
             else {
                 res.header("Content-Type",'application/json');

@@ -17,13 +17,16 @@ block content
                             td.px-2(width="fit-content") #{usr.key}
                             td.px-2(width="fit-content") #{usr.value.role}
                             td.px-2(width="fit-content")
-                                //- if Sbloccato
-                                //-     form(action='/' method='')
-                                button.adminButtons(type='submit') Blocca
-                                //- if Bloccato
-                                //-     form(action='/' method='')
-                                //-         button.adminButtons(type='submit') Sblocca
-
+                                if usr.value.locked == 'true'
+                                    form(action='/admin/unlock' method='post')
+                                        button.adminButtons(type='submit') Sblocca
+                                        input(type="hidden" name="_csrf" value=csrfToken)
+                                        input(type="hidden" name="user_to_unlock" value=usr.key)                                   
+                                else                                       
+                                    form(action='/admin/lock' method='post')
+                                        button.adminButtons(type='submit') Blocca
+                                        input(type="hidden" name="_csrf" value=csrfToken)
+                                        input(type="hidden" name="user_to_lock" value=usr.key)  
             //- Dipartimenti
             #adminDepartments.col-lg-7.mt-3
                 h2 Dipartimenti
