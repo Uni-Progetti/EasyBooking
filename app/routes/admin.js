@@ -19,7 +19,7 @@ router.get('/', security.redirectLogin, security.isAdmin , function(req, res) {
             if (err) { console.log(err) }
             else { var users = users_response
               // Render della pagina adimin
-              res.render('admin', { title: 'Express', users: users.rows, reservations: reservations.rows, departments: departments.rows, userId: req.session.userId, csrfToken: req.csrfToken() });
+              res.render('admin', { title: 'Express', users: users.rows, reservations: reservations.rows, departments: departments.rows, userId: req.session.userId, csrfToken: req.csrfToken(),location: req.location, role: req.session.role });
             }
           })
         }

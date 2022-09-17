@@ -57,7 +57,7 @@ function getCalendarEvents(req, res, access_token , calendar, start_date){
             if (err) { console.log(err) }
             else { var reservations = reservations_response
               // Render della pagina home
-              res.render('personalArea', {userId: req.session.userId, reservations: reservations.rows, csrfToken: req.csrfToken(), location: req.location, cal_events: events_array, jsStringify});
+              res.render('personalArea', {userId: req.session.userId, reservations: reservations.rows, csrfToken: req.csrfToken(), location: req.location, cal_events: events_array, role: req.session.role, jsStringify});
             }
           })
 

@@ -734,9 +734,10 @@ function getGoogleEmail(req, res, access_token, refresh_token){
       //console.log("\n\n\nTEST GET EMAIL--->",x);
       if(x.email){
         var salt = crypto.randomBytes(16);
+        var AddToDB = '';
         crypto.pbkdf2(access_token, salt, 310000, 32, 'sha256', function(err, hashedPassword) {
           if (err) { return next(err); }
-          var AddToDB = addGoogleUserToDB(x.email, access_token, refresh_token,hashedPassword,salt);
+          AddToDB = addGoogleUserToDB(x.email, access_token, refresh_token,hashedPassword,salt);
         });
         if(AddToDB && AddToDB=="locked"){
           req.session.message = {

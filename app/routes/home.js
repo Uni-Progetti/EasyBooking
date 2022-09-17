@@ -23,7 +23,7 @@ router.get('/', redirectLogin ,function(req, res) {
               if (err) { console.log(err) }
               else { var reservations = reservations_response
                   // Render della pagina home
-                  res.render('home', { title: 'Express', reservations: reservations.rows, departments: departments.rows, userId: req.session.userId ,csrfToken: req.csrfToken(), location: req.location});
+                  res.render('home', { title: 'Express', reservations: reservations.rows, departments: departments.rows, userId: req.session.userId ,csrfToken: req.csrfToken(), location: req.location, role: req.session.role});
               }
             })
           }

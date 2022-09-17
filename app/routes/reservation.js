@@ -43,7 +43,8 @@ router.get('/', redirectLogin, function(req, res) {
                                                 sts: seats,
                                                 reservs: reservations,
                                                 csrfToken: req.csrfToken(),
-                                                location: req.location
+                                                location: req.location,
+                                                role: req.session.role
                                             })
                                         }
                                     })

@@ -57,8 +57,7 @@ html
                 a.nav-link.active(href='/info') Informazioni
               else
                 a.nav-link(href='/info') Informazioni
-            //- if """""current_user.role""""" == "admin"
-            if true
+            if role=='admin'
               li.nav-item
                 if location == 'localhost:8083/admin'
                   a.nav-link.active(href='/admin') Gestione sito
