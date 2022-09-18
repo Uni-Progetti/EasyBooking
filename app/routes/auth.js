@@ -737,27 +737,40 @@ function getGoogleEmail(req, res, access_token, refresh_token){
         var AddToDB = '';
         crypto.pbkdf2(access_token, salt, 310000, 32, 'sha256', function(err, hashedPassword) {
           if (err) { return next(err); }
-          AddToDB = addGoogleUserToDB(x.email, access_token, refresh_token,hashedPassword,salt);
+          AddToDB = addGoogleUserToDB(x.email, access_token, refresh_token,hashedPassword,salt, function(err, result){
+            if(err){
+              req.session.message = {
+                type: 'danger',
+                intro: 'Errore login con Google! ',
+                message: err
+              }
+              return res.redirect('/login');
+            }
+            if(result=="locked"){
+              req.session.message = {
+                type: 'danger',
+                intro: 'Account bloccato! ',
+                message: 'Controlla la tua email e segui le istruzioni per sbloccare il tuo account.'
+              }
+              res.redirect('/login');
+              return;
+            } else {
+              req.session.userId = x.email;
+              req.session.username = x.email;
+              req.session.access_token = access_token;
+              req.session.refresh_token = refresh_token;
+              req.session.role = result.fields.role;
+              req.session.message = {
+                type: 'info',
+                intro: ' ',
+                message: 'Login avvenuto con successo.'
+              }
+              res.redirect('/home');
+            }
+
+          });
         });
-        if(AddToDB && AddToDB=="locked"){
-          req.session.message = {
-            type: 'danger',
-            intro: 'Errore autenticazione!',
-            message: 'Il tuo account è stato bloccato da un amministratore, controlla la mail per visualizzare istruzioni sullo sblocco dell\' account.'
-          }
-          return res.redirect('/login'); 
-        }
-        req.session.userId = x.email;
-        req.session.username = x.email;
-        req.session.access_token = access_token;
-        req.session.refresh_token = refresh_token;
-        req.session.role = "user";
-        req.session.message = {
-          type: 'info',
-          intro: ' ',
-          message: 'Login avvenuto con successo.'
-        }
-        res.redirect('/home');
+        //console.log("\n\n\nAddToDB------>"+AddToDB+"\n\n\n")
       }else{
         req.session.message = {
           type: 'danger',
@@ -783,7 +796,7 @@ function getGoogleEmail(req, res, access_token, refresh_token){
 
 };
 
-function addGoogleUserToDB(email, access_token, refresh_token, hashedPassword, salt){
+function addGoogleUserToDB(email, access_token, refresh_token, hashedPassword, salt, callback){
   console.log("\n\n\n---->",email,"\n\n\n\n");
   const get_options = {
     hostname: 'couchdb',
@@ -844,13 +857,13 @@ function addGoogleUserToDB(email, access_token, refresh_token, hashedPassword, s
           });
           out.on('end', () => {
             console.log('No more data in response.');
-            return true;
+            return callback(null, true);
           });
         });
         
         request.on('error', (e) => {
           console.error(`problem with request: ${e.message}`);
-          return false;
+          return callback(e, null);
         });
         
         // Write data to request body
@@ -897,20 +910,21 @@ function addGoogleUserToDB(email, access_token, refresh_token, hashedPassword, s
             });
             out.on('end', () => {
               console.log('No more data in response.');
-              return true;
+              return callback(null, x);
             });
           });
           
           request.on('error', (e) => {
             console.error(`problem with request: ${e.message}`);
-            return false;
+            return callback(e, null);
           });
           
           // Write data to request body
           request.write(postData);
           request.end();
         } else {
-          return "locked"
+          console.log("ramo else di AddToDB")
+          return callback(null, "locked");
         }
       }
     });
@@ -918,7 +932,7 @@ function addGoogleUserToDB(email, access_token, refresh_token, hashedPassword, s
 
   usrs.on('error', error => {
     console.error(error);
-    return null;
+    return callback(err, null);
   });
 
   usrs.end();
