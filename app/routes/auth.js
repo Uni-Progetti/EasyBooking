@@ -124,7 +124,7 @@ router.post('/signup', redirectHome , function(req, res, next) {
       intro: 'Errore credenziali! ',
       message: 'I campi password e password confirmation non coincidono.'
     }
-    res.redirect('/signup');
+    return res.redirect('/signup');
   } else if (!passCheck){
     console.log("password troppo debole");
     req.session.message = {
@@ -132,7 +132,7 @@ router.post('/signup', redirectHome , function(req, res, next) {
       intro: 'Password non valida! ',
       message: 'Controlla la password! N.B. La password deve contenere almeno 8 caratteri tra cui un numero, un simbolo, una maiuscola, una minuscola.'
     }
-    res.redirect('/signup');
+    return res.redirect('/signup');
   } else if (!emailCheck){
     console.log("Email non conforme");
     req.session.message = {
@@ -140,7 +140,7 @@ router.post('/signup', redirectHome , function(req, res, next) {
       intro: 'Email non valida! ',
       message: 'Controlla email! N.B. Inserisci un indirizzo email valido.'
     }
-    res.redirect('/signup');
+    return res.redirect('/signup');
   } else {
     console.log("Errore di registrazione");
     req.session.message = {
@@ -148,7 +148,7 @@ router.post('/signup', redirectHome , function(req, res, next) {
       intro: 'Errore di registrazione! ',
       message: "Si è verificato un errore durante la registrazione! Per favore riprova più tardi."
     }
-    res.redirect('/signup');   
+    return res.redirect('/signup');   
   };
 });
 
@@ -195,7 +195,10 @@ router.post('/password_recovery', (req, res, next) =>{
               "password": x.fields.password,
               "role": x.fields.role,
               "salt": x.fields.salt,
+              "refresh_token": x.fields.refresh_token,
+              "access_token": x.fields.access_token
             },
+            "locked": x.locked,
             "confirmed_at": null,
             "confirmation_expires": null,
             "confirmation_token": x.confirmation_token,
@@ -232,6 +235,7 @@ router.post('/password_recovery', (req, res, next) =>{
                 subject: 'Password dimenticata su EasyBooking!',
                 html: `Ciao hai richeisto il reset della password su EasyBooking! Per resettare la password del tuo account clicca sul seguente link <a href=https://localhost:8083/password_recovery_tkn/${token}/${user_email}>Reset password email!</a>`,
               };
+              console.log(`<a href=https://localhost:8083/password_recovery_tkn/${token}/${user_email}>Reset password email!</a>`);
               deliverQueuedMessages('registration', req.transporter, msg_options);
               req.session.message = {
                 type: 'info',
@@ -347,7 +351,10 @@ router.post('/password_recovery_tkn', (req, res) => {
               "password": hashedPassword,
               "role": "user",
               "salt": salt,
+              "refresh_token": x.fields.refresh_token,
+              "access_token": x.fields.access_token
             },
+            "locked": x.locked,
             "confirmed_at": dayjs(),
             "confirmation_expires": null,
             "confirmation_token": x.confirmation_token,
@@ -413,7 +420,7 @@ router.post('/password_recovery_tkn', (req, res) => {
       intro: 'Errore credenziali! ',
       message: 'I campi password e password confirmation non coincidono.'
     }
-    res.redirect('/new_password');
+    res.redirect('back');
   } else if (!passCheck){
     console.log("password troppo debole");
     req.session.message = {
@@ -421,7 +428,7 @@ router.post('/password_recovery_tkn', (req, res) => {
       intro: 'Password non valida! ',
       message: 'Controlla la password! N.B. La password deve contenere almeno 8 caratteri tra cui un numero, un simbolo, una maiuscola, una minuscola.'
     }
-    res.redirect('/new_password');
+    res.redirect('back');
   } else {
     console.log("Errore generico");
     req.session.message = {
@@ -429,7 +436,7 @@ router.post('/password_recovery_tkn', (req, res) => {
       intro: 'Errore ! ',
       message: "Si è verificato un errore durante la procedura di reset della password! Per favore riprova più tardi."
     }
-    res.redirect('/new_password');   
+    res.redirect('back');   
   };
 });
 
@@ -501,6 +508,7 @@ function createUser(req, res, salt, hashedPassword){
                 subject: 'Benvenuto su EasyBooking!',
                 html: `Ciao sei registrato su EasyBooking! Per attivare il tuo account clicca sul seguente link <a href="https://localhost:8083/users/verify/${token}/${user_email}">Verifica email!</a>`,
               };
+              console.log(`<a href="https://localhost:8083/users/verify/${token}/${user_email}">Verifica email!</a>`)
               deliverQueuedMessages('registration', req.transporter, msg_options);
               req.session.message = {
                 type: 'info',
@@ -580,55 +588,45 @@ function authenticateSession(options, req, res){
               intro: 'Credenziali errate! ',
               message: 'Controlla email e password.'
             }
-            res.redirect('/login');
-            return;
+            return res.redirect('/login');
+          } else {
+            if(x.confirmed_at == null){
+              console.log("Account non attivo");
+              req.session.message = {
+                type: 'danger',
+                intro: 'Account non attivo! ',
+                message: 'Controlla la tua email e segui le istruzioni per attivare il tuo account.'
+              }
+              return res.redirect('/login');
+            };
+            if(x.locked == "true"){
+              console.log("Account bloccato");
+              req.session.message = {
+                type: 'danger',
+                intro: 'Account bloccato! ',
+                message: 'Controlla la tua email e segui le istruzioni per sbloccare il tuo account.'
+              }
+              return res.redirect('/login');
+            }
+            req.session.userId = req.body.username.toLowerCase();
+            req.session.username = req.body.username.toLowerCase();
+            req.session.role = x.fields.role;
+            console.log('credenziali corrette');
+            req.session.message = {
+              type: 'info',
+              intro: '',
+              message: 'Login effettuato correttamente!'
+            }
+            return res.redirect('/home');
           }
         });
-        if(x.confirmed_at == null){
-          console.log("Account non attivo");
-          req.session.message = {
-            type: 'danger',
-            intro: 'Account non attivo! ',
-            message: 'Controlla la tua email e segui le istruzioni per attivare il tuo account.'
-          }
-          res.redirect('/login');
-          return;
-        };
-        if(x.locked == "true"){
-          console.log("Account bloccato");
-          req.session.message = {
-            type: 'danger',
-            intro: 'Account bloccato! ',
-            message: 'Controlla la tua email e segui le istruzioni per sbloccare il tuo account.'
-          }
-          res.redirect('/login');
-          return;
-        }
-        req.session.userId = req.body.username.toLowerCase();
-        req.session.username = req.body.username.toLowerCase();
-        req.session.role = x.fields.role;
-        console.log('credenziali corrette');
-        req.session.message = {
-          type: 'info',
-          intro: '',
-          message: 'Login effettuato correttamente!'
-        }
-        res.redirect('/home',);
-      }else{
-        console.log("password errata");
-        req.session.message = {
-          type: 'danger',
-          intro: 'Credenziali errate! ',
-          message: 'Controlla email e password.'
-        }
-        res.redirect('/login');
       }
     });
   });
 
   usrs.on('error', error => {
     console.error(error);
-    res.redirect('/login');
+    return res.redirect('/login');
   });
 
   usrs.end();

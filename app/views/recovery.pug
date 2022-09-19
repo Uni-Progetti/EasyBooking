@@ -6,11 +6,11 @@ block content
 			h1 Cambia password
 			form(action='/password_recovery' method='post')
 
-			label.mt-2(for='username') Username
-			input#username(name='username' type='text' autocomplete='username' required='' autofocus='')
-			input(type='hidden' name='_csrf' value=csrfToken)
+				label.mt-2(for='username') Username
+				input#username(name='username' type='text' autocomplete='username' required='' autofocus='')
+				input(type='hidden' name='_csrf' value=csrfToken)
 
-			button.mt-4(type='submit') Invia
+				button.mt-4(type='submit') Invia
 
 			hr
 			p.help
