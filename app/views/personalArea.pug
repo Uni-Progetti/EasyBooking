@@ -41,21 +41,21 @@ block content
                 .row.mt-3.mx-0(style="height: fit-content")
                     .col-lg-8.pt-2
                         h3 Le tue prenotazioni
-                    .col-lg-4
+                    .col-lg-4.px-0
                         form(action='/reservation' method='get')
-                            button(type='submit') Prenota
+                            button(type='submit') Nuova prenotazione
 
                     table.mt-3
-                        tr#personalAreaReservationsTr
+                        tr#personalAreaReservationsTh
                             th.px-2 Dipartimento
-                            th.px-2 Aula
+                            th.px-2 Tipologia
                             th.px-2 Spazio
                             th.px-2 Posto
-                            th.px-2 Data
-                            th.px-2 Ora inizio
-                            th.px-2 Ora fine
-                            th.px-2 Sincronizzata
-                            th.px-2 Sincronizza
+                            th.px-2 G/M/A
+                            th.px-2 Inizio
+                            th.px-2 Fine
+                            th.px-2 GoogleCalendar
+                            th.px-2 Elimina
                         each res in reservations
                             if (res.value.fields.email == userId)
                                 tr#personalAreaReservationsTr
@@ -63,10 +63,9 @@ block content
                                     td.px-2(width="fit-content") #{res.value.fields.typology}
                                     td.px-2(width="fit-content") #{res.value.fields.space_name}
                                     td.px-2(width="fit-content") #{res.value.fields.seat_number}
-                                    td.px-2(width="fit-content") #{res.value.fields.start_date.D+'/'+res.value.fields.start_date.M+'/'+res.value.fields.start_date.Y}
-                                    td.px-2(width="fit-content") #{res.value.fields.start_date.h}
-                                    td.px-2(width="fit-content") #{res.value.fields.end_date.h}
-                                    td.px-2(width="fit-content") #{(res.value.fields.is_sync)? "Si":"No"}
+                                    td.px-2(width="fit-content") #{res.value.fields.start_date.D+'/'+res.value.fields.start_date.M+'/'+(res.value.fields.start_date.Y-2000)}
+                                    td.px-2(width="fit-content") #{res.value.fields.start_date.h}:00
+                                    td.px-2(width="fit-content") #{res.value.fields.end_date.h}:00
                                     td.px-2(width="fit-content")
                                         form(action='/personalArea/sync_events' method='post')
                                             input(type='hidden' value=access_token name='access_token')
@@ -76,3 +75,9 @@ block content
                                                 input.adminButtons(type='submit' value='Sincronizza')
                                             else
                                                 input.adminButtons(type='submit' value='Desincronizza')
+                                    td.px-2(width="fit-content")
+                                        form(method="post" action="/personalArea/rm_res")
+                                            input(type="hidden" value=csrfToken                        name="_csrf")
+                                            input(type="hidden" value=String(res.id)                   name="res_id")
+                                            input(type="hidden" value=String(res.value.fields.seat_id) name="seat_id")
+                                            input.adminButtons(type='submit' value="X")

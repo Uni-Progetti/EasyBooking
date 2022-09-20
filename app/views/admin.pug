@@ -15,20 +15,26 @@ block content
                         .col-lg-3.px-2.pt-1.h6 S/Blocca
                 .adminGridBody
                     each usr in users
-                        .row#adminUsersRow
-                            .col-lg-7.px-2(width="fit-content") #{usr.key}
-                            .col-lg-2.px-2(width="fit-content") #{usr.value.role}
-                            .col-lg-3.px-2(width="fit-content")
-                                if usr.value.locked == 'true'
-                                    form(action='/admin/unlock' method='post')
-                                        button.adminButtons(type='submit') Sblocca
-                                        input(type="hidden" name="_csrf" value=csrfToken)
-                                        input(type="hidden" name="user_to_unlock" value=usr.key)
-                                else
-                                    form(action='/admin/lock' method='post')
-                                        button.adminButtons(type='submit') Blocca
-                                        input(type="hidden" name="_csrf" value=csrfToken)
-                                        input(type="hidden" name="user_to_lock" value=usr.key)
+                        if userId != usr.key
+                            .row#adminUsersRow
+                                .col-lg-7.px-2(width="fit-content") #{usr.key}
+                                .col-lg-2.px-2(width="fit-content")
+                                    if usr.value.role == "admin"
+                                        p.mb-3 #{usr.value.role}
+                                    else
+                                        | #{usr.value.role}
+                                .col-lg-3.px-2(width="fit-content")
+                                    if usr.value.role != "admin"
+                                        if usr.value.locked == 'true'
+                                            form(action='/admin/unlock' method='post')
+                                                button.adminButtons(type='submit') Sblocca
+                                                input(type="hidden" name="_csrf" value=csrfToken)
+                                                input(type="hidden" name="user_to_unlock" value=usr.key)
+                                        else
+                                            form(action='/admin/lock' method='post')
+                                                button.adminButtons(type='submit') Blocca
+                                                input(type="hidden" name="_csrf" value=csrfToken)
+                                                input(type="hidden" name="user_to_lock" value=usr.key)
 
             //- Dipartimenti
             #adminDepartments.col-lg-7.mt-3.px-0

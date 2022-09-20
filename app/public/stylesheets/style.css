@@ -65,14 +65,15 @@ input[type=email]:not(:focus):invalid, input[type=password]:not(:focus):invalid 
 #alertMessages {
 	width: fit-content;
 	left: 20px;
-	top: 105px;
-	background-color: rgba(209, 253, 255, 0.852);
+	top: 110px;
+	z-index: 1000;
 	position: fixed;
 }
 
 /* NAVBAR */
 #topNavbar {
 	width: 100%;
+	z-index: 1000;
 	position: fixed;
 }
 
@@ -112,13 +113,14 @@ p.help {
 
 /* PERSONAL AREA */
 #personalArea { width: 97%; }
-#personalAreaReservations {}
-#personalAreaReservationsTr {
+#personalAreaReservationsTr, #personalAreaReservationsTh {
 	width: 100%;
 	border: solid 1px;
 	border-color: lightgray;
 }
-#personalAreaCalendar {}
+#personalAreaReservationsTr:hover {
+	background-color: #e9e9e9;
+}
 .fc-theme-standard {
 	border: solid 1px;
 	border-color: lightgrey;
@@ -134,17 +136,19 @@ p.help {
 
 
 /* ADMIN */
-#admin { width: 80%; }
+#admin { width: 90%; }
 #adminReservationsRow, #adminDepartmentsRow, #adminUsersRow {
 	border-bottom: solid 1px;
 	border-color: lightgray;
 }
 #adminReservationsRow:hover, #adminDepartmentsRow:hover, #adminUsersRow:hover { background-color: #e9e9e9; }
-.adminGridHead, .adminGridBody {
+.adminGridHead {
+	padding: 0px 15px 5px 15px;
+}
+.adminGridBody {
 	overflow-y: scroll;
 	padding: 0px 2px 5px 15px;
 }
-.adminGridHead { height: 38px; }
 .adminGridBody { height: 200px; }
 .adminButtons {
 	width: 100%;

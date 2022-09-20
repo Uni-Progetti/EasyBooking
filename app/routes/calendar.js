@@ -39,8 +39,6 @@ router.get('/:access_token', function(req, res) {
     usrs.end();
 });
 
-
-
 router.post('/', function(req, res) {
     const postData = JSON.stringify({
         'summary': 'Google I/O 2015',
@@ -61,8 +59,8 @@ router.post('/', function(req, res) {
         'reminders': {
             'useDefault': false,
             'overrides': [
-            {'method': 'email', 'minutes': 24 * 60},
-            {'method': 'popup', 'minutes': 10},
+                {'method': 'email', 'minutes': 24 * 60},
+                {'method': 'popup', 'minutes': 10},
             ],
         },
     });
@@ -100,9 +98,5 @@ router.post('/', function(req, res) {
     usrs.write(postData);
     usrs.end();
 });
-
-
-
-
 
 module.exports = router;

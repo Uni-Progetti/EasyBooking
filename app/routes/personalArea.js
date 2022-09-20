@@ -45,11 +45,7 @@ function getCalendarEvents(req, res, access_token, calendar, start_date){
 				let inizio = element.start.dateTime;
 				let fine = element.end.dateTime;
 
-				events_array.push({
-					title : titolo,
-					start : inizio,
-					end :   fine
-				});
+				events_array.push({ title: titolo, start: inizio, end:   fine });
 			});
 
 			// GET all_reservations view: http://localhost:5984/db/_design/Reservation/_view/All_Reservations/
@@ -57,20 +53,11 @@ function getCalendarEvents(req, res, access_token, calendar, start_date){
 				if (err) { console.log(err) }
 				else { var reservations = reservations_response
 				reservations.rows.forEach(element => {
-					console.log('°°°°°-----°°°°°');
-					console.log(element.value.fields);
-					let tit = element.value.fields.dep_name + ' - ' + element.value.fields.typology + ' ' + element.value.fields.space_name;
+					let tit = element.value.fields.dep_name+': '+element.value.fields.typology+' - '+element.value.fields.space_name;
 					let ini = String(element.value.fields.start_date.Y)+'-'+((String(element.value.fields.start_date.M).length == 1)? "0"+String(element.value.fields.start_date.M):String(element.value.fields.start_date.M))+'-'+((String(element.value.fields.start_date.D).length == 1)? "0"+String(element.value.fields.start_date.D):String(element.value.fields.start_date.D))+'T'+((String(element.value.fields.start_date.h).length == 1)? "0"+String(element.value.fields.start_date.h):String(element.value.fields.start_date.h))+':00:00';
 					let fin = String(element.value.fields.end_date.Y)+'-'+((String(element.value.fields.end_date.M).length == 1)? "0"+String(element.value.fields.end_date.M):String(element.value.fields.end_date.M))+'-'+((String(element.value.fields.end_date.D).length == 1)? "0"+String(element.value.fields.end_date.D):String(element.value.fields.end_date.D))+'T'+((String(element.value.fields.end_date.h).length == 1)? "0"+String(element.value.fields.end_date.h):String(element.value.fields.end_date.h))+':00:00';
-					console.log(tit);
-					console.log(ini);
-					console.log(fin);
 
-					events_array.push({
-						title : tit,
-						start : ini,
-						end :   fin
-					});
+					events_array.push({ title: tit, start: ini, end: fin });
 				});
 				// Render della pagina home
 				res.render('personalArea', {userId: req.session.userId, reservations: reservations.rows, csrfToken: req.csrfToken(), location: req.location, cal_events: events_array, role: req.session.role, access_token: access_token, jsStringify});
@@ -87,7 +74,7 @@ function getCalendarEvents(req, res, access_token, calendar, start_date){
 };
 
 
-// POST
+// POST sync reservation on calendar
 router.post('/sync_events', function(req, res) {
   	var access_token = req.body.access_token;
 	console.log('-°-°-°-°-')
@@ -102,7 +89,7 @@ router.post('/sync_events', function(req, res) {
 		console.log('fine : ', ress.value.fields.end_date);
 
 		const postData = JSON.stringify({
-			'summary': `${ress.value.fields.dep_name + ' - ' + ress.value.fields.typology + ' ' + ress.value.fields.space_name}`,
+			'summary': `${ress.value.fields.dep_name+': '+ress.value.fields.typology+' - '+ress.value.fields.space_name}`,
 			'start': { 
 				'dateTime': `${String(ress.value.fields.start_date.Y)+'-'+((String(ress.value.fields.start_date.M).length == 1)? "0"+String(ress.value.fields.start_date.M):String(ress.value.fields.start_date.M))+'-'+((String(ress.value.fields.start_date.D).length == 1)? "0"+String(ress.value.fields.start_date.D):String(ress.value.fields.start_date.D))+'T'+((String(ress.value.fields.start_date.h).length == 1)? "0"+String(ress.value.fields.start_date.h):String(ress.value.fields.start_date.h))+':00:00'}`,
 				'timeZone': 'Europe/Rome',
@@ -166,9 +153,7 @@ router.post('/sync_events', function(req, res) {
 				});
 				couchdb_utils.post_to_couchdb('/db/'+ress.id, to_sync_postData, function(err, response) {
 					if (err) {console.log(err)}
-					else {
-						res.redirect('/personalArea');
-					}
+					else { res.redirect('/personalArea') }
 				})
 			});
 		});
@@ -182,5 +167,51 @@ router.post('/sync_events', function(req, res) {
 		usrs.end();
 	}
 });
+
+module.exports = router;
+// POST remove reservation + decrease seat position
+router.post('/rm_res', function(req, res){
+  // Delete reservation
+  couchdb_utils.delete_from_couchdb('/db/'+req.body.res_id, function(err, response) {
+    if (err) {console.log(err)}
+    else {/*console.log("RESERVATION DELETED: "+req.body.res_id)*/}
+  })
+  // GET seat
+  couchdb_utils.get_from_couchdb('/db/'+req.body.seat_id, function(err, seat_response) {
+    if (err) { console.log(err) }
+    else { var seat = seat_response 
+      // Decrease seat position
+      const decrease_st_position_postData = JSON.stringify({
+        "key": seat.key,
+        "type": "Seat",
+        "fields": {
+          "position": (seat.fields.position)-1,
+          "start_date": {
+            "Y": seat.fields.start_date.Y,
+            "M": seat.fields.start_date.M,
+            "D": seat.fields.start_date.D,
+            "h": seat.fields.start_date.h,
+            "m": seat.fields.start_date.m,
+            "s": seat.fields.start_date.s
+          },
+          "end_date": {
+            "Y": seat.fields.end_date.Y,
+            "M": seat.fields.end_date.M,
+            "D": seat.fields.end_date.D,
+            "h": seat.fields.end_date.h,
+            "m": seat.fields.end_date.m,
+            "s": seat.fields.end_date.s
+          },
+          "state": "Active"
+        },
+        "_rev": seat._rev
+      });
+      couchdb_utils.post_to_couchdb('/db/'+seat._id, decrease_st_position_postData, function(err, response) {
+        if (err) {console.log(err)}
+        else { res.redirect('/personalArea') }
+      })
+    }
+  })
+})
 
 module.exports = router;

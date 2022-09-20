@@ -129,12 +129,12 @@ function insert_usr(){
             { email: "fra.user@gmail.com",        password: hashedPassword, role: 'user',    salt: defSalt, refresh_token: '', access_token: '' },
             { email: "matteo.user@gmail.com",     password: hashedPassword, role: 'user',    salt: defSalt, refresh_token: '', access_token: '' },
             { email: "michela.user@gmail.com",    password: hashedPassword, role: 'user',    salt: defSalt, refresh_token: '', access_token: '' },
-            { email: "donia.user@gmail.com",      password: hashedPassword, role: 'user',    salt: defSalt, refresh_token: '', access_token: '' },
+            { email: "temp.user@gmail.com",      password: hashedPassword, role: 'user',    salt: defSalt, refresh_token: '', access_token: '' },
     
             { email: "fra.manager@gmail.com",     password: hashedPassword, role: 'manager', salt: defSalt, refresh_token: '', access_token: '' },
             { email: "matteo.manager@gmail.com",  password: hashedPassword, role: 'manager', salt: defSalt, refresh_token: '', access_token: '' },
             { email: "michela.manager@gmail.com", password: hashedPassword, role: 'manager', salt: defSalt, refresh_token: '', access_token: '' },
-            { email: "donia.manager@gmail.com",   password: hashedPassword, role: 'manager', salt: defSalt, refresh_token: '', access_token: '' },
+            { email: "temp.manager@gmail.com",   password: hashedPassword, role: 'manager', salt: defSalt, refresh_token: '', access_token: '' },
             { email: "test.manager@gmail.com",    password: hashedPassword, role: 'manager', salt: defSalt, refresh_token: '', access_token: '' },
 
             { email: "fra.admin@gmail.com",       password: hashedPassword, role: 'admin',   salt: defSalt, refresh_token: '', access_token: '' },
@@ -164,7 +164,7 @@ function insert_usr(){
 // Inserisce i dipartimenti nel db e chiama insert_sp_wd_seat
 function insert_dep(){
 
-    const man_usr_set = { fra_man: "fra.manager@gmail.com", mat_man: "matteo.manager@gmail.com", mic_man: "michela.manager@gmail.com", don_man: "donia.manager@gmail.com", }
+    const man_usr_set = { fra_man: "fra.manager@gmail.com", mat_man: "matteo.manager@gmail.com", mic_man: "michela.manager@gmail.com", don_man: "temp.manager@gmail.com", }
     const dep_set = [
         // Scorri per vedere tutte le informazioni ->-->-->-->-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------->
         { key: "Dipartimento di Francesco",
@@ -173,8 +173,8 @@ function insert_dep(){
             fields: { manager: man_usr_set.mat_man, floors: 4, number_of_spaces: 4, via: "Viale dello Scalo S. Lorenzo", civico: "82", cap: "00159", citta: "Roma",            provincia: "RM", latitude: "41.896866",   longitude: "12.5214067",    description: "Per gestire o testare questo dipartimento accedi come 'matteo.manager@gmail.com'"  }},
         { key: "Dipartimento di Michela",
             fields: { manager: man_usr_set.mic_man, floors: 4, number_of_spaces: 4, via: "Borgo Garibaldi",              civico: "12", cap: "00041", citta: " Albano Laziale", provincia: "RM", latitude: "41.748959",  longitude: "12.648700",  description: "Per gestire o testare questo dipartimento accedi come 'michela.manager@gmail.com'" }},
-        { key: "Dipartimento di Donia",
-            fields: { manager: man_usr_set.don_man, floors: 4, number_of_spaces: 4, via: "Via mura dei francesi",        civico: "10", cap: "00043", citta: "Ciampino",        provincia: "RM", latitude: "41.7980456",   longitude: "12.6067009",   description: "Per gestire o testare questo dipartimento accedi come 'donia.manager@gmail.com'"   }}
+        { key: "Dipartimento di temp",
+            fields: { manager: man_usr_set.don_man, floors: 4, number_of_spaces: 4, via: "Via mura dei francesi",        civico: "10", cap: "00043", citta: "Ciampino",        provincia: "RM", latitude: "41.7980456",   longitude: "12.6067009",   description: "Per gestire o testare questo dipartimento accedi come 'temp.manager@gmail.com'"   }}
     ]
 
     dep_set.forEach(function(dep){

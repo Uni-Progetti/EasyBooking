@@ -613,20 +613,21 @@ router.post('/rm_res', function(req, res){
     couchdb_utils.get_from_couchdb('/db/_design/Reservation/_view/All_Reservations/', function(err, reservations_response) {
         if (err) { console.log(err); return res.send(err) }
         else { var reservations = reservations_response.rows
-            // Find reservation
+            // Cerca la prenotazione da eliminare
             var res_found = 0
             reservations.forEach(function(resr){
+                // Se la trovo
                 if ( resr.value.fields.email == req.body.email && resr.value.fields.dep_name == req.body.dep_name && resr.value.fields.typology == req.body.typology && resr.value.fields.space_name == req.body.space_name && resr.value.fields.start_date.Y == parseInt(req.body.start_date.Y) && resr.value.fields.start_date.M == parseInt(req.body.start_date.M) && resr.value.fields.start_date.D == parseInt(req.body.start_date.D) && resr.value.fields.start_date.h == parseInt(req.body.start_date.h) ) {
-                    res_found = 1
+                    res_found = 1 // Serve per il console.log()
+                    // Elimino la prenotazione
                     couchdb_utils.delete_from_couchdb('/db/'+resr.id, function(err, response) {
                         if (err) { console.log(err); return res.send(err) }
                         else {
                             console.log("\nReservation deleted! Increasing seat position...\n")
-                            // GET seat
+                            // Una volta eliminata, aggiorno la disponibilità del posto
                             couchdb_utils.get_from_couchdb('/db/'+resr.value.fields.seat_id, function(err, seat_response) {
                                 if (err) { console.log(err); return res.send(err) }
                                 else { var seat = seat_response
-                                    // Decrease seat position
                                     const decrease_st_position_postData = JSON.stringify({
                                         "key": seat.key,
                                         "type": "Seat",
@@ -652,6 +653,7 @@ router.post('/rm_res', function(req, res){
                                         },
                                         "_rev": seat._rev
                                     });
+                                    // Aggiornamento
                                     couchdb_utils.post_to_couchdb('/db/'+seat._id, decrease_st_position_postData, function(err, response) {
                                         if (err) { console.log(err); return res.send(err) }
                                         else {
@@ -667,6 +669,7 @@ router.post('/rm_res', function(req, res){
                 console.log("Reservation: "+resr.id+" [checked]")
             })
             console.log("\nChecked "+reservations.length+" reservations")
+            // Se non ha trovato la prenotazione notifica il richiedente
             if (res_found == 0) {
                 console.log("Reservation not found!\n")
                 return res.send({message: "Prenotazione non trovata! Pre favore controlla i dati della richiesta."})
