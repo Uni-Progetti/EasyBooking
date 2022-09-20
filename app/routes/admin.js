@@ -3,6 +3,10 @@ var router = express.Router();
 var http = require('http');
 const couchdb_utils = require("../couchdb_utils.js")
 const security = require("../security.js");
+const amqplib = require('amqplib');
+const amqpUrl = process.env.AMQP_URL || 'amqp://localhost:5673';
+var amqp = require('amqplib/callback_api');
+const dayjs = require('dayjs');
 
 /* GET admin page. */
 router.get('/', security.redirectLogin, security.isAdmin , function(req, res) {
@@ -43,6 +47,14 @@ router.post('/lock', security.redirectLogin, security.isAdmin, function(req , re
         intro: ' ',
         message: `Utente ${user_to_lock} bloccato con successo!`
       }
+      queueLockEmail(user_to_lock);
+      let msg_options={
+        from: 'easybooking.adm@gmail.com',
+        to: user_to_lock,
+        subject: 'Account EasyBooking bloccato!',
+        html: `Ciao ${user_to_lock} ci dispiace informarti che il tuo account è stato bloccato! Puo contattare un amministratore scrivendo a easybooking.adm@gmail.com e procedere con lo sblocco del tuo account.`,
+      };
+      deliverQueuedMessages('lock', req.transporter, msg_options);
       res.redirect('back');
     })
   })
@@ -63,6 +75,14 @@ router.post('/unlock', security.redirectLogin, security.isAdmin, function(req , 
         intro: ' ',
         message: `Utente ${user_to_unlock} sbloccato con successo!`
       }
+      queueLockEmail(user_to_unlock);
+      let msg_options={
+        from: 'easybooking.adm@gmail.com',
+        to: user_to_unlock,
+        subject: 'Account EasyBooking sbloccato!',
+        html: `Ciao ${user_to_unlock} siamo felici di informarti che il tuo account è stato sbloccato! Puoi effettuare l'accesso qui. <a href="https://localhost:8083/login">Accedi ad EasyBooking!</a>`,
+      };
+      deliverQueuedMessages('lock', req.transporter, msg_options);
       res.redirect('back');
     })
   })
@@ -177,5 +197,76 @@ router.post('/rm_dep', function(req, res){
     }
   })
 })
+
+function queueLockEmail(username){
+  amqp.connect(process.env.AMQP_URL, function(error0, connection) {
+    if (error0) {
+      throw error0;
+    }
+    connection.createChannel(function(error1, channel) {
+      if (error1) {
+        throw error1;
+      }
+      var queue = 'lock';
+      var msg = process.argv.slice(2).join(' ') || "Accesso al sito bloccato per: "+username;
+  
+      channel.assertQueue(queue, {
+        durable: true
+      });
+      let sent = channel.sendToQueue(queue, Buffer.from(msg), {
+        persistent: true
+      });
+      if (sent){
+        console.log(" [x] Sent '%s'", msg);
+      };
+      
+    });
+    setTimeout(function() {
+      connection.close();
+      //process.exit(0)
+    }, 500);
+  });
+};
+
+function deliverQueuedMessages(queue, transporter, msg_options){
+  amqp.connect(process.env.AMQP_URL, function(error0, connection) {
+    if (error0) {
+      throw error0;
+    }
+    connection.createChannel(function(error1, channel) {
+      if (error1) {
+        throw error1;
+      }
+  
+      channel.assertQueue(queue, {
+        durable: true
+      });
+      channel.prefetch(1);
+      console.log(" [*] Waiting for messages in %s.", queue);
+      channel.consume(queue, function(msg) {
+        var secs = msg.content.toString().split('.').length - 1;
+
+        transporter.sendMail(msg_options, function (err, info) {
+          if (err) {
+            res.json(err);
+          } else {
+            res.json(info);
+            channel.ack(msg);
+          }
+        });
+
+        console.log(" [x] Received %s", msg.content.toString());
+        setTimeout(function() {
+          console.log(" [x] Done");
+          channel.ack(msg);
+        }, secs * 1000);
+      }, {
+        // manual acknowledgment mode,
+        // see ../confirms.html for details
+        noAck: false
+      });
+    });
+  });
+}
 
 module.exports = router;
