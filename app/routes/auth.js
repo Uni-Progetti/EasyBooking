@@ -4,6 +4,7 @@ var crypto = require('crypto');
 // const { render } = require('../app');
 const http = require('http');
 const https = require('https');
+const axios = require('axios');
 const amqplib = require('amqplib');
 const amqpUrl = process.env.AMQP_URL || 'amqp://localhost:5673';
 var amqp = require('amqplib/callback_api');
@@ -112,11 +113,35 @@ router.post('/signup', redirectHome , function(req, res, next) {
   var passCheck = CheckPassword(req.body.password);
   var emailCheck = CheckEmail(req.body.username);
   if(req.body.username && req.body.password && req.body.password_confirmation && req.body.password_confirmation==req.body.password && passCheck && emailCheck){
-    var salt = crypto.randomBytes(16);
-    crypto.pbkdf2(req.body.password, salt, 310000, 32, 'sha256', function(err, hashedPassword) {
-      if (err) { return next(err); }
-      createUser(req, res, salt, hashedPassword);
+    axios.get(`https://emailvalidation.abstractapi.com/v1/?api_key=${process.env.ABSTRACT_API_KEY}&email=${req.body.username}`)
+    .then(response => {
+        console.log(response.data.deliverability);
+        if(response.data.deliverability=='DELIVERABLE'){
+          var salt = crypto.randomBytes(16);
+          crypto.pbkdf2(req.body.password, salt, 310000, 32, 'sha256', function(err, hashedPassword) {
+            if (err) { return next(err); }
+            createUser(req, res, salt, hashedPassword);
+          });
+        } else {
+          req.session.message = {
+            type: 'danger',
+            intro: 'L\'indirizzo mail inserito non è valido ',
+            message: 'Inserisci un indirizzo mail valido.'
+          }
+          return res.redirect('back');
+        }
+    })
+    .catch(error => {
+        console.log(error);
+        console.log("Errore di registrazione");
+        req.session.message = {
+          type: 'danger',
+          intro: 'Errore di registrazione! ',
+          message: "Si è verificato un errore durante la registrazione! Per favore riprova più tardi."
+        }
+        return res.redirect('/signup');
     });
+
   } else if (!(req.body.password_confirmation==req.body.password)){
     console.log("password e password confirmation non coincidono");
     req.session.message = {

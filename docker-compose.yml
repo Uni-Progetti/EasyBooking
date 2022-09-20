@@ -45,6 +45,7 @@ services:
       APP_EMAIL_PASS: ${APP_EMAIL_PASS}
       ACCESS_TOKEN_SECRET: ${ACCESS_TOKEN_SECRET}
       REFRESH_TOKEN_SECRET: ${REFRESH_TOKEN_SECRET}
+      ABSTRACT_API_KEY: ${ABSTRACT_API_KEY}
       INSTANCE: app1
     networks:
       - app-network
@@ -70,6 +71,7 @@ services:
       APP_EMAIL_PASS: ${APP_EMAIL_PASS}
       ACCESS_TOKEN_SECRET: ${ACCESS_TOKEN_SECRET}
       REFRESH_TOKEN_SECRET: ${REFRESH_TOKEN_SECRET}
+      ABSTRACT_API_KEY: ${ABSTRACT_API_KEY}
       INSTANCE: app2
     networks:
       - app-network
@@ -95,6 +97,7 @@ services:
       APP_EMAIL_PASS: ${APP_EMAIL_PASS}
       ACCESS_TOKEN_SECRET: ${ACCESS_TOKEN_SECRET}
       REFRESH_TOKEN_SECRET: ${REFRESH_TOKEN_SECRET}
+      ABSTRACT_API_KEY: ${ABSTRACT_API_KEY}
       INSTANCE: app3
     networks:
       - app-network
@@ -119,6 +122,7 @@ services:
       APP_EMAIL_PASS: ${APP_EMAIL_PASS}
       ACCESS_TOKEN_SECRET: ${ACCESS_TOKEN_SECRET}
       REFRESH_TOKEN_SECRET: ${REFRESH_TOKEN_SECRET}
+      ABSTRACT_API_KEY: ${ABSTRACT_API_KEY}
     networks:
       - app-network
   

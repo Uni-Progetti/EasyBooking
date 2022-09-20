@@ -170,11 +170,11 @@ function insert_dep(){
         { key: "Dipartimento di Francesco",
             fields: { manager: man_usr_set.fra_man, floors: 4, number_of_spaces: 4, via: "Piazzale Aldo Moro",           civico: "5",  cap: "00185", citta: "Roma",            provincia: "RM", latitude: "41.9012777", longitude: "12.5145879", description: "Per gestire o testare questo dipartimento accedi come 'fra.manager@gmail.com'"     }},
         { key: "Dipartimento di Matteo",
-            fields: { manager: man_usr_set.mat_man, floors: 4, number_of_spaces: 4, via: "Viale dello Scalo S. Lorenzo", civico: "82", cap: "00159", citta: "Roma",            provincia: "RM", latitude: "41.89684",   longitude: "12.5213",    description: "Per gestire o testare questo dipartimento accedi come 'matteo.manager@gmail.com'"  }},
+            fields: { manager: man_usr_set.mat_man, floors: 4, number_of_spaces: 4, via: "Viale dello Scalo S. Lorenzo", civico: "82", cap: "00159", citta: "Roma",            provincia: "RM", latitude: "41.896866",   longitude: "12.5214067",    description: "Per gestire o testare questo dipartimento accedi come 'matteo.manager@gmail.com'"  }},
         { key: "Dipartimento di Michela",
             fields: { manager: man_usr_set.mic_man, floors: 4, number_of_spaces: 4, via: "Borgo Garibaldi",              civico: "12", cap: "00041", citta: " Albano Laziale", provincia: "RM", latitude: "41.748959",  longitude: "12.648700",  description: "Per gestire o testare questo dipartimento accedi come 'michela.manager@gmail.com'" }},
         { key: "Dipartimento di Donia",
-            fields: { manager: man_usr_set.don_man, floors: 4, number_of_spaces: 4, via: "Via mura dei francesi",        civico: "10", cap: "00043", citta: "Ciampino",        provincia: "RM", latitude: "41.80299",   longitude: "12.59893",   description: "Per gestire o testare questo dipartimento accedi come 'donia.manager@gmail.com'"   }}
+            fields: { manager: man_usr_set.don_man, floors: 4, number_of_spaces: 4, via: "Via mura dei francesi",        civico: "10", cap: "00043", citta: "Ciampino",        provincia: "RM", latitude: "41.7980456",   longitude: "12.6067009",   description: "Per gestire o testare questo dipartimento accedi come 'donia.manager@gmail.com'"   }}
     ]
 
     dep_set.forEach(function(dep){
