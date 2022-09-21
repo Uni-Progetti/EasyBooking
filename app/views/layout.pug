@@ -80,16 +80,16 @@ html
   if message
     if message.type=='danger'
       div#alertMessages(class= "alert alert-danger alert-dismissible fade show" role='alert')
-        strong #{message.intro} #{message.message}
-        button.btn-close(type='button' data-bs-dismiss='alert' aria-label='Close')
+        strong.px-2 #{message.intro} #{message.message}
+        button.btn-close(type='button' data-bs-dismiss='alert' aria-label='Close' style="margin 10px")
     else if message.type=='warning'
       div#alertMessages(class= "alert alert-warning alert-dismissible fade show" role='alert')
-        strong #{message.intro} #{message.message}
-        button.btn-close(type='button' data-bs-dismiss='alert' aria-label='Close')
+        strong.px-2 #{message.intro} #{message.message}
+        button.btn-close(type='button' data-bs-dismiss='alert' aria-label='Close' style="margin 10px")
     else
       div#alertMessages(class= "alert alert-info alert-dismissible fade show" role='alert')
-        strong #{message.intro} #{message.message}
-        button.btn-close(type='button' data-bs-dismiss='alert' aria-label='Close')
+        strong.px-2 #{message.intro} #{message.message}
+        button.btn-close(type='button' data-bs-dismiss='alert' aria-label='Close' style="margin 10px")
 
   .prompt
     block content

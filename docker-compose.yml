@@ -1,7 +1,6 @@
 version: "3.8"
-
 services:
-  
+
   nginx:
     container_name: 'nginx'
     build:
@@ -23,7 +22,7 @@ services:
       - "8083:443"
     networks:
       - app-network
-      
+
   app1:
     image: node:16
     container_name: 'app1'
@@ -125,7 +124,7 @@ services:
       ABSTRACT_API_KEY: ${ABSTRACT_API_KEY}
     networks:
       - app-network
-  
+
   rabbitmq:
     image: rabbitmq:3-management-alpine
     container_name: 'rabbitmq'

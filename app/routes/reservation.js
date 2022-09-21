@@ -1,19 +1,11 @@
 var express = require('express');
 var router = express.Router();
 var http = require('http');
+const security = require("../security.js")
 const couchdb_utils = require("../couchdb_utils.js")
 
-/* Reindirizza al login se non autenticati. */
-const redirectLogin = function(req, res, next){
-    if(!req.session.userId){
-        res.redirect('/login');
-    } else {
-        next();
-    }
-}
-
 // GET reservation page
-router.get('/', redirectLogin, function(req, res) {
+router.get('/', security.redirectLogin, function(req, res) {
     // GET all_departments view: http://localhost:5984/db/_design/Department/_view/All_Departments/
     couchdb_utils.get_from_couchdb('/db/_design/Department/_view/All_Departments/', function(err, departments_response) {
         if (err) { console.log(err) }

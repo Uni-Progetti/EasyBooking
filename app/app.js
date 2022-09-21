@@ -1,19 +1,20 @@
-const jwt = require('jsonwebtoken');
-const bodyParser = require('body-parser');
-const createError = require('http-errors');
-const csrf = require('csurf');
-const cors = require('cors');
-const express = require('express');
-const path = require('path');
-const cookieParser = require('cookie-parser');
-const logger = require('morgan');
-const session = require('express-session');
-const Expression = require('couchdb-expression')(session);
-const nodemailer = require('nodemailer');
-const schedule = require('node-schedule');
-const db_update = require('./db_update.js');
-const couchdb_utils = require('./couchdb_utils.js');
-const store = new Expression({
+const jwt = require('jsonwebtoken');                       // 
+const bodyParser = require('body-parser');                 // 
+const createError = require('http-errors');                // 
+const csrf = require('csurf');                             // 
+const cors = require('cors');                              // 
+const express = require('express');                        // 
+const path = require('path');                              // 
+const cookieParser = require('cookie-parser');             // 
+const logger = require('morgan');                          // 
+const session = require('express-session');                // 
+const Expression = require('couchdb-expression')(session); // 
+const nodemailer = require('nodemailer');                  // 
+const schedule = require('node-schedule');                 // 
+const dayjs = require('dayjs');                            // 
+const db_update = require('./db_update.js');               // 
+const couchdb_utils = require('./couchdb_utils.js');       // 
+const store = new Expression({                             // 
   username: process.env.COUCHDB_USER,     // default value = 'admin'
   password: process.env.COUCHDB_PASSWORD, // default value = 'password'
   hostname: 'couchdb',                    // default value = 'localhost'
@@ -21,7 +22,7 @@ const store = new Expression({
   database: 'sessions',                   // default value = 'sessions'
   https:    false                         // default value = false
 });
-const transporter = nodemailer.createTransport({
+const transporter = nodemailer.createTransport({           // 
   service: 'gmail',
     auth: {
       user: process.env.APP_EMAIL,
@@ -29,23 +30,27 @@ const transporter = nodemailer.createTransport({
     },
 });
 
-var infoRouter = require('./routes/info');
-var apiRouter = require('./routes/api');
-var usersRouter = require('./routes/users');
-var authRouter = require('./routes/auth');
-var homeRouter = require('./routes/home');
-var adminRouter = require('./routes/admin');
-var reservationRouter = require('./routes/reservation');
-var personalAreaRouter = require('./routes/personalArea');
-const dayjs = require('dayjs');
+// Require routes
+var infoRouter = require('./routes/info');                 // Pagina informazioni
+var authRouter = require('./routes/auth');                 // Pagine login/signup
+var homeRouter = require('./routes/home');                 // Pagina home
+var adminRouter = require('./routes/admin');               // Pagina gestione sito
+var reservationRouter = require('./routes/reservation');   // Pagina effettua prenotazione
+var personalAreaRouter = require('./routes/personalArea'); // Pagina area personale
+var apiRouter = require('./routes/api');                   // Richieste api
+var usersRouter = require('./routes/users');               // Gestione dati utente
 
+// 
 var app = express();
 
+// 
 app.use(cors());
-// view engine setup
+
+// View engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
 
+// 
 app.set('trust proxy', true);
 app.use(logger('dev'));
 app.use(express.json());
@@ -57,6 +62,7 @@ app.use(express.static(__dirname + '/node_modules/bootstrap/dist')); // file di 
 app.use(express.static(__dirname + '/node_modules/leaflet/dist'));   // file di leaflet      .css e .js
 app.use(express.static(__dirname + '/node_modules'));                // file di fullcalendar .css e .js
 
+// 
 app.use(session({
   name: process.env.SESS_NAME,
   proxy: true,
@@ -65,29 +71,35 @@ app.use(session({
   sameSite: true,
   resave: false,
   saveUninitialized: false,
-  cookie: { maxAge: 1800000/* 30 minuti */ },
+  cookie: { maxAge: 1800000 /*30 minuti*/ },
 }));
-//app.use(flash());
-//flash message middleware
+
+// flash message middleware
 app.use((req, res, next)=>{
   res.locals.message = req.session.message
   delete req.session.message
   next()
 })
 
+// Associa il router api
 app.use('/api', apiRouter);
+// 
 app.use(csrf({cookie:false}));
 
+// Inizializza il mailer
 app.use( function (req, res, next) {
   req.transporter = transporter;
   next();
 });
 
+
+// Ottiene il path corrente
 app.use( function (req, res, next) {
   req.location = req.get('host') + req.originalUrl;
   next();
 });
 
+// Associazione dei router con i path relativi ad essi
 app.use('/info', infoRouter);
 app.use('/users', usersRouter);
 app.use('/', authRouter);
@@ -96,14 +108,18 @@ app.use('/admin', adminRouter);
 app.use('/reservation', reservationRouter);
 app.use('/personalArea', personalAreaRouter);
 
-/* GET apidoc page. */
+
+// GET apidoc page
 app.use("/apidoc", express.static(path.join(__dirname, "/apidoc")));
+
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   next(createError(404));
 });
 
+
+// Update automatico del db all'inizio di ogni ora
 const update_seats_availability = schedule.scheduleJob('00 * * * *', function(){
   couchdb_utils.get_from_couchdb('/seats_updates/updated', function(err, response_1){
     if(err){
@@ -117,7 +133,6 @@ const update_seats_availability = schedule.scheduleJob('00 * * * *', function(){
     return console.log('\n\nUpdate already done!\n\n');
   });
 });
-
 const clean_db_seats_updates = schedule.scheduleJob('59 * * * *', function(){
   couchdb_utils.delete_from_couchdb('/seats_updates/updated', function(err, response){
     if(err){return console.log(err)};
@@ -125,6 +140,8 @@ const clean_db_seats_updates = schedule.scheduleJob('59 * * * *', function(){
   });
 });
 
+
+// Elimina le sessioni appese dopo 30 minuti
 const clean_db_expired_sessions = schedule.scheduleJob('30 * * * *', function(){
   couchdb_utils.get_from_couchdb('/sessions/_design/session/_view/expires', function(err, response){
     if (err){return console.log(err)};
@@ -149,9 +166,6 @@ app.use(function(err, req, res, next) {
   res.status(err.status || 500);
   res.render('error');
 });
-
-
-
 
 
 module.exports = app;
