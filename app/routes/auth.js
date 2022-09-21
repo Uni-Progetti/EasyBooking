@@ -761,6 +761,8 @@ function getGoogleEmail(req, res, access_token, refresh_token){
         crypto.pbkdf2(access_token, salt, 310000, 32, 'sha256', function(err, hashedPassword) {
           if (err) { return next(err); }
           AddToDB = addGoogleUserToDB(x.email, access_token, refresh_token,hashedPassword,salt, function(err, result){
+            var z = JSON.parse(result);
+            console.log(z.fields.role);
             if(err){
               req.session.message = {
                 type: 'danger',
@@ -768,8 +770,7 @@ function getGoogleEmail(req, res, access_token, refresh_token){
                 message: err
               }
               return res.redirect('/login');
-            }
-            if(result=="locked"){
+            } else if(result=="locked"){
               req.session.message = {
                 type: 'danger',
                 intro: 'Account bloccato! ',
@@ -782,26 +783,27 @@ function getGoogleEmail(req, res, access_token, refresh_token){
               req.session.username = x.email;
               req.session.access_token = access_token;
               req.session.refresh_token = refresh_token;
-              req.session.role = result.fields.role;
+              req.session.role = z.fields.role;
               req.session.message = {
                 type: 'info',
                 intro: ' ',
                 message: 'Login avvenuto con successo.'
               }
-              res.redirect('/home');
+              return res.redirect('/home');
             }
 
           });
         });
         //console.log("\n\n\nAddToDB------>"+AddToDB+"\n\n\n")
-      }else{
-        req.session.message = {
-          type: 'danger',
-          intro: 'Errore login con Google! ',
-          message: 'Errore nella ricezione delle credenziali da Google. Riprova.'
-        }
-        res.redirect('/login');
-      };
+      }
+      // else{
+      //   req.session.message = {
+      //     type: 'danger',
+      //     intro: 'Errore login con Google! ',
+      //     message: 'Errore nella ricezione delle credenziali da Google. Riprova.'
+      //   }
+      //   res.redirect('/login');
+      // };
     });
   });
 
@@ -880,7 +882,7 @@ function addGoogleUserToDB(email, access_token, refresh_token, hashedPassword, s
           });
           out.on('end', () => {
             console.log('No more data in response.');
-            return callback(null, true);
+            return callback(null, postData);
           });
         });
         
@@ -933,7 +935,7 @@ function addGoogleUserToDB(email, access_token, refresh_token, hashedPassword, s
             });
             out.on('end', () => {
               console.log('No more data in response.');
-              return callback(null, x);
+              return callback(null, postData);
             });
           });
           

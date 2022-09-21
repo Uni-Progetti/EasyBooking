@@ -6,39 +6,6 @@ const http = require('http');
 const https = require('https');
 const dayjs = require('dayjs');
 
-let users = {
-  1: {
-    id: '1',
-    username: 'Robin Wieruch',
-  },
-  2: {
-    id: '2',
-    username: 'Dave Davids',
-  },
-};
-
-let messages = {
-  1: {
-    id: '1',
-    text: 'Hello World',
-    userId: '1',
-  },
-  2: {
-    id: '2',
-    text: 'By World',
-    userId: '2',
-  },
-};
-
-/* GET users listing. */
-router.get('/', (req, res) => {
-  return res.send(Object.values(users));
-});
-
-router.get('/:userId', (req, res) => {
-  // return res.send(users[req.params.userId]);
-  return res.status(200).json({id: '2', username: 'Dave Davids'});  // per test
-});
  /* GET users account verification */
 router.get('/verify/:token/:userEmail', (req, res) => {
   console.log(req.params.token);
@@ -134,21 +101,6 @@ router.get('/verify/:token/:userEmail', (req, res) => {
   usrs.end();
 });
 
-router.post('/', (req, res) => {
-  return res.send('POST HTTP method on user resource');
-});
-
-router.put('/:userId', (req, res) => {
-  return res.send(
-    `PUT HTTP method on user/${req.params.userId} resource`,
-  );
-});
-
-router.delete('/:userId', (req, res) => {
-  return res.send(
-    `DELETE HTTP method on user/${req.params.userId} resource`,
-  );
-});
 
 function CheckPassword(password) { 
   const decimal =  /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9])(?!.*\s).{8,15}$/;

@@ -37,7 +37,6 @@ var homeRouter = require('./routes/home');
 var adminRouter = require('./routes/admin');
 var reservationRouter = require('./routes/reservation');
 var personalAreaRouter = require('./routes/personalArea');
-var calendarRouter = require('./routes/calendar');
 const dayjs = require('dayjs');
 
 var app = express();
@@ -96,7 +95,6 @@ app.use('/home', homeRouter);
 app.use('/admin', adminRouter);
 app.use('/reservation', reservationRouter);
 app.use('/personalArea', personalAreaRouter);
-app.use('/calendar', calendarRouter);
 
 /* GET apidoc page. */
 app.use("/apidoc", express.static(path.join(__dirname, "/apidoc")));
