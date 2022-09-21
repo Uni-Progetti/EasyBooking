@@ -37,12 +37,12 @@
 
 <!-- TABLE OF CONTENTS -->
 <details>
-  <summary>Table of Contents</summary>
+  <summary>Lista Contenuti</summary>
   <ol>
     <li>
-      <a href="#about-the-project">About The Project</a>
+      <a href="#about-the-project">EasyBooking</a>
       <ul>
-        <li><a href="#built-with">Built With</a></li>
+        <li><a href="#built-with">Scritto Con</a></li>
       </ul>
     </li>
     <li>
@@ -62,7 +62,7 @@
 
 
 <!-- ABOUT THE PROJECT -->
-## About The Project
+## Struttura di EasyBooking
 
 [![App screenshot][product-screenshot]](https://example.com)
 
@@ -72,7 +72,7 @@
 
 
 
-### Built With
+### Creato Con
 
 [![GitHub Actions][GitHub Actions]][GitHub Actions-url]
 [![Bootstrap][Bootstrap.com]][Bootstrap-url]
@@ -94,7 +94,7 @@
 
 
 <!-- GETTING STARTED -->
-## Getting Started
+## Primo avvio
 
 EasyBooking uses Docker and Nodejs to install both refer to their documentation at 
 
@@ -104,26 +104,26 @@ EasyBooking uses Docker and Nodejs to install both refer to their documentation 
 
 To get a local copy up and running follow these simple example steps.
 
-### Prerequisites
+### Prerequisiti
 
-This is an example of how to list things you need to use the software and how to install them.
+Aggiornare npm alla versione più recente
 * npm
   ```sh
   npm install npm@latest -g
   ```
 
-### Installation
+### Installazione
 
-1. Clone the repo
+1. Clonare la repo
    ```sh
    git clone https://github.com/Uni-Progetti/EasyBooking.git
    cd EasyBooking
    ```
-2. Install NPM packages
+2. Installare NPM packages
    ```sh
    npm install
    ```
-3. Create your .env file in the main project directory and save the following values
+3. Crea il tuo file .env nella cartella principale dell'app e salva al suo interno i seguenti valori
     ```sh
     # EasyBooking/.env
     GOOGLE_CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID'
@@ -137,15 +137,16 @@ This is an example of how to list things you need to use the software and how to
     APP_EMAIL_PASS = 'YOUR_APP_EMAIL_PASS'
     ACCESS_TOKEN_SECRET = 'YOUR_ACCESS_TOKEN_SECRET'
     REFRESH_TOKEN_SECRET = 'YOUR_REFRESH_TOKEN_SECRET'
+    ABSTRACT_API_KEY = 'YOUR_ABSTRACT_API_KEY'
     ```
-4. Create a folder called certs in nginx folder and create ssl certificates and key
+4. Crea una cartella di nome certs nella directory nginx e genera al suo interno certificato ssl e chiave
     ```
     mkdir /nginx/certs
     cd /nginx/certs
     openssl req -new -newkey rsa:2048 -nodes -keyout nginx.key -out nginx.csr
     openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout nginx.key -out nginx.crt
     openssl dhparam -out dhparam.pem 2048
-5. Start the app with the script start.sh 
+5. Avvia l'app con lo script di bash start.sh che si trova nella cartella principale dell'app 
     ```sh
     # EasyBooking/
     ./start.sh
@@ -161,19 +162,32 @@ This is an example of how to list things you need to use the software and how to
 
 
 <!-- USAGE EXAMPLES -->
-## Usage
+## Utilizzo
 
-Once installation and startup are completed you can access the homepage of the app at
+Una volta completata l'installazione ed eseguito il primo avvio puoi accedere alla homepage dell'app all'indirizzo:
 ```sh
 http://localhost:8080
 ```
-or for the https version
+o per la versione https:
 ```sh
 https://localhost:8083
 ```
-EasyBooking also provides an API with different functions.
+EasyBooking fornisce inoltre una API con diverse funzioni.
+L'API dell' app richiede di essere in possesso di un account registrato e di credenziali valide.<br>
+L'accesso alle funzioni API è protetto con <a href="https://jwt.io/">Json Web Token</a> sarà quindi necessario utilizzare le proprie credenziali per ottenere un token da utilizzare nelle richieste API verso EasyBooking.
+```sh
+// Autenticazione API
+curl -d '{"username": "YOUR_USERNAME", "password": "YOUR_PASSWORD"}' -H "Content-Type: application/json" -X POST http://localhost:8080/api/login 
 
-_For more information, please refer to the [API Documentation](http://localhost:8080/apidoc)_
+// Ricezione access_token e refresh_token
+response: {access_token: "YOUR_ACCESS_TOKEN", refresh_token: "YOUR_REFRESH_TOKEN"}
+
+// Invio richiesta API con access_token appena ricevuto
+curl http://localhost:8080/api/getDepartments/all -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+
+```
+
+_Per maggiori informazioni puoi consultare la documentazione [API Documentation](http://localhost:8080/apidoc)_
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
