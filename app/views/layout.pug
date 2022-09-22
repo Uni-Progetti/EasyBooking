@@ -81,15 +81,15 @@ html
     if message.type=='danger'
       div#alertMessages(class= "alert alert-danger alert-dismissible fade show" role='alert')
         strong.px-2 #{message.intro} #{message.message}
-        button.btn-close(type='button' data-bs-dismiss='alert' aria-label='Close' style="margin 10px")
+        button.btn-close.mx-1.my-1(type='button' data-bs-dismiss='alert' aria-label='Close' style="padding: 5px")
     else if message.type=='warning'
       div#alertMessages(class= "alert alert-warning alert-dismissible fade show" role='alert')
         strong.px-2 #{message.intro} #{message.message}
-        button.btn-close(type='button' data-bs-dismiss='alert' aria-label='Close' style="margin 10px")
+        button.btn-close.mx-1.my-1(type='button' data-bs-dismiss='alert' aria-label='Close' style="padding: 5px")
     else
       div#alertMessages(class= "alert alert-info alert-dismissible fade show" role='alert')
         strong.px-2 #{message.intro} #{message.message}
-        button.btn-close(type='button' data-bs-dismiss='alert' aria-label='Close' style="margin 10px")
+        button.btn-close.mx-1.my-1(type='button' data-bs-dismiss='alert' aria-label='Close' style="padding: 5px")
 
   .prompt
     block content

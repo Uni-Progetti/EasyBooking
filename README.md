@@ -62,7 +62,7 @@
 <!-- ABOUT THE PROJECT -->
 ## Struttura di EasyBooking
 
-[![App screenshot][product-screenshot]](https://example.com)
+<img src="./app/public/images/StrutturaEasyBooking.png">
 
 
 

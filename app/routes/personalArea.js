@@ -76,7 +76,7 @@ function getCalendarEvents(req, res, access_token, calendar, start_date){
 
 // POST sync reservation on calendar
 router.post('/sync_events', function(req, res) {
-  	var access_token = req.body.access_token;
+	var access_token = req.body.access_token;
 	console.log('-°-°-°-°-')
 	console.log('reser: ', req.body.reservation);
 	var ress = JSON.parse(req.body.reservation);
@@ -97,7 +97,7 @@ router.post('/sync_events', function(req, res) {
 			'end': { 
 				'dateTime': `${String(ress.value.fields.end_date.Y)+'-'+((String(ress.value.fields.end_date.M).length == 1)? "0"+String(ress.value.fields.end_date.M):String(ress.value.fields.end_date.M))+'-'+((String(ress.value.fields.end_date.D).length == 1)? "0"+String(ress.value.fields.end_date.D):String(ress.value.fields.end_date.D))+'T'+((String(ress.value.fields.end_date.h).length == 1)? "0"+String(ress.value.fields.end_date.h):String(ress.value.fields.end_date.h))+':00:00'}`,
 				'timeZone': 'Europe/Rome',
-			},
+			}
 		});
 
 		const post_options = {
