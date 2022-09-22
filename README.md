@@ -20,13 +20,11 @@
 <h3 align="center">EasyBooking</h3>
 
   <p align="center">
-    Web App for reservations
+    Una web app per gestire spazi comuni che necessitano di assegnazione di posti a sedere, permette di creare e gestire prenotazioni dando la possibilità di sincronizzare quelle effettuate sul proprio account Google Calendar.
     <br />
-    <a href="https://github.com/Uni-Progetti/EasyBooking"><strong>Explore the docs »</strong></a>
+    <a href="https://github.com/Uni-Progetti/EasyBooking"><strong>Esplora la documentazione »</strong></a>
     <br />
     <br />
-    <a href="https://github.com/Uni-Progetti/EasyBooking">View Demo</a>
-    ·
     <a href="https://github.com/Uni-Progetti/EasyBooking/issues">Report Bug</a>
     ·
     <a href="https://github.com/Uni-Progetti/EasyBooking/issues">Request Feature</a>
@@ -40,22 +38,22 @@
   <summary>Lista Contenuti</summary>
   <ol>
     <li>
-      <a href="#about-the-project">EasyBooking</a>
+      <a href="#requisiti-progetto">Requisiti progetto</a>
       <ul>
-        <li><a href="#built-with">Scritto Con</a></li>
+        <li><a href="#creato-con">Creato Con</a></li>
       </ul>
     </li>
     <li>
-      <a href="#getting-started">Getting Started</a>
+      <a href="#primo-avvio">Primo avvio</a>
       <ul>
-        <li><a href="#prerequisites">Prerequisites</a></li>
-        <li><a href="#installation">Installation</a></li>
+        <li><a href="#prerequisiti">Prerequisiti</a></li>
+        <li><a href="#installazione">Installazione</a></li>
       </ul>
     </li>
-    <li><a href="#usage">Usage</a></li>
+    <li><a href="#utilizzo">Utilizzo</a></li>
     <li><a href="#test">Test</a></li>
     <li><a href="#license">License</a></li>
-    <li><a href="#contact">Contact</a></li>
+    <li><a href="#contatti">Contatti</a></li>
   </ol>
 </details>
 
@@ -70,7 +68,13 @@
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-
+## Requisiti progetto
+1. API REST disponibile nell'app e documentazione consultabile [API Documentation](http://localhost:8080/apidoc)
+2. L'app utilizza servizi esterni forniti da [Google Calendar][GoogleCalendar-url] , [OpenStreetMap][OpenStreetMap-url] ,[AbstractApi][Abstractapi-url], [Gmail][Gmail-url]
+3. Viene impiegato OAuth per l'utilizzo di Google Calendar
+4. L'app utilizza [RabbitMQ][Rabbitmq-url] per l'implementazione di protocolli asincroni
+5. L'app utilizza [Docker][Docker-url] e uno script di bash per automatizzare il processo di lancio configurazione e test
+6. Per CI/CD l'app utilizza [GitHub Actions][GitHub Actions-url]
 
 ### Creato Con
 
@@ -89,6 +93,9 @@
 [![Javascript]][Javascript-url]
 [![Gmail]][Gmail-url]
 [![Couchdb]][Couchdb-url]
+[![GoogleCalendar]][GoogleCalendar-url]
+[![OpenStreetMap]][OpenStreetMap-url]
+[![Abstractapi]][Abstractapi-url]
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
@@ -96,13 +103,13 @@
 <!-- GETTING STARTED -->
 ## Primo avvio
 
-EasyBooking uses Docker and Nodejs to install both refer to their documentation at 
+EasyBooking utilizza Docker e NodeJs per installare entrambi consulta la documentazione disponibile su:
 
 >[Install Docker](https://docs.docker.com/get-docker/)
 
 >[Install NVM](https://github.com/nvm-sh/nvm)
 
-To get a local copy up and running follow these simple example steps.
+Per configurare ed avviare una copia locale dell'app seguire i passaggi indicati nella guida all'installazione.
 
 ### Prerequisiti
 
@@ -176,13 +183,13 @@ EasyBooking fornisce inoltre una API con diverse funzioni.
 L'API dell' app richiede di essere in possesso di un account registrato e di credenziali valide.<br>
 L'accesso alle funzioni API è protetto con <a href="https://jwt.io/">Json Web Token</a> sarà quindi necessario utilizzare le proprie credenziali per ottenere un token da utilizzare nelle richieste API verso EasyBooking.
 ```sh
-// Autenticazione API
+# Autenticazione API
 curl -d '{"username": "YOUR_USERNAME", "password": "YOUR_PASSWORD"}' -H "Content-Type: application/json" -X POST http://localhost:8080/api/login 
 
-// Ricezione access_token e refresh_token
+# Ricezione access_token e refresh_token
 response: {access_token: "YOUR_ACCESS_TOKEN", refresh_token: "YOUR_REFRESH_TOKEN"}
 
-// Invio richiesta API con access_token appena ricevuto
+# Invio richiesta API con access_token appena ricevuto
 curl http://localhost:8080/api/getDepartments/all -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 
 ```
@@ -193,7 +200,7 @@ _Per maggiori informazioni puoi consultare la documentazione [API Documentation]
 
 ## Test
 
-The app uses the module [Mocha](https://mochajs.org/) fo testing. You can run the test from the app folder using this command
+L' app utilizza il modulo [Mocha](https://mochajs.org/) per i test. I test possono essere eseguiti con il seguente comando
 ```sh
 # EasyBooking/app/
 npm test
@@ -241,12 +248,12 @@ Distributed under the MIT License. See `LICENSE.txt` for more information.
 
 
 <!-- CONTACT -->
-## Contact
+## Contatti
 Matteo Tedesco - easybooking.adm@gmail.com</br>
 Michela Fuselli - easybooking.adm@gmail.com</br>
 Francesco Guarino - easybooking.adm@gmail.com
 
-Project Link: [https://github.com/Uni-Progetti/EasyBooking](https://github.com/Uni-Progetti/EasyBooking)
+Link progetto: [https://github.com/Uni-Progetti/EasyBooking](https://github.com/Uni-Progetti/EasyBooking)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -308,3 +315,9 @@ Project Link: [https://github.com/Uni-Progetti/EasyBooking](https://github.com/U
 [Gmail-url]: https://www.google.com/intl/en/gmail/about/
 [Couchdb]: https://img.shields.io/badge/Couchdb-EA2328?style=for-the-badge&logo=couchbase&logoColor=white
 [Couchdb-url]: https://couchdb.apache.org/
+[GoogleCalendar]: https://img.shields.io/badge/Google_Calendar-4285F4?style=for-the-badge&logo=google-calendar&logoColor=white
+[GoogleCalendar-url]: https://www.google.com/intl/en/calendar/about/
+[OpenStreetMap]: https://img.shields.io/badge/OpenStreetMap-black?style=for-the-badge&logo=openstreetmap&logoColor=yellowgreen
+[OpenStreetMap-url]: https://www.openstreetmap.org/
+[Abstractapi]: https://img.shields.io/badge/AbstractApi-FFF?style=for-the-badge&logo=abstract&logoColor=A86454
+[Abstractapi-url]: https://www.abstractapi.com
