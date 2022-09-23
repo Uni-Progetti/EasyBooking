@@ -54,7 +54,8 @@ block content
                             th.px-2 G/M/A
                             th.px-2 Inizio
                             th.px-2 Fine
-                            th.px-2 GoogleCalendar
+                            if (is_google)
+                                th.px-2 GoogleCalendar
                             th.px-2 Elimina
                         each res in reservations
                             if (res.value.fields.email == userId)
@@ -66,15 +67,16 @@ block content
                                     td.px-2(width="fit-content") #{res.value.fields.start_date.D+'/'+res.value.fields.start_date.M+'/'+(res.value.fields.start_date.Y-2000)}
                                     td.px-2(width="fit-content") #{res.value.fields.start_date.h}:00
                                     td.px-2(width="fit-content") #{res.value.fields.end_date.h}:00
-                                    td.px-2(width="fit-content")
-                                        form(action='/personalArea/sync_events' method='post')
-                                            input(type='hidden' value=access_token name='access_token')
-                                            input(type='hidden' value=csrfToken name='_csrf')
-                                            input(type='hidden' value=res name='reservation')
-                                            if (!(res.value.fields.is_sync))
-                                                input.adminButtons(type='submit' value='Sincronizza')
-                                            else
-                                                input.adminButtons(type='submit' value='Desincronizza')
+                                    if (is_google)
+                                        td.px-2(width="fit-content")
+                                            form(action='/personalArea/sync_events' method='post')
+                                                input(type='hidden' value=access_token name='access_token')
+                                                input(type='hidden' value=csrfToken name='_csrf')
+                                                input(type='hidden' value=res name='reservation')
+                                                if (!(res.value.fields.is_sync))
+                                                    input.adminButtons(type='submit' value='Sincronizza')
+                                                else
+                                                    input.adminButtons(type='submit' value='Desincronizza')
                                     td.px-2(width="fit-content")
                                         form(method="post" action="/personalArea/rm_res")
                                             input(type="hidden" value=csrfToken                        name="_csrf")

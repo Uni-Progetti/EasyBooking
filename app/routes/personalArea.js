@@ -5,7 +5,7 @@ const couchdb_utils = require("../couchdb_utils.js");
 const jsStringify = require('js-stringify');
 const { Script } = require('node:vm');
 
-/* Reindirizza al login se non autenticati. */
+// Reindirizza al login se non autenticati
 const redirectLogin = function(req, res, next){
   if(!req.session.userId){
     res.redirect('/login');
@@ -14,65 +14,78 @@ const redirectLogin = function(req, res, next){
   }
 }
 
-/* GET personal_area page. */
+// GET personal_area page
 router.get('/', redirectLogin, function(req, res) {
-  getCalendarEvents(req, res, req.session.access_token, '', '');
+  	getCalendarEvents(req, res, req.session.access_token, '', '');
 });
 
 function getCalendarEvents(req, res, access_token, calendar, start_date){
-	let data = '';
-	const options = {
-		hostname: 'www.googleapis.com',
-		port: 443,
-		path: '/calendar/v3/calendars/primary/events',
-		method: 'GET',
-		headers: { Authorization: `Bearer ${access_token}` },
-	};
+	var events_array = [];
+	
+	if ('access_token' in req.session) {
+		let data = '';
+		const options = {
+			hostname: 'www.googleapis.com',
+			port: 443,
+			path: '/calendar/v3/calendars/primary/events',
+			method: 'GET',
+			headers: { Authorization: `Bearer ${access_token}` },
+		};
 
-	const request = https.request(options, (response) => {
-		console.log('statusCode:', response.statusCode);
-		console.log('headers:', response.headers);
-		response.on('data', (d) => {
-			//process.stdout.write(d);
-			data+=d.toString();
-		});
-
-		response.on('end', (end) =>{
-			let parsed_data = JSON.parse(data);
-			var events_array = [];
-			parsed_data.items.forEach(element => {
-				let titolo = element.summary;
-				let inizio = element.start.dateTime;
-				let fine = element.end.dateTime;
-
-				events_array.push({ title: titolo, start: inizio, end:   fine });
+		const request = https.request(options, (response) => {
+			console.log('statusCode:', response.statusCode);
+			console.log('headers:', response.headers);
+			response.on('data', (d) => {
+				//process.stdout.write(d);
+				data+=d.toString();
 			});
 
-			// GET all_reservations view: http://localhost:5984/db/_design/Reservation/_view/All_Reservations/
-			couchdb_utils.get_from_couchdb('/db/_design/Reservation/_view/All_Reservations/', function(err, reservations_response) {
-				if (err) { console.log(err) }
-				else { var reservations = reservations_response
-				reservations.rows.forEach(element => {
+			response.on('end', (end) =>{
+				let parsed_data = JSON.parse(data);
+				parsed_data.items.forEach(element => {
+					let titolo = element.summary;
+					let inizio = element.start.dateTime;
+					let fine = element.end.dateTime;
+
+					events_array.push({ title: titolo, start: inizio, end:   fine });
+				});
+
+				getPersonalAreaReservations(req, res, access_token, events_array, true);
+			});
+		});
+
+		request.on('error', (e) => {
+			console.error(e);
+			return false;
+		});
+		request.end();
+		
+	}
+
+	else {
+		getPersonalAreaReservations(req, res, access_token, events_array, false);
+	}
+};
+
+function getPersonalAreaReservations(req, res, access_token, events_array, is_google){
+	// GET all_reservations view: http://localhost:5984/db/_design/Reservation/_view/All_Reservations/
+	couchdb_utils.get_from_couchdb('/db/_design/Reservation/_view/All_Reservations/', function(err, reservations_response) {
+		if (err) { console.log(err) }
+		else { var reservations = reservations_response
+			reservations.rows.forEach(element => {
+				if(req.session.username == element.value.fields.email && element.value.fields.is_sync == false) {
 					let tit = element.value.fields.dep_name+': '+element.value.fields.typology+' - '+element.value.fields.space_name;
 					let ini = String(element.value.fields.start_date.Y)+'-'+((String(element.value.fields.start_date.M).length == 1)? "0"+String(element.value.fields.start_date.M):String(element.value.fields.start_date.M))+'-'+((String(element.value.fields.start_date.D).length == 1)? "0"+String(element.value.fields.start_date.D):String(element.value.fields.start_date.D))+'T'+((String(element.value.fields.start_date.h).length == 1)? "0"+String(element.value.fields.start_date.h):String(element.value.fields.start_date.h))+':00:00';
 					let fin = String(element.value.fields.end_date.Y)+'-'+((String(element.value.fields.end_date.M).length == 1)? "0"+String(element.value.fields.end_date.M):String(element.value.fields.end_date.M))+'-'+((String(element.value.fields.end_date.D).length == 1)? "0"+String(element.value.fields.end_date.D):String(element.value.fields.end_date.D))+'T'+((String(element.value.fields.end_date.h).length == 1)? "0"+String(element.value.fields.end_date.h):String(element.value.fields.end_date.h))+':00:00';
 
 					events_array.push({ title: tit, start: ini, end: fin });
-				});
-				// Render della pagina home
-				res.render('personalArea', {userId: req.session.userId, reservations: reservations.rows, csrfToken: req.csrfToken(), location: req.location, cal_events: events_array, role: req.session.role, access_token: access_token, jsStringify});
 				}
-			})
-		});
-    });
-
-    request.on('error', (e) => {
-		console.error(e);
-		return false;
-    });
-    request.end();
+			});
+			// Render della pagina home
+			res.render('personalArea', {userId: req.session.userId, reservations: reservations.rows, csrfToken: req.csrfToken(), location: req.location, cal_events: events_array, role: req.session.role, access_token: access_token, jsStringify, is_google: is_google});
+		}
+	})
 };
-
 
 // POST sync reservation on calendar
 router.post('/sync_events', function(req, res) {

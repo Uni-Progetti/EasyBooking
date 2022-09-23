@@ -129,12 +129,12 @@ function insert_usr(){
             { email: "fra.user@gmail.com",        password: hashedPassword, role: 'user',    salt: defSalt, refresh_token: '', access_token: '' },
             { email: "matteo.user@gmail.com",     password: hashedPassword, role: 'user',    salt: defSalt, refresh_token: '', access_token: '' },
             { email: "michela.user@gmail.com",    password: hashedPassword, role: 'user',    salt: defSalt, refresh_token: '', access_token: '' },
-            { email: "temp.user@gmail.com",      password: hashedPassword, role: 'user',    salt: defSalt, refresh_token: '', access_token: '' },
+            { email: "temp.user@gmail.com",       password: hashedPassword, role: 'user',    salt: defSalt, refresh_token: '', access_token: '' },
     
             { email: "fra.manager@gmail.com",     password: hashedPassword, role: 'manager', salt: defSalt, refresh_token: '', access_token: '' },
             { email: "matteo.manager@gmail.com",  password: hashedPassword, role: 'manager', salt: defSalt, refresh_token: '', access_token: '' },
             { email: "michela.manager@gmail.com", password: hashedPassword, role: 'manager', salt: defSalt, refresh_token: '', access_token: '' },
-            { email: "temp.manager@gmail.com",   password: hashedPassword, role: 'manager', salt: defSalt, refresh_token: '', access_token: '' },
+            { email: "temp.manager@gmail.com",    password: hashedPassword, role: 'manager', salt: defSalt, refresh_token: '', access_token: '' },
             { email: "test.manager@gmail.com",    password: hashedPassword, role: 'manager', salt: defSalt, refresh_token: '', access_token: '' },
 
             { email: "fra.admin@gmail.com",       password: hashedPassword, role: 'admin',   salt: defSalt, refresh_token: '', access_token: '' },
