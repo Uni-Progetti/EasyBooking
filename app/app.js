@@ -110,7 +110,7 @@ app.use('/personalArea', personalAreaRouter);
 
 
 // GET apidoc page
-app.use("/apidoc", express.static(path.join(__dirname, "/apidoc")));
+app.use("/apidoc", express.static(path.join(__dirname, "/apidoc"))); // aggiungere csrfToken
 
 
 // catch 404 and forward to error handler

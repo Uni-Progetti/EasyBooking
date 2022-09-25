@@ -12,6 +12,35 @@ const jwt = require('jsonwebtoken');
 const security = require('./../security.js');
 const couchdb_utils = require('./../couchdb_utils.js');
 
+/**
+ * @api {post} /api/login Ottieni access token e refresh token
+ * @apiBody {String} username Email del proprio account EasyBooking
+ * @apiBody {String} password Password del proprio account EasyBooking 
+ * @apiName Login
+ * @apiGroup Autenticazione
+ *
+ * 
+ *
+ * @apiSuccess {String} accessToken access token univoco per utente e necessario per le richieste API verso EasyBooking (!N.B. ha una durata di 20 minuti)
+ * @apiSuccess {String} refreshToken refresh token necessario per effettuare il refresh allo scadere dell'access token
+ *
+ * @apiSuccessExample Success-Response:
+ *     HTTP/1.1 200 OK
+    {
+        accessToken: 'ACCESS_TOKEN',
+        refreshToken: 'REFRESH_TOKEN'
+    }
+ *
+ * @apiError not_found Utente non trovato, credenziali errate
+ *
+ * @apiErrorExample Error-Response:
+ *     HTTP/1.1 404 Not Found
+ *     {
+ *       "error": 'not_found'
+ *     }
+ */
+
+
 /* curl -d '{"username": "matteo.user@gmail.com", "password": "Password.0"}' -H "Content-Type: application/json" -X POST http://localhost:8080/api/login */
 router.post('/login', function (req, res) {
     const { username, password } = req.body;
@@ -40,6 +69,45 @@ router.post('/login', function (req, res) {
     });
 });
 
+
+/**
+ * @api {post} /api/logout Effettua logout access token e rimuove refresh token
+ * @apiHeader {String} access_token Access_token univoco utente.
+ * @apiHeaderExample {json} Esempio header:
+ *     {
+ *       "Authorization": "Bearer ACCESS_TOKEN"
+ *     }
+ * @apiBody {String} token Access_token univoco utente
+ * @apiName Logout
+ * @apiGroup Autenticazione
+ *
+ * 
+ *
+ * @apiSuccess {String} message esito logout
+ *
+ * @apiSuccessExample Success-Response:
+ *     HTTP/1.1 200 OK
+    {
+        message: 'Logout successful!'
+    }
+ *
+ * @apiError LogoutError Logout errato, token inserito non valido
+ *
+ * @apiErrorExample Error-Response:
+ *     HTTP/1.1 500 Error
+ *     {
+ *       error: 'Logout error: Refresh Token not removed'
+ *     }
+ * 
+ * @apiError JsonWebTokenError Logout errato, token inserito non valido
+ *
+ * @apiErrorExample Error-Response:
+ *     HTTP/1.1 403 Forbidden
+ *     {
+ *       JsonWebTokenError: 'jwt malformed'
+ *     }
+ */
+
 /* curl -d '{"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Im1hdHRlby51c2VyQGdtYWlsLmNvbSIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNjYzMjM3MDcxLCJleHAiOjE2NjMyMzgyNzF9.HMKEU7CH5beELE8mMgHvspXv8P5tNYJYjV2RJv1ESaI"}' -H "Content-Type: application/json" -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Im1hdHRlby51c2VyQGdtYWlsLmNvbSIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNjYzMjM3MDcxLCJleHAiOjE2NjMyMzgyNzF9.HMKEU7CH5beELE8mMgHvspXv8P5tNYJYjV2RJv1ESaI" -X POST http://localhost:8080/api/logout  */
 router.post('/logout', security.authenticateJWT ,function (req, res){
     console.log(req.session.username);
@@ -47,63 +115,74 @@ router.post('/logout', security.authenticateJWT ,function (req, res){
     console.log(token);
     couchdb_utils.delete_from_couchdb("/refresh_tokens/"+token, function(err, response){
         if (err){return res.status(500).send({error: "Logout error: Refresh Token not removed"})};
-        return res.send("Logout successful");
+        return res.send({message: "Logout successful!"});
     });
 });
 
 /**
- * @api {get} /api/getDepartments/all Request All Departments information
+ * @api {get} /api/getDepartments/all Ottieni la lista dei dipartimenti presenti all'interno del sito
  * @apiName GetDepartments
- * @apiGroup Department
+ * @apiGroup Dipartimenti
  *
  * 
  *
- * @apiSuccess {String} name name of the Department.
- * @apiSuccess {String} manager manager of the Department.
- * @apiSuccess {String} floor floor of the Department.
- * @apiSuccess {String} via via of the Department.
- * @apiSuccess {String} civico civico of the Department.
- * @apiSuccess {String} cap cap of the Department.
- * @apiSuccess {String} citta citta of the Department.
- * @apiSuccess {String} provincia provincia of the Department.
- * @apiSuccess {String} latitude latitude of the Department.
- * @apiSuccess {String} longitude longitude of the Department.
- * @apiSuccess {String} description description of the Department.
+ * @apiSuccess {String} department_name nome del dipartimento.
+ * @apiSuccess {String} manager manager del dipartimento.
+ * @apiSuccess {String} floor numero piani del dipartimento.
+ * @apiSuccess {String} via via del dipartimento.
+ * @apiSuccess {String} civico civico del dipartimento.
+ * @apiSuccess {String} cap cap del dipartimento.
+ * @apiSuccess {String} citta citta del dipartimento.
+ * @apiSuccess {String} provincia provincia del dipartimento.
+ * @apiSuccess {String} latitude latitudine del dipartimento.
+ * @apiSuccess {String} longitude longitudine del dipartimento.
+ * @apiSuccess {String} description descrizione breve del dipartimento.
  *
  * @apiSuccessExample Success-Response:
  *     HTTP/1.1 200 OK
     {
-        "Dipartimento di Donia": {
-            "name": "Dipartimento di Donia",
-            "manager": "donia.manager@gmail.com",
-            "floors": 4,
-            "number_of_spaces": 4,
-            "via": "Via mura dei francesi",
-            "civico": "10",
-            "cap": "00043",
-            "citta": "Ciampino",
-            "provincia": "RM",
-            "latitude": "41.80299",
-            "longitude": "12.59893",
-            "description": "Per gestire o testare questo dipartimento accedi come 'donia.manager@gmail.com'"
+        'department_name': {
+            manager: 'fra.manager@gmail.com',
+            floors: 4,
+            number_of_spaces: 4,
+            via: 'Piazzale Aldo Moro',
+            civico: '5',
+            cap: '00185',
+            citta: 'Roma',
+            provincia: 'RM',
+            latitude: '41.9012777',
+            longitude: '12.5145879',
+            description: "Per gestire o testare questo dipartimento accedi come 'fra.manager@gmail.com'"
         },
-        "Dipartimento di Francesco": {
-            "name": "Dipartimento di Francesco",
-            "manager": "fra.manager@gmail.com",
-            "floors": 4,
-            "number_of_spaces": 4,
-            "via": "Piazzale Aldo Moro",
-            "civico": "5",
-            "cap": "00185",
-            "citta": "Roma",
-            "provincia": "RM",
-            "latitude": "41.9012777",
-            "longitude": "12.5145879",
-            "description": "Per gestire o testare questo dipartimento accedi come 'fra.manager@gmail.com'"
+        'Dipartimento di Matteo': {
+            manager: 'matteo.manager@gmail.com',
+            floors: 4,
+            number_of_spaces: 4,
+            via: 'Viale dello Scalo S. Lorenzo',
+            civico: '82',
+            cap: '00159',
+            citta: 'Roma',
+            provincia: 'RM',
+            latitude: '41.896866',
+            longitude: '12.5214067',
+            description: "Per gestire o testare questo dipartimento accedi come 'matteo.manager@gmail.com'"
+        },
+        'Dipartimento di Michela': {
+            manager: 'michela.manager@gmail.com',
+            floors: 4,
+            number_of_spaces: 4,
+            via: 'Borgo Garibaldi',
+            civico: '12',
+            cap: '00041',
+            citta: ' Albano Laziale',
+            provincia: 'RM',
+            latitude: '41.748959',
+            longitude: '12.648700',
+            description: "Per gestire o testare questo dipartimento accedi come 'michela.manager@gmail.com'"
         }
     }
  *
- * @apiError UserNotFound The id of the User was not found.
+ * @apiError NotFound Nessun dipartimento trovato.
  *
  * @apiErrorExample Error-Response:
  *     HTTP/1.1 404 Not Found
@@ -133,45 +212,40 @@ router.get('/getDepartments/all' ,function(req, res){
 });
 
 /**
- * @api {get} /api/getSpaces/all Request All Spacess information
+ * @api {get} /api/getSpaces/all Ottieni lista di tutti gli spazi disponibili
+ * @apiHeader {String} access_token Access_token univoco utente.
+ * @apiHeaderExample {json} Esempio header:
+ *     {
+ *       "Authorization": "Bearer ACCESS_TOKEN"
+ *     }
  * @apiName GetSpaces
- * @apiGroup Spaces
+ * @apiGroup Spazi
  *
- * 
- *
- * @apiSuccess {String} name of the Space.
- * @apiSuccess {String} info of the Space.
+ * @apiSuccess {String} department_name nome del dipartimento di appartenenza.
+ * @apiSuccess {String} space_type tipologia dello spazio.
+ * @apiSuccess {ArrayOfString} array_of_space_names nome degli spazi della relativa tipologia.
  *
  * @apiSuccessExample Success-Response:
  *     HTTP/1.1 200 OK
- *     {
- *           "total_rows": 20,
- *           "offset": 0,
- *           "rows": [
- *               {
- *                   "id": "24a020e2735a757dd5c996cf3f4944fc",
- *                   "key": "106",
- *                   "value": {
- *                       "typology": "Aula",
- *                       "dep_name": "Dipartimento di Matteo",
- *                       "number_of_seats": 4,
- *                       "rev": "1-331117824a1cd0bf38b0b6b590ecc580"
- *                   }
- *               },
- *               {
- *                   "id": "24a020e2735a757dd5c996cf3f49c7fe",
- *                   "key": "106",
- *                   "value": {
- *                       "typology": "Aula",
- *                       "dep_name": "Dipartimento di Michela",
- *                       "number_of_seats": 4,
- *                       "rev": "1-9117b7c941553cc65d4bc6f71a71b08c"
- *                   }
- *               },
- *           ]
- *       }
+    {
+        'department_name': {
+            space_type: [array_of_space_names],
+            Aula: [ '106', '204' ],
+            Laboratorio: [ '15' ]
+        },
+        'Dipartimento di Matteo': {
+            Laboratorio: [ '15' ],
+            Isola: [ 'C', 'D' ],
+            Aula: [ '106', '204' ]
+        },
+        'Dipartimento di Michela': {
+            Isola: [ 'C', 'D' ],
+            Aula: [ '106', '204' ],
+            Laboratorio: [ '15' ]
+        }
+    }
  *
- * @apiError NotFound No Space was found.
+ * @apiError NotFound Nessuno spazio trovato.
  *
  * @apiErrorExample Error-Response:
  *     HTTP/1.1 404 Not Found
@@ -180,7 +254,7 @@ router.get('/getDepartments/all' ,function(req, res){
  *     }
  */
 // stampa tutti gli spazi: tipologia, nome e dipartimento
-router.get('/getSpaces/all', function(req, res){
+router.get('/getSpaces/all', security.authenticateJWT ,function(req, res){
     const get_options = {
         hostname: 'couchdb',
         port: 5984,
@@ -243,31 +317,28 @@ router.get('/getSpaces/all', function(req, res){
 });
 
 /**
- * @api {get} /getSpaces/:typology Request Spaces information for that specific typology
- * @apiParam {String} typology Space typology (ex. Aula, Laboratorio, Isola )
+ * @api {get} /getSpaces/:typology Ottieni la lista di tutti gli spazi di una data tipologia.
+ * @apiHeader {String} access_token Access_token univoco utente.
+ * @apiHeaderExample {json} Esempio header:
+ *     {
+ *       "Authorization": "Bearer ACCESS_TOKEN"
+ *     }
+ * @apiParam {String} typology Tipologia dello spazio (ex. Aula, Laboratorio, Isola )
  * @apiName GetSpacesTypology
- * @apiGroup Spaces
+ * @apiGroup Spazi
  *
  * 
  *
- * @apiSuccess {String} name of the Space.
- * @apiSuccess {String} info of the Space.
+ * @apiSuccess {String} key nome del dipartimento di appartenenza dello spazio.
+ * @apiSuccess {String} Aula tipologia dello spazio.
+ * @apiSuccess {ArrayOfString} space_names lista dei nomi degli spazi della tipologia richiesta.
  *
  * @apiSuccessExample Success-Response:
  *     HTTP/1.1 200 OK
     {
-        "106": {
-            "typology": "Aula",
-            "dep_name": "Dipartimento di Francesco",
-            "number_of_seats": 4,
-            "rev": "1-c15c271bfe56e4d74a78d049a0179425"
-        },
-        "204": {
-            "typology": "Aula",
-            "dep_name": "Dipartimento di Michela",
-            "number_of_seats": 8,
-            "rev": "1-9d9197a3186a799b7a1b7ef455d24e67"
-        }
+        'Dipartimento di Francesco': { Aula: [ '106', '204' ] },
+        'Dipartimento di Matteo': { Aula: [ '106', '204' ] },
+        'Dipartimento di Michela': { Aula: [ '106', '204' ] }
     }
  *
  * @apiError NotFound No Space was found.
@@ -279,7 +350,7 @@ router.get('/getSpaces/all', function(req, res){
  *     }
  */
 // stampa tutti gli spazi per tipologia
-router.get('/getSpaces/:typology', function(req, res){
+router.get('/getSpaces/:typology', security.authenticateJWT ,function(req, res){
     const get_options = {
         hostname: 'couchdb',
         port: 5984,
@@ -342,6 +413,49 @@ router.get('/getSpaces/:typology', function(req, res){
 
     usrs.end();
 });
+
+/**
+ * @api {get} /api/getReservations Ottieni lista delle prenotazioni associate al mio profilo
+ * @apiHeader {String} access_token Access_token univoco utente.
+ * @apiHeaderExample {json} Esempio header:
+ *     {
+ *       "Authorization": "Bearer ACCESS_TOKEN"
+ *     }
+ * @apiName getReservation
+ * @apiGroup Prenotazioni
+ *
+ * 
+ *
+ * @apiSuccess {String} department_name nome del dipartimento
+ * @apiSuccess {String} Spazio nome dello spazio della prenotazione
+ * @apiSuccess {String} Inizio data inizio prenotazione
+ * @apiSuccess {String} Fine data fine prenotazione
+ *
+ * @apiSuccessExample Success-Response:
+ *     HTTP/1.1 200 OK
+    {
+        'department_name': [
+            {
+                Spazio: 'Aula - 106',
+                Inizio: '26/9/2022 - 13:0:0',
+                Fine: '26/9/2022 - 14:0:0'
+            },
+            {
+                Spazio: 'Aula - 106',
+                Inizio: '26/9/2022 - 12:0:0',
+                Fine: '26/9/2022 - 13:0:0'
+            }
+        ]
+    }
+ *
+ * @apiError not_found Nessuna prenotazione trovata
+ *
+ * @apiErrorExample Error-Response:
+ *     HTTP/1.1 404 Not Found
+ *     {
+ *       message: 'Nessuna prenotazione trovata'
+ *     }
+ */
 
 // stampa le mie prenotazioni
 router.get('/getReservations', security.authenticateJWT ,function(req, res){
@@ -407,14 +521,58 @@ router.get('/getReservations', security.authenticateJWT ,function(req, res){
     usrs.end();
 });
 
+/**
+ * @api {post} /api/make_res Effettua una prenotazione
+ * @apiHeader {String} access_token Access_token univoco utente.
+ * @apiHeaderExample {json} Esempio header:
+ *     {
+ *       "Authorization": "Bearer ACCESS_TOKEN"
+ *     }
+ * @apiBody {String} dep_name Nome del dipartimento 
+ * @apiBody {String} typology Tipologia dello spazio
+ * @apiBody {String} space_name Nome dello spazio
+ * @apiBody {Object} start_date Data e ora di inizio prenotazione (es. {"Y": "2022", "M": "9", "D": "19", "h": "9" } )
+ * @apiName Make_res
+ * @apiGroup Prenotazioni
+ *
+ * 
+ *
+ * @apiSuccess {String} message Esito della prenotazione
+ * @apiSuccess {String} reservation_id Id univoco della prenotazione
+ *
+ * @apiSuccessExample Success-Response:
+ *     HTTP/1.1 200 OK
+    {
+        message: 'Prenotazione effettuata con successo',
+        reservation_id: '1e56fbdc74eaab65be88a415185d5d74Reservation1'
+    }
+ *
+ * @apiError forbidden Elemento mancante nel body della richiesta
+ *
+ * @apiErrorExample Error-Response:
+ *     HTTP/1.1 403 Forbidden
+ *     {
+ *       error: 'elemento mancante nel body!'
+ *     }
+ * 
+ * @apiError NotFound Nessun posto disponibile trovato
+ *
+ * @apiErrorExample Error-Response:
+ *     HTTP/1.1 404 NotFound
+ *     {
+ *       error: 'Seat not found!'
+ *     }
+ */
+
 // effettua una prenotazione
-/* curl -d '{"email": "matteo.user@gmail.com","dep_name": "Dipartimento di Matteo", "typology": "Aula", "space_name": "106", "start_date": {"Y": "2022", "M": "9", "D": "19", "h": "9" }}' -H "Content-Type: application/json" -X POST http://localhost:8080/api/make_res  */
-/* curl -d '{"email": "fra.admin@gmail.com","dep_name": "Dipartimento di Donia", "typology": "Aula", "space_name": "106", "start_date": { "Y": "2022", "M": "9", "D": "19", "h": "9" }}' -H "Content-Type: application/json" -X POST http://localhost:8080/api/make_res */
-router.post('/make_res', function(req, res){
+/* curl -d '{"dep_name": "Dipartimento di Matteo", "typology": "Aula", "space_name": "106", "start_date": {"Y": "2022", "M": "9", "D": "19", "h": "9" }}' -H "Content-Type: application/json" -X POST http://localhost:8080/api/make_res  */
+/* curl -d '{"dep_name": "Dipartimento di Donia", "typology": "Aula", "space_name": "106", "start_date": { "Y": "2022", "M": "9", "D": "19", "h": "9" }}' -H "Content-Type: application/json" -X POST http://localhost:8080/api/make_res */
+router.post('/make_res', security.authenticateJWT ,function(req, res){
     var _rev = null;
     var _id = '';
     var position = '';
-    var body_template = {"email": "matteo.user@gmail.com","dep_name": "Dipartimento di Matteo", "typology": "Aula", "space_name": "106", "start_date": {"Y": "2022", "M": "9", "D": "14", "h": "9" }};
+    var body_template = {"dep_name": "Dipartimento di Matteo", "typology": "Aula", "space_name": "106", "start_date": {"Y": "2022", "M": "9", "D": "14", "h": "9" }};
+    let usr_email = req.user.username;
     var check_body = security.check_body(body_template, req.body);
     console.log(req.body, check_body);
     if (check_body != true){
@@ -435,7 +593,7 @@ router.post('/make_res', function(req, res){
                 };
             });
             if(!element){
-                return res.status(404).send(JSON.stringify({error: "Seat not found!"}, null, 4));
+                return res.status(404).send({error: "Seat not found!"});
             } else {
                 var prom = new Promise((resolve, reject) => {
                     console.log(element, "ELEMENT DELLA PROMISE")
@@ -446,7 +604,7 @@ router.post('/make_res', function(req, res){
                             error = {error:'No seats available for that date!'};
                             return resolve(error)
                         } else {
-                            date_already_reserved(req.body.start_date, req.body.email, function(err_3, response_3){
+                            date_already_reserved(req.body.start_date, usr_email, function(err_3, response_3){
                                 console.log("RESPONSE DI DATE ALREADY RESERVED",response_3);
                                 if(err_3){console.log(err_3); error = {error:err_3}; return resolve(error)};
                                 if(response_3 == true){
@@ -508,7 +666,7 @@ router.post('/make_res', function(req, res){
                                     "key": _id+"Reservation"+position,
                                     "type": "Reservation",
                                     "fields": {
-                                        "email": req.body.email,
+                                        "email": usr_email,
                                         "dep_name": req.body.dep_name,
                                         "typology": req.body.typology,
                                         "space_name": req.body.space_name,
@@ -605,11 +763,55 @@ function date_already_reserved(start_date, username, callback){
     })
 }
 
+/**
+ * @api {post} /api/rm_res Elimina una prenotazione
+ * @apiHeader {String} access_token Access_token univoco utente.
+ * @apiHeaderExample {json} Esempio header:
+ *     {
+ *       "Authorization": "Bearer ACCESS_TOKEN"
+ *     }
+ * @apiBody {String} dep_name Nome del dipartimento 
+ * @apiBody {String} typology Tipologia dello spazio
+ * @apiBody {String} space_name Nome dello spazio
+ * @apiBody {Object} start_date Data e ora di inizio prenotazione (es. {"Y": "2022", "M": "9", "D": "19", "h": "9" } )
+ * @apiName Rm_res
+ * @apiGroup Prenotazioni
+ *
+ * 
+ *
+ * @apiSuccess {String} message Esito dell' eliminazione
+ * @apiSuccess {String} seat_id Id univoco del posto liberato
+ *
+ * @apiSuccessExample Success-Response:
+ *     HTTP/1.1 200 OK
+    {
+        message: 'Prenotazione eliminata correttamente!',
+        seat_id: '1e56fbdc74eaab65be88a415185d5d74'
+    }
+ *
+ * @apiError forbidden Elemento mancante nel body della richiesta
+ *
+ * @apiErrorExample Error-Response:
+ *     HTTP/1.1 403 Forbidden
+ *     {
+ *       error: 'elemento mancante nel body!'
+ *     }
+ * 
+ * @apiError NotFound Prenotazione non trovata 
+ *
+ * @apiErrorExample Error-Response:
+ *     HTTP/1.1 404 NotFound
+ *     {
+ *       message: 'Prenotazione non trovata! Per favore controlla i dati della richiesta.'
+ *     }
+ */
+
 // elimina una prenotazione
-/* curl -d '{"email": "matteo.user@gmail.com","dep_name": "Dipartimento di Donia", "typology": "Aula", "space_name": "106", "start_date": { "Y": "2022", "M": "9", "D": "19", "h": "9" }}' -H "Content-Type: application/json" -X POST http://localhost:8080/api/rm_res */
-/* curl -d '{"email": "fra.admin@gmail.com","dep_name": "Dipartimento di Donia", "typology": "Aula", "space_name": "106", "start_date": { "Y": "2022", "M": "9", "D": "19", "h": "9" }}' -H "Content-Type: application/json" -X POST http://localhost:8080/api/rm_res */
-router.post('/rm_res', function(req, res){
+/* curl -d '{"dep_name": "Dipartimento di Donia", "typology": "Aula", "space_name": "106", "start_date": { "Y": "2022", "M": "9", "D": "19", "h": "9" }}' -H "Content-Type: application/json" -X POST http://localhost:8080/api/rm_res */
+/* curl -d '{"dep_name": "Dipartimento di Donia", "typology": "Aula", "space_name": "106", "start_date": { "Y": "2022", "M": "9", "D": "19", "h": "9" }}' -H "Content-Type: application/json" -X POST http://localhost:8080/api/rm_res */
+router.post('/rm_res', security.authenticateJWT ,function(req, res){
     // GET all_reservations view: http://localhost:5984/db/_design/Reservation/_view/All_Reservations/
+    let usr_email = req.user.username;
     couchdb_utils.get_from_couchdb('/db/_design/Reservation/_view/All_Reservations/', function(err, reservations_response) {
         if (err) { console.log(err); return res.send(err) }
         else { var reservations = reservations_response.rows
@@ -617,7 +819,7 @@ router.post('/rm_res', function(req, res){
             var res_found = 0
             reservations.forEach(function(resr){
                 // Se la trovo
-                if ( resr.value.fields.email == req.body.email && resr.value.fields.dep_name == req.body.dep_name && resr.value.fields.typology == req.body.typology && resr.value.fields.space_name == req.body.space_name && resr.value.fields.start_date.Y == parseInt(req.body.start_date.Y) && resr.value.fields.start_date.M == parseInt(req.body.start_date.M) && resr.value.fields.start_date.D == parseInt(req.body.start_date.D) && resr.value.fields.start_date.h == parseInt(req.body.start_date.h) ) {
+                if ( resr.value.fields.email == usr_email && resr.value.fields.dep_name == req.body.dep_name && resr.value.fields.typology == req.body.typology && resr.value.fields.space_name == req.body.space_name && resr.value.fields.start_date.Y == parseInt(req.body.start_date.Y) && resr.value.fields.start_date.M == parseInt(req.body.start_date.M) && resr.value.fields.start_date.D == parseInt(req.body.start_date.D) && resr.value.fields.start_date.h == parseInt(req.body.start_date.h) ) {
                     res_found = 1 // Serve per il console.log()
                     // Elimino la prenotazione
                     couchdb_utils.delete_from_couchdb('/db/'+resr.id, function(err, response) {
@@ -672,7 +874,7 @@ router.post('/rm_res', function(req, res){
             // Se non ha trovato la prenotazione notifica il richiedente
             if (res_found == 0) {
                 console.log("Reservation not found!\n")
-                return res.send({message: "Prenotazione non trovata! Pre favore controlla i dati della richiesta."})
+                return res.send({message: "Prenotazione non trovata! Per favore controlla i dati della richiesta."})
             }
             else { console.log("Result: Reservation found. Deleting...\n") }
         }
