@@ -32,6 +32,7 @@ router.get('/', security.redirectLogin, security.isAdmin , function(req, res) {
   })
 });
 
+// Blocco e sblocco degli utenti
 router.post('/lock', security.redirectLogin, security.isAdmin, function(req , res){
   var user_to_lock = req.body.user_to_lock;
   couchdb_utils.get_from_couchdb('/db/'+user_to_lock, function(err_1, response_1){
@@ -59,7 +60,6 @@ router.post('/lock', security.redirectLogin, security.isAdmin, function(req , re
     })
   })
 });
-
 router.post('/unlock', security.redirectLogin, security.isAdmin, function(req , res){
   var user_to_unlock = req.body.user_to_unlock;
   couchdb_utils.get_from_couchdb('/db/'+user_to_unlock, function(err_1, response_1){
@@ -95,7 +95,7 @@ router.post('/rm_res', function(req, res){
     if (err) {console.log(err)}
     else {/*console.log("RESERVATION DELETED: "+req.body.res_id)*/}
   })
-  // GET seat
+  // update seat
   couchdb_utils.get_from_couchdb('/db/'+req.body.seat_id, function(err, seat_response) {
     if (err) { console.log(err) }
     else { var seat = seat_response 
@@ -227,7 +227,6 @@ function queueLockEmail(username){
     }, 500);
   });
 };
-
 function deliverQueuedMessages(queue, transporter, msg_options){
   amqp.connect(process.env.AMQP_URL, function(error0, connection) {
     if (error0) {

@@ -565,8 +565,7 @@ router.get('/getReservations', security.authenticateJWT ,function(req, res){
  */
 
 // effettua una prenotazione
-/* curl -d '{"dep_name": "Dipartimento di Matteo", "typology": "Aula", "space_name": "106", "start_date": {"Y": "2022", "M": "9", "D": "19", "h": "9" }}' -H "Content-Type: application/json" -X POST http://localhost:8080/api/make_res  */
-/* curl -d '{"dep_name": "Dipartimento di Donia", "typology": "Aula", "space_name": "106", "start_date": { "Y": "2022", "M": "9", "D": "19", "h": "9" }}' -H "Content-Type: application/json" -X POST http://localhost:8080/api/make_res */
+// curl -d '{"dep_name": "Dipartimento di Francesco", "typology": "Aula", "space_name": "106", "start_date": {"Y": "2022", "M": "9", "D": "3", "h": "9" }}' -H "Content-Type: application/json" -X POST http://localhost:8080/api/make_res
 router.post('/make_res', security.authenticateJWT ,function(req, res){
     var _rev = null;
     var _id = '';
@@ -807,8 +806,7 @@ function date_already_reserved(start_date, username, callback){
  */
 
 // elimina una prenotazione
-/* curl -d '{"dep_name": "Dipartimento di Donia", "typology": "Aula", "space_name": "106", "start_date": { "Y": "2022", "M": "9", "D": "19", "h": "9" }}' -H "Content-Type: application/json" -X POST http://localhost:8080/api/rm_res */
-/* curl -d '{"dep_name": "Dipartimento di Donia", "typology": "Aula", "space_name": "106", "start_date": { "Y": "2022", "M": "9", "D": "19", "h": "9" }}' -H "Content-Type: application/json" -X POST http://localhost:8080/api/rm_res */
+// curl -d '{"dep_name": "Dipartimento di Francesco", "typology": "Aula", "space_name": "106", "start_date": {"Y": "2022", "M": "9", "D": "3", "h": "9" }}' -H "Content-Type: application/json" -X POST http://localhost:8080/api/rm_res
 router.post('/rm_res', security.authenticateJWT ,function(req, res){
     // GET all_reservations view: http://localhost:5984/db/_design/Reservation/_view/All_Reservations/
     let usr_email = req.user.username;

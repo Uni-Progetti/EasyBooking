@@ -2,26 +2,17 @@ var express = require('express');
 var router = express.Router();
 const https = require('node:https');
 const couchdb_utils = require("../couchdb_utils.js");
+const security = require("../security.js")
 const jsStringify = require('js-stringify');
 const { Script } = require('node:vm');
 
-// Reindirizza al login se non autenticati
-const redirectLogin = function(req, res, next){
-  if(!req.session.userId){
-    res.redirect('/login');
-  } else {
-    next();
-  }
-}
-
 // GET personal_area page
-router.get('/', redirectLogin, function(req, res) {
-  	getCalendarEvents(req, res, req.session.access_token, '', '');
+router.get('/', security.redirectLogin, function(req, res) {
+	getCalendarEvents(req, res, req.session.access_token, '', '');
 });
-
 function getCalendarEvents(req, res, access_token, calendar, start_date){
 	var events_array = [];
-	
+
 	if ('access_token' in req.session) {
 		let data = '';
 		const options = {
@@ -59,14 +50,11 @@ function getCalendarEvents(req, res, access_token, calendar, start_date){
 			return false;
 		});
 		request.end();
-		
 	}
-
 	else {
 		getPersonalAreaReservations(req, res, access_token, events_array, false);
 	}
 };
-
 function getPersonalAreaReservations(req, res, access_token, events_array, is_google){
 	// GET all_reservations view: http://localhost:5984/db/_design/Reservation/_view/All_Reservations/
 	couchdb_utils.get_from_couchdb('/db/_design/Reservation/_view/All_Reservations/', function(err, reservations_response) {
@@ -81,7 +69,7 @@ function getPersonalAreaReservations(req, res, access_token, events_array, is_go
 					events_array.push({ title: tit, start: ini, end: fin });
 				}
 			});
-			// Render della pagina home
+			// Render dell'area personale
 			res.render('personalArea', {userId: req.session.userId, reservations: reservations.rows, csrfToken: req.csrfToken(), location: req.location, cal_events: events_array, role: req.session.role, access_token: access_token, jsStringify, is_google: is_google});
 		}
 	})
@@ -94,6 +82,7 @@ router.post('/sync_events', function(req, res) {
 	console.log('reser: ', req.body.reservation);
 	var ress = JSON.parse(req.body.reservation);
 
+	// Se l'evento non è gia sincronizzato lo sincronizza
 	if(!(ress.value.fields.is_sync)) {
 		console.log(ress.value);
 		console.log('dip : ', ress.value.fields.dep_name + ' - ' + ress.value.fields.typology + ' ' + ress.value.fields.space_name);
@@ -179,7 +168,7 @@ router.post('/sync_events', function(req, res) {
 		usrs.write(postData);
 		usrs.end();
 	}
-
+	// Altrimenti lo desincronizza
 	else {
 		const post_options = {
 			hostname: 'www.googleapis.com',
@@ -201,6 +190,7 @@ router.post('/sync_events', function(req, res) {
 				// var x = JSON.parse(data);
 				console.log('----------------------', data, '***********************');
 				res.header("Content-Type",'application/json');
+
 				// aggiorna il campo is_sync della prenotazione
 				const to_desync_postData = JSON.stringify({
 					"key": ress.id,

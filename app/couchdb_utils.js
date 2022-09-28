@@ -13,6 +13,7 @@ const dayjs = require('dayjs');
 const jwt = require('jsonwebtoken');
 const host = "couchdb";
 
+// 
 function get_http(get_options, callback) {
     var data = "";
     const response = http.request(get_options, out => {
@@ -156,6 +157,7 @@ function delete_from_couchdb(path, callback){
     });
 }
 
+// 
 function get_from_couchdb_out(path, callback) {
     const get_options = {
         hostname: '127.0.0.1',

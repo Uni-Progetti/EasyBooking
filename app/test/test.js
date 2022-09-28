@@ -11,51 +11,10 @@ dayjs.extend(weekday);
 chai.use(chaiHttp);
 chai.should();
 
-/*
-describe("Test di prova", () => {
-    it("should return status code 200 and be json", (done) => {
-        chai.request("http://localhost:8080")
-            .get("/users/2")
-            .end((err, res) => {
-                if(err) {
-                    console.log("ERROREEEEE:", err);
-                    done();
-                }
-                expect(res).to.have.status(200);
-                expect(res).to.be.json;
-                console.log(JSON.stringify(res));
-                console.log(res.body.id);
-                expect(res.body.id).to.eql("2");
-                expect(res.body.username).to.eql("Dave Davids");
-                done();
-            });
-    });
-});
-*/
 
-/*
-    it("users/:userId should return 200 and body should contain id: '2', username: 'Dave Davids'", (done) => {
-        chai.request("http://localhost:8080")
-            .get("/users/2")
-            .end((err, res) => {
-                if(err) {
-                    console.log("ERROREEEEE:", err);
-                    done();
-                }
-                res.should.have.status(200);
-                res.should.have.property("body");
-                res.body.should.be.json;
-                res.body.should.have.headers;
-                res.body.should.have.param("id").eql("2");
-                res.body.should.have.param("username").eql("Dave Davids");
-                done();
-            });
-    });
-*/
-
-describe("Test per controllo risultati chiamata http", () => {
+describe("Test dei risultati delle chiamate http", () => {
     var access_token = '';
-    // LOGIN 
+    // LOGIN
     it("should return the access_token and refresh_token", (done) => {
         chai.request("http://localhost:8080/api")
             .post("/login")
@@ -76,7 +35,7 @@ describe("Test per controllo risultati chiamata http", () => {
             });
     });
 
-    // TUTTI I DIPARTIMENTI 
+    // TUTTI I DIPARTIMENTI
     it("should return the list of all departments", (done) => {
         chai.request("http://localhost:8080/api")
             .get("/getDepartments/all")
@@ -98,7 +57,6 @@ describe("Test per controllo risultati chiamata http", () => {
                 done();
             });
     });
-
 
     // TUTTI GLI SPAZI
     it("should return the list of all spaces", (done) => {
@@ -142,20 +100,12 @@ describe("Test per controllo risultati chiamata http", () => {
                 let ris_string = JSON.stringify(ris);
                 //console.log(ris_string);
                 expect(ris_string).to.contain("Aula");
-                // for (var e in res.body) {
-                    // console.log(res.body[e]);
-                    // let blocco = res.body[e][0];
-                    // console.log("---");
-                    // let jsBlocco = JSON.stringify(blocco);
-                    // console.log(jsBlocco);
-                    // expect(jsBlocco).to.contain("Aula");
-                // }
 
                 done();
             });
     });
 
-    // MAKE RES 
+    // MAKE RES
     it("should book a seat and return the reservation ID", (done) => {
         var day = dayjs().weekday(3);
         chai.request("http://localhost:8080/api")
@@ -179,7 +129,6 @@ describe("Test per controllo risultati chiamata http", () => {
 
     // TUTTE LE PRENOTAZIONI DI UN UTENTE (email)
     it("should return the list of all reservations of a given user (email)", (done) => {
-        
         chai.request("http://localhost:8080/api")
             .get("/getReservations")
             .set({ "Authorization": `Bearer ${access_token}` })
@@ -191,22 +140,13 @@ describe("Test per controllo risultati chiamata http", () => {
                 //expect(res).to.have.status(200);
                 expect(res).to.be.json;
                 //expect(res).to.have.property('body');
-                
+
                 console.log(res.body);
-                // for (var e in res.body) {
-                //     console.log(res.body[e]);
-                //     let blocco = res.body[e][0];
-                //     console.log("---");
-                //     let jsBlocco = JSON.stringify(blocco);
-                //     console.log(jsBlocco);
-                //     expect(jsBlocco).to.contain("Spazio");
-                // }
-                
                 done();
             });
     });
 
-    // RM RES 
+    // RM RES
     it("should remove a booked seat and return the result", (done) => {
         var day = dayjs().weekday(3);
         chai.request("http://localhost:8080/api")
