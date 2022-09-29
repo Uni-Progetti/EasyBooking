@@ -239,7 +239,6 @@ router.post('/sync_events', function(req, res) {
 	};
 });
 
-
 // POST remove reservation + decrease seat position
 router.post('/rm_res', function(req, res){
 	// Delete reservation

@@ -107,12 +107,12 @@ describe("Test dei risultati delle chiamate http", () => {
 
     // MAKE RES
     it("should book a seat and return the reservation ID", (done) => {
-        var day = dayjs().weekday(3);
+        var day = ((dayjs().weekday(3)).isBefore(dayjs()))? dayjs().weekday(10):dayjs().weekday(3);
         chai.request("http://localhost:8080/api")
             .post("/make_res")
             .set({ "Authorization": `Bearer ${access_token}` })
             .set('content-type', 'application/json')
-            .send({"dep_name": "Dipartimento di Matteo", "typology": "Aula", "space_name": "106", "start_date": {"Y": day.year().toString(), "M": (day.month()+1).toString(), "D": day.date().toString(), "h": "12" }})
+            .send({"dep_name": "Dipartimento di Matteo", "typology": "Aula", "space_name": "106", "start_date": {"Y": day.year().toString(), "M": (day.month()+1).toString(), "D": day.date().toString(), "h": "16" }})
             .end((err, res) => {
                 if(err) {
                     console.log("ERROREEEEE:", err);
@@ -148,12 +148,12 @@ describe("Test dei risultati delle chiamate http", () => {
 
     // RM RES
     it("should remove a booked seat and return the result", (done) => {
-        var day = dayjs().weekday(3);
+        var day = ((dayjs().weekday(3)).isBefore(dayjs()))? dayjs().weekday(10):dayjs().weekday(3);
         chai.request("http://localhost:8080/api")
             .post("/rm_res")
             .set({ "Authorization": `Bearer ${access_token}` })
             .set('content-type', 'application/json')
-            .send({"dep_name": "Dipartimento di Matteo", "typology": "Aula", "space_name": "106", "start_date": {"Y": day.year().toString(), "M": (day.month()+1).toString(), "D": day.date().toString(), "h": "12" }})
+            .send({"dep_name": "Dipartimento di Matteo", "typology": "Aula", "space_name": "106", "start_date": {"Y": day.year().toString(), "M": (day.month()+1).toString(), "D": day.date().toString(), "h": "16" }})
             .end((err, res) => {
                 if(err) {
                     console.log("ERROREEEEE:", err);

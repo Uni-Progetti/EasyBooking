@@ -7,8 +7,10 @@ npm run-script build
 wait
 cd .. && sudo docker-compose build
 wait
-# cd app && apidoc -i . -o apidoc
-# wait
-# cd ..
-# wait
-sudo docker-compose --env-file .env up
+sudo docker-compose --env-file .env up -d
+wait
+sleep 10
+cd app
+node db_first_start.js
+wait
+npm test
