@@ -158,11 +158,6 @@ Aggiornare npm alla versione più recente
     # EasyBooking/
     ./start.sh
     ```
-6. Configure the db
-    ```sh
-    # EasyBooking/
-    node app/db_first_start.js
-    ```
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
